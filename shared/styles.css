@@ -180,22 +180,35 @@ h4 { font-size: var(--text-2xl); }
   background-clip: text;
 }
 
-/* ---------- Cards ---------- */
+/* ---------- Cards (Modern Premium Revamp) ---------- */
 .card {
-  background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: rgba(39, 39, 42, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-xl);
   padding: var(--space-8);
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   position: relative;
   overflow: hidden;
+  transition: all var(--transition-spring);
 }
 
 .card:hover {
-  border-color: var(--color-primary-light);
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  border-color: rgba(139, 92, 246, 0.3);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 20px rgba(139, 92, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+[data-theme="light"] .card {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .card:hover {
+  border-color: rgba(139, 92, 246, 0.2);
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08), 0 0 20px rgba(139, 92, 246, 0.1);
 }
 
 /* Glassmorphism utility */
@@ -274,7 +287,7 @@ h4 { font-size: var(--text-2xl); }
 .input {
   width: 100%;
   padding: var(--space-3) var(--space-4);
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text);
@@ -282,6 +295,12 @@ h4 { font-size: var(--text-2xl); }
   font-size: var(--text-base);
   transition: all var(--transition-fast);
   outline: none;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+[data-theme="light"] .input {
+  background: #ffffff;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .input:focus {
@@ -533,3 +552,46 @@ textarea.input {
    <link rel="preconnect" href="https://fonts.googleapis.com">
    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 */
+
+/* ---------- Drop Zone Utilities ---------- */
+.drop-zone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  text-align: center;
+  transition: all var(--transition-base);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  position: relative;
+  overflow: hidden;
+}
+
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--color-primary);
+  background: rgba(139, 92, 246, 0.05);
+  box-shadow: inset 0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+.drop-icon {
+  font-size: 3.5rem;
+  margin-bottom: var(--space-2);
+  opacity: 0.9;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+.checkerboard-bg {
+  background-color: var(--color-surface);
+  background-image: linear-gradient(45deg, var(--color-border) 25%, transparent 25%), 
+                    linear-gradient(-45deg, var(--color-border) 25%, transparent 25%), 
+                    linear-gradient(45deg, transparent 75%, var(--color-border) 75%), 
+                    linear-gradient(-45deg, transparent 75%, var(--color-border) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  border-radius: var(--radius-md);
+  max-width: 100%;
+}

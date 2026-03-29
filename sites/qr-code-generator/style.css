@@ -1,6 +1,6 @@
 /* Custom CSS for QR */
-.qr-grid { grid-template-columns: 1fr 1fr; }
-@media(max-width:768px){ .qr-grid{ grid-template-columns: 1fr; } }
+.qr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+@media(max-width:768px){ .qr-grid{ grid-template-columns: 1fr; gap: 1.5rem; } }
 
 /* Missing utility classes from index.html */
 .bg-white { background-color: #ffffff; color: #000000; }

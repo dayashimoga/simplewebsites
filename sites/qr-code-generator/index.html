@@ -12,26 +12,21 @@
     <div class="container container-md">
         <section class="hero"><h1>📱 <span class="text-gradient">QR Code Pro</span></h1><p>Create beautiful, highly customized QR codes instantly.</p></section>
 
-        <!-- How to Use -->
-        <div class="card mb-4" style="border-left:3px solid var(--accent);background:var(--surface)">
-            <h4 class="mb-2" style="color:var(--accent)">📋 How to Use</h4>
-            <ol style="margin:0;padding-left:1.2rem;line-height:1.8;font-size:.9rem;color:var(--muted)">
-                <li><strong>Enter your content</strong> — paste any URL, text, phone number, email, or WiFi config into the input field below.</li>
-                <li><strong>Customize colors</strong> — pick foreground and background colors to match your brand.</li>
-                <li><strong>Add a logo</strong> (optional) — upload your logo to embed it in the center of the QR code.</li>
-                <li><strong>Download</strong> — click the download button to save your QR code as a high-resolution PNG image.</li>
-            </ol>
-            <p style="margin-top:.75rem;font-size:.82rem;color:var(--muted)">💡 <em>Tip: Use "H" (high) error correction is automatically enabled when a logo is added, ensuring the QR code remains scannable.</em></p>
+        <!-- Setup Card -->
+        <div class="card mb-8">
+            <h4 class="mb-4 text-gradient">Create your QR Code in 1 step!</h4>
+            <p style="color:var(--text-secondary); margin-bottom:1rem;">To instantly generate a QR code, simply type or paste your link into the "Content" box below. The QR code on the right will update automatically in real-time as you type!</p>
+            <div class="form-group mb-4">
+                <label class="label">Step 1: Paste Your Link (URL, Text, or Email)</label>
+                <input type="text" id="qr-data" class="input w-full" value="https://google.com" oninput="debounceGenerate()" placeholder="Type here... e.g. https://yoursite.com" style="font-size: 1.1rem; padding: 1rem;">
+                <p class="hint mt-2" style="font-size:0.85rem; color:var(--text-muted)">The QR code instantly generates as you type. Once it appears, you can customize its colors or add a logo below!</p>
+            </div>
         </div>
 
         <div class="grid qr-grid">
             <div class="card">
-                <h4 class="mb-4">Details</h4>
-                <div class="form-group mb-4">
-                    <label>Content (URL, Text, Phone, Email, WiFi)</label>
-                    <input type="text" id="qr-data" class="input-text w-full" value="https://google.com" oninput="debounceGenerate()" placeholder="Enter URL, text, phone number, or email...">
-                    <p class="hint mt-1" style="font-size:.75rem">Examples: https://yoursite.com · Hello World · tel:+1234567890 · mailto:test@example.com</p>
-                </div>
+                <h4 class="mb-4">Advanced Configuration</h4>
+                <p class="mb-4" style="font-size: 0.9rem; color: var(--text-muted);">Make your QR code stand out by changing its foreground and background colors to match your brand identity.</p>
                 
                 <h4 class="mb-4 mt-8">Colors</h4>
                 <div class="flex gap-4 mb-4">
@@ -45,7 +40,7 @@
                     </div>
                 </div>
 
-                <h4 class="mb-4 mt-8">Logo (Optional)</h4>
+                <h4 class="mb-4 mt-8">Optional Logo</h4>
                 <div class="drop-zone p-4 text-sm" onclick="document.getElementById('logo-input').click()">
                     <span>📎 Upload Logo Image (PNG, JPG)</span>
                 </div>
