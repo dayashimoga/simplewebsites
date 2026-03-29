@@ -23,19 +23,53 @@
         </div>
 
         <div class="card hidden mb-8" id="compress-ui">
-            <h4 class="mb-2">Quality Preset</h4>
-            <div class="flex gap-4 mb-4">
-                <button class="btn btn-secondary active" id="btn-hq" onclick="setQuality('high')">High Quality (Larger file)</button>
-                <button class="btn btn-secondary" id="btn-mq" onclick="setQuality('medium')">Medium Quality (Balanced)</button>
-                <button class="btn btn-secondary" id="btn-lq" onclick="setQuality('low')">Low Quality (Smallest file)</button>
+            <!-- Video Preview & Trim Controls -->
+            <div class="mb-6 bg-black rounded-lg overflow-hidden flex flex-col">
+                <video id="video-preview" controls class="w-full max-h-[300px] bg-black" style="max-height:300px;"></video>
+                <div class="bg-gray-800 p-4">
+                    <label class="label text-sm mb-2">Trim Video (Start - End in seconds)</label>
+                    <div class="flex gap-4 items-center">
+                        <input type="number" id="trim-start" class="input w-full p-2" min="0" step="0.1" placeholder="Start (sec)">
+                        <span class="text-white font-mono text-xl"> : </span>
+                        <input type="number" id="trim-end" class="input w-full p-2" min="0" step="0.1" placeholder="End (sec)">
+                        <button class="btn btn-secondary text-xs p-2 whitespace-nowrap" onclick="setTrimFromVideo()">Get From Player</button>
+                    </div>
+                    <p class="hint mt-2 text-xs">Leave blank to keep full length.</p>
+                </div>
             </div>
-            <button class="btn btn-accent w-full" id="do-compress-btn" onclick="executeCompression()">Compress Video</button>
+
+            <!-- Resolution & Quality Settings -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h4 class="mb-3 text-lg">Resolution</h4>
+                    <select id="video-resolution" class="input w-full p-3 cursor-pointer">
+                        <option value="original" selected>Original Size (No Change)</option>
+                        <option value="1920">1080p (FHD)</option>
+                        <option value="1280">720p (HD)</option>
+                        <option value="854">480p (SD)</option>
+                        <option value="640">360p (Web)</option>
+                    </select>
+                </div>
+                <div>
+                    <h4 class="mb-3 text-lg">Quality Preset</h4>
+                    <div class="flex flex-col gap-2">
+                        <button class="btn btn-secondary active w-full" id="btn-hq" onclick="setQuality('high')">High Quality (Larger)</button>
+                        <button class="btn btn-secondary w-full" id="btn-mq" onclick="setQuality('medium')">Medium Quality</button>
+                        <button class="btn btn-secondary w-full" id="btn-lq" onclick="setQuality('low')">Low Quality (Smallest)</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-accent w-full text-lg py-4" id="do-compress-btn" onclick="executeCompression()">🎬 Compress & Edit Video</button>
             
-            <div id="processing-status" class="mt-4 text-center font-bold text-gradient hidden"></div>
+            <div id="processing-status" class="mt-4 text-center font-bold text-gradient hidden" style="font-size:1.1rem"></div>
+            <div id="progress-wrap" class="hidden w-full bg-gray-800 rounded-full h-3 mt-4 overflow-hidden border border-gray-700">
+                <div id="progress-bar" class="bg-accent h-3 rounded-full transition-all duration-300" style="width: 0%; box-shadow: 0 0 10px var(--color-accent)"></div>
+            </div>
             
-            <div id="result-ui" class="hidden mt-4 text-center">
-                <p>Compression finished! <span id="saved-space" class="text-green-500"></span></p>
-                <button class="btn btn-primary mt-4" onclick="downloadVideo()">📥 Download Compressed Video</button>
+            <div id="result-ui" class="hidden mt-6 text-center bg-gray-900 border border-gray-700 p-6 rounded-lg">
+                <p class="text-xl mb-4 text-white">Compression finished! <span id="saved-space" class="text-green-500 font-bold block mt-2"></span></p>
+                <button class="btn btn-primary w-full text-lg py-3 shadow-glow" onclick="downloadVideo()">📥 Download Compressed Video</button>
             </div>
         </div>
     </div>

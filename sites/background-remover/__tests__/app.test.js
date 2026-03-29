@@ -15,8 +15,10 @@ beforeEach(() => {
         <input type="color" id="bg-color" value="#000000" />
         <select id="download-format"><option value="image/png">PNG</option></select>
     `;
-    global.imglyRemoveBackground = jest.fn().mockResolvedValue(new Blob([''], { type: 'image/png' }));
     global.URL.createObjectURL = jest.fn().mockReturnValue('blob:test');
+    global._TEST_IMGLY_ = { 
+        removeBackground: jest.fn().mockResolvedValue(new Blob([''], { type: 'image/png' }))
+    };
     
     global.Image = class {
         constructor() { this.onload = null; this.src = ''; }
@@ -55,14 +57,14 @@ describe('Background Remover', () => {
         const file = new File(['data'], 'test.png', { type: 'image/png' });
         await processBackgroundRemoval(file);
         
-        await new Promise(r => setTimeout(r, 30));
-        expect(global.imglyRemoveBackground).toHaveBeenCalledWith(file);
+        await new Promise(r => setTimeout(r, 60));
+        expect(global._TEST_IMGLY_.removeBackground).toHaveBeenCalledWith(file);
         expect(document.getElementById('editor-container').style.display).toBe('block');
         expect(document.getElementById('action-buttons').style.display).toBe('flex');
     });
 
     test('processBackgroundRemoval handles error', async () => {
-        global.imglyRemoveBackground.mockRejectedValue(new Error('Test failure'));
+        global._TEST_IMGLY_.removeBackground.mockRejectedValue(new Error('Test failure'));
         const file = new File(['data'], 'test.png', { type: 'image/png' });
         await processBackgroundRemoval(file);
         
@@ -71,12 +73,12 @@ describe('Background Remover', () => {
     });
 
     test('processBackgroundRemoval handles missing library', async () => {
-        delete global.imglyRemoveBackground;
+        delete global._TEST_IMGLY_;
         const file = new File(['data'], 'test.png', { type: 'image/png' });
         await processBackgroundRemoval(file);
         
-        await new Promise(r => setTimeout(r, 30));
-        expect(document.getElementById('processing-status').textContent).toContain('not loaded');
+        await new Promise(r => setTimeout(r, 60));
+        expect(document.getElementById('processing-status').textContent).toContain('adblocker');
     });
 
     test('rotateImage does not throw when cropper is null', () => {

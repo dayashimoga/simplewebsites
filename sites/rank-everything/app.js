@@ -153,7 +153,7 @@ function createList(name, itemNames) {
         items: itemNames.filter(n => n.trim()).map((n, i) => ({
             id: `${i}_${Date.now().toString(36)}`,
             name: n.trim(),
-            votes: 0
+            score: 0
         }))
     };
     lists.push(newList);
@@ -167,20 +167,23 @@ function createList(name, itemNames) {
     return newList;
 }
 
-function voteItem(listId, itemId, direction) {
+function rateItem(listId, itemId, score) {
     const lists = loadListsFromStorage();
     const list = lists.find(l => l.id === listId);
     if (!list) return null;
     const item = list.items.find(i => i.id === itemId);
     if (!item) return null;
-    if (direction === 'up') item.votes = (item.votes || 0) + 1;
-    if (direction === 'down') item.votes = Math.max(0, (item.votes || 0) - 1);
-    list.items.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    
+    // Set new score
+    item.score = score;
+    
+    // Sort descending by score
+    list.items.sort((a, b) => (b.score || 0) - (a.score || 0));
     saveListsToStorage(lists);
 
     // Background sync
     fetch('/api/lists', {
-        method: 'POST', body: JSON.stringify({ action: 'vote', listId, itemId, direction }), headers: { 'Content-Type': 'application/json' }
+        method: 'POST', body: JSON.stringify({ action: 'rate', listId, itemId, score }), headers: { 'Content-Type': 'application/json' }
     }).catch(e => console.error('Cloudflare sync error', e));
 
     return list;
@@ -248,25 +251,41 @@ function renderCommunityLists() {
     }
     
     list.innerHTML = communityLists.map(cl => `
-        <div class="community-list card mb-4 p-4">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="m-0 text-lg text-accent">${cl.name}</h3>
+        <div class="community-list card mb-6 p-6 shadow-md border border-border">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="m-0 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-accent">${cl.name}</h3>
                 <div class="flex gap-2">
-                    <button class="btn btn-secondary py-1 text-sm" onclick="handleExportList('${cl.id}')">📤 Export</button>
-                    <button class="btn btn-secondary py-1 text-sm" onclick="if(confirm('Delete this list?')){deleteList('${cl.id}');renderCommunityLists();}">🗑️</button>
+                    <button class="btn btn-secondary py-1 px-3 text-sm rounded-md" onclick="handleExportList('${cl.id}')">📤 Export</button>
+                    <button class="btn btn-secondary py-1 px-3 text-sm rounded-md hover:text-red-400" onclick="if(confirm('Delete this list?')){deleteList('${cl.id}');renderCommunityLists();}">🗑️</button>
                 </div>
             </div>
-            ${cl.items.map((item, i) => `
-                <div class="rank-card flex items-center p-3 gap-3 bg-bg rounded-md border border-border mb-2">
-                    <div class="rank-number text-xl font-bold w-6 text-center text-muted">${i + 1}</div>
-                    <div class="flex-grow"><span class="font-medium">${item.name}</span></div>
-                    <div class="flex items-center gap-2">
-                        <button class="btn btn-secondary py-0 px-2 text-sm" onclick="voteItem('${cl.id}','${item.id}','up');renderCommunityLists();">👍</button>
-                        <span class="font-bold text-accent min-w-[2ch] text-center">${item.votes || 0}</span>
-                        <button class="btn btn-secondary py-0 px-2 text-sm" onclick="voteItem('${cl.id}','${item.id}','down');renderCommunityLists();">👎</button>
+            <div class="flex flex-col gap-3">
+            ${cl.items.map((item, i) => {
+                const score = item.score || 0;
+                let starsHTML = '';
+                for (let s = 1; s <= 10; s++) {
+                    const isFilled = s <= score;
+                    starsHTML += `<button 
+                        class="text-xl leading-none px-0.5 hover:scale-125 transition-transform" 
+                        style="color: ${isFilled ? '#f59e0b' : 'var(--color-border)'}; background: none; border: none; cursor: pointer;"
+                        onclick="rateItem('${cl.id}','${item.id}', ${s});renderCommunityLists();"
+                        title="Rate ${s}/10">★</button>`;
+                }
+                return `
+                <div class="rank-card flex flex-col md:flex-row md:items-center p-4 gap-4 bg-[var(--color-bg)] rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary-light)] transition-colors shadow-sm relative overflow-hidden">
+                    <div class="flex items-center gap-4 flex-grow w-full md:w-auto">
+                        <div class="rank-number text-3xl font-bold w-8 text-center" style="color: ${i === 0 ? '#fbbf24' : i === 1 ? '#9ca3af' : i === 2 ? '#b45309' : 'var(--color-text-muted)'}">${i + 1}</div>
+                        <div class="flex-grow"><span class="font-medium text-lg leading-tight line-clamp-2">${item.name}</span></div>
                     </div>
-                </div>
-            `).join('')}
+                    <div class="flex flex-col md:flex-row items-end md:items-center gap-3 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 border-[var(--color-border)]">
+                        <div class="flex items-center space-x-0.5 bg-[var(--color-surface)] px-2 py-1 rounded-full border border-[var(--color-border)]">
+                            ${starsHTML}
+                        </div>
+                        <span class="font-bold whitespace-nowrap bg-[var(--color-bg)] px-3 py-1 rounded-full text-[var(--color-accent)] border border-[var(--color-border-hover)] text-sm shadow-inner min-w-[5ch] text-center">${score}/10</span>
+                    </div>
+                </div>`;
+            }).join('')}
+            </div>
         </div>
     `).join('');
 }
@@ -309,7 +328,7 @@ if (typeof document !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         saveApiKeys, fetchCrypto, fetchMovies, fetchGames, loadCategory, renderList, checkApiKeys,
-        loadListsFromStorage, saveListsToStorage, createList, voteItem, deleteList,
+        loadListsFromStorage, saveListsToStorage, createList, rateItem, deleteList,
         exportList, importList, toggleCreateList, submitNewList, renderCommunityLists,
         handleExportList, STORAGE_KEY, syncListsFromCloudflare
     };

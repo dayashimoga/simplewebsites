@@ -118,16 +118,39 @@ function processHtml(html, siteName) {
     processed = processed.replace(/<\/head>/i, `    <link rel="manifest" href="manifest.json">\n    <meta name="theme-color" content="#1a1a1a">\n</head>`);
   }
   
-  // Service Worker Registration
-  if (!processed.includes('serviceWorker.register')) {
-    const swScript = `<script>
+  // Service Worker Registration & Auto-Update
+  const swScript = `<script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+          navigator.serviceWorker.register('sw.js?v=' + Date.now()).then(reg => {
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              if (installingWorker) {
+                installingWorker.onstatechange = () => {
+                  if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    window.location.reload();
+                  }
+                };
+              }
+            };
+          }).catch(err => console.log('SW config failed:', err));
+          
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+              refreshing = true;
+              window.location.reload();
+            }
+          });
         });
       }
     </script>`;
-    processed = processed.replace(/<\/body>/i, `${swScript}\n</body>`);
+  
+  // If we already have the old block, replace it, else append
+  if (processed.includes('serviceWorker.register')) {
+      processed = processed.replace(/<script>[^<]*serviceWorker\.register[^<]*<\/script>/gi, swScript);
+  } else {
+      processed = processed.replace(/<\/body>/i, `${swScript}\n</body>`);
   }
 
   // Open Graph Image

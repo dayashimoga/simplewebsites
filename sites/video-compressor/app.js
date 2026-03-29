@@ -58,19 +58,19 @@ function isVideoFile(file) {
 async function initFFmpeg() {
     if (ffmpegInstance) return ffmpegInstance;
 
-    // Wait for CDN library to be available (poll up to 5s)
     let FFmpegLib = null;
+    let FFmpegUtil = null;
     let attempts = 0;
     while (attempts < 25) {
-      FFmpegLib = (typeof window !== 'undefined') ? 
-        (window.FFmpegWASM || window.FFmpeg || window['@ffmpeg/ffmpeg']) : null;
-      if (FFmpegLib && (FFmpegLib.FFmpeg || typeof FFmpegLib === 'function')) break;
+      FFmpegLib = (typeof window !== 'undefined') ? (window.FFmpegWASM || window.FFmpeg || window['@ffmpeg/ffmpeg']) : null;
+      FFmpegUtil = (typeof window !== 'undefined') ? (window.FFmpegUtil || window['@ffmpeg/util']) : null;
+      if (FFmpegLib && (FFmpegLib.FFmpeg || typeof FFmpegLib === 'function') && FFmpegUtil && FFmpegUtil.toBlobURL) break;
       await new Promise(r => setTimeout(r, 200));
       attempts++;
     }
 
-    if (!FFmpegLib || (!FFmpegLib.FFmpeg && typeof FFmpegLib !== 'function')) {
-        throw new Error('FFmpeg library not available. Please check your internet connection or disable adblockers, then refresh the page.');
+    if (!FFmpegLib || !FFmpegUtil) {
+        throw new Error('FFmpeg libraries not available. Please check your connection or refresh the page.');
     }
 
     const ff = FFmpegLib.FFmpeg ? new FFmpegLib.FFmpeg() : new FFmpegLib();
@@ -81,25 +81,27 @@ async function initFFmpeg() {
     });
     
     ff.on('progress', ({ progress }) => {
-        const pct = Math.min(100, Math.round(progress * 100));
+        const pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
         const bar = document.getElementById('progress-bar');
         const statusEl = document.getElementById('processing-status');
         if (bar) bar.style.width = pct + '%';
-        if (statusEl) statusEl.textContent = `Compressing... ${pct}%`;
+        if (statusEl) statusEl.textContent = `Processing Video... ${pct}%`;
     });
 
-    const coreURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
-    const wasmURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm';
-
     const statusEl = document.getElementById('processing-status');
-    if (statusEl) { statusEl.textContent = 'Loading compression engine...'; statusEl.classList.remove('hidden'); }
+    if (statusEl) { statusEl.textContent = 'Loading AI Engine... (This may take a minute)'; statusEl.classList.remove('hidden'); }
 
+    // Use toBlobURL to bypass CORS Worker Restrictions
     try {
-        await ff.load({ coreURL, wasmURL });
+        const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+        const coreURL = await FFmpegUtil.toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
+        const wasmURL = await FFmpegUtil.toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+        // Load the worker properly to prevent Cross-Origin Worker Block
+        const workerURL = await FFmpegUtil.toBlobURL(`https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/814.ffmpeg.js`, 'text/javascript');
+        
+        await ff.load({ coreURL, wasmURL, classWorkerURL: workerURL });
     } catch (loadErr) {
-        // SharedArrayBuffer may not be available without COOP/COEP headers
-        // Try loading without explicit URLs (uses default CDN)
-        console.warn('FFmpeg load with explicit URLs failed, trying defaults:', loadErr.message);
+        console.warn('Blob load failed, trying standard load:', loadErr.message);
         await ff.load();
     }
     
@@ -122,15 +124,31 @@ function setVideoFile(file) {
     const uploadArea = document.getElementById('upload-area');
     const compressUI = document.getElementById('compress-ui');
     const resultUI = document.getElementById('result-ui');
-    const fileInfo = document.getElementById('file-info');
     
     if (uploadArea) uploadArea.classList.add('hidden');
     if (compressUI) compressUI.classList.remove('hidden');
     if (resultUI) resultUI.classList.add('hidden');
-    if (fileInfo) fileInfo.textContent = `📹 ${file.name} (${formatSize(file.size)})`;
+    
+    // Set video preview
+    const videoPreview = document.getElementById('video-preview');
+    if (videoPreview) {
+        videoPreview.src = URL.createObjectURL(file);
+    }
 
     // Pre-load FFmpeg in background
     initFFmpeg().catch(err => console.warn('FFmpeg pre-load failed:', err.message));
+}
+
+function setTrimFromVideo() {
+    const vid = document.getElementById('video-preview');
+    const tStart = document.getElementById('trim-start');
+    const tEnd = document.getElementById('trim-end');
+    if (vid) {
+        const curr = vid.currentTime.toFixed(1);
+        if (!tStart.value) { tStart.value = curr; }
+        else if (!tEnd.value) { tEnd.value = curr; }
+        else { tStart.value = curr; tEnd.value = ''; }
+    }
 }
 
 function setQuality(q) {
@@ -180,33 +198,51 @@ async function executeCompression() {
     const barWrap = document.getElementById('progress-wrap');
 
     if (btn) btn.disabled = true;
-    if (statusEl) { statusEl.classList.remove('hidden'); statusEl.textContent = 'Preparing...'; }
+    if (statusEl) { statusEl.classList.remove('hidden'); statusEl.textContent = 'Preparing Environment...'; }
     if (barWrap) barWrap.classList.remove('hidden');
     if (bar) bar.style.width = '0%';
 
     try {
         const ff = await initFFmpeg();
         
-        let FFmpegUtil = null;
-        let utilAttempts = 0;
-        while (utilAttempts < 25) {
-          FFmpegUtil = (typeof window !== 'undefined') ? (window.FFmpegUtil || window['@ffmpeg/util']) : null;
-          if (FFmpegUtil && FFmpegUtil.fetchFile) break;
-          await new Promise(r => setTimeout(r, 200));
-          utilAttempts++;
-        }
-        
-        const fetchFile = FFmpegUtil?.fetchFile;
-        if (!fetchFile) throw new Error('FFmpeg utility library not available. Please enable scripts and try again.');
+        let FFmpegUtil = window.FFmpegUtil || window['@ffmpeg/util'];
+        if (!FFmpegUtil || !FFmpegUtil.fetchFile) throw new Error('FFmpeg utility library not available.');
 
         const ext = (videoFile.name.split('.').pop() || 'mp4').toLowerCase();
         const inputName = `input.${ext}`;
         const outputName = 'output.mp4';
         const crf = qualityToCRF(quality);
+        
+        // Build CLI args
+        const startTrim = parseFloat(document.getElementById('trim-start')?.value);
+        const endTrim = parseFloat(document.getElementById('trim-end')?.value);
+        const resolution = document.getElementById('video-resolution')?.value;
 
-        await ff.writeFile(inputName, await fetchFile(videoFile));
-        await ff.exec(['-i', inputName, '-vcodec', 'libx264', '-crf', crf, '-preset', 'ultrafast', '-movflags', '+faststart', outputName]);
+        let args = ['-i', inputName];
+        
+        if (!isNaN(startTrim) && startTrim >= 0) {
+            args.push('-ss', startTrim.toString());
+        }
+        if (!isNaN(endTrim) && endTrim > 0 && endTrim > (startTrim || 0)) {
+            const duration = endTrim - (startTrim || 0);
+            args.push('-t', duration.toString());
+        }
+        
+        args.push('-vcodec', 'libx264', '-crf', crf, '-preset', 'ultrafast');
+        
+        if (resolution && resolution !== 'original') {
+            args.push('-vf', `scale='min(${resolution},iw)':-2`);
+        }
+        
+        args.push('-movflags', '+faststart', outputName);
 
+        if (statusEl) statusEl.textContent = 'Writing File...';
+        await ff.writeFile(inputName, await FFmpegUtil.fetchFile(videoFile));
+        
+        if (statusEl) statusEl.textContent = 'Executing AI Render...';
+        await ff.exec(args);
+
+        if (statusEl) statusEl.textContent = 'Finalizing Output...';
         const data = await ff.readFile(outputName);
         outputBlob = new Blob([data.buffer], { type: 'video/mp4' });
 
@@ -219,16 +255,18 @@ async function executeCompression() {
         const savings = calcSavings(videoFile.size, outputBlob.size);
         const savedEl = document.getElementById('saved-space');
         if (savedEl) {
+            let color = savings > 0 ? 'text-green-500' : 'text-yellow-500';
+            let txt = savings > 0 ? `Saved ${savings}% 🎉` : `Processed Successfully!`;
             savedEl.innerHTML = `
-                <span>Original: <strong>${formatSize(videoFile.size)}</strong></span>
-                <span>Compressed: <strong>${formatSize(outputBlob.size)}</strong></span>
-                <span class="savings-badge">Saved ${savings}% 🎉</span>
+                <span class="block text-sm text-gray-400">Original: ${formatSize(videoFile.size)}</span>
+                <span class="block text-sm text-gray-400">Processed: ${formatSize(outputBlob.size)}</span>
+                <span class="${color} text-lg block mt-2">${txt}</span>
             `;
         }
 
     } catch (e) {
         console.error('Compression error:', e);
-        showError('Compression failed: ' + e.message);
+        showError('Processing failed: ' + e.message);
         if (btn) btn.disabled = false;
         if (barWrap) barWrap.classList.add('hidden');
     }

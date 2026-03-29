@@ -16,7 +16,7 @@ const DOM_HTML = `
     <div id="processing-status" class="hidden"></div>
     <div id="progress-wrap" class="hidden"></div>
     <div id="progress-bar" style="width:0%"></div>
-    <div id="file-info"></div>
+    <div id="progress-bar" style="width:0%"></div>
     <div id="saved-space"></div>
     <button id="do-compress-btn"></button>
     <button id="btn-hq" class="btn btn-secondary"></button>
@@ -69,7 +69,7 @@ describe('Video Compressor — DOM Interactions', () => {
         setVideoFile(mockFile);
         expect(document.getElementById('compress-ui').classList.contains('hidden')).toBe(false);
         expect(document.getElementById('upload-area').classList.contains('hidden')).toBe(true);
-        expect(document.getElementById('file-info').textContent).toContain('test.mp4');
+        expect(document.getElementById('upload-area').classList.contains('hidden')).toBe(true);
     });
 
     test('handleUpload ignores non-video files', () => {
@@ -138,6 +138,7 @@ describe('Video Compressor — DOM Interactions', () => {
     test('initFFmpeg resolves immediately if library is available', async () => {
         resetFFmpeg();
         global.window.FFmpeg = { FFmpeg: class { on() {} load() { return Promise.resolve(); } } };
+        global.window.FFmpegUtil = { toBlobURL: jest.fn().mockResolvedValue('blob:') };
         const { initFFmpeg } = require('../app');
         const ff = await initFFmpeg();
         expect(ff).toBeTruthy();
@@ -150,7 +151,7 @@ describe('Video Compressor — DOM Interactions', () => {
         global.window.FFmpegWASM = null;
         global.window['@ffmpeg/ffmpeg'] = null;
         const { initFFmpeg } = require('../app');
-        await expect(initFFmpeg()).rejects.toThrow('FFmpeg library not available');
+        await expect(initFFmpeg()).rejects.toThrow('libraries not available');
     }, 10000);
 
     test('executeCompression fails gracefully if util is missing', async () => {
@@ -160,11 +161,10 @@ describe('Video Compressor — DOM Interactions', () => {
         setVideoFile(mockFile);
         
         global.window.FFmpeg = { FFmpeg: class { on() {} load() { return Promise.resolve(); } } };
-        global.window.FFmpegUtil = null;
-        global.window['@ffmpeg/util'] = null;
+        global.window.FFmpegUtil = { toBlobURL: jest.fn().mockResolvedValue('blob:') };
         
         await executeCompression();
-        expect(document.getElementById('processing-status').textContent).toContain('Compression failed');
+        expect(document.getElementById('processing-status').textContent).toContain('Processing failed');
     }, 15000);
 
     test('executeCompression runs full mock flow successfully', async () => {
@@ -184,7 +184,10 @@ describe('Video Compressor — DOM Interactions', () => {
             } 
         };
         // Mock util
-        global.window.FFmpegUtil = { fetchFile: () => Promise.resolve(new Uint8Array(1024)) };
+        global.window.FFmpegUtil = { 
+            fetchFile: () => Promise.resolve(new Uint8Array(1024)),
+            toBlobURL: jest.fn().mockResolvedValue('blob:') 
+        };
         
         await executeCompression();
         

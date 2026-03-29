@@ -1,6 +1,6 @@
 const {
     fetchCrypto, fetchMovies, fetchGames, saveApiKeys, loadCategory, renderList, checkApiKeys,
-    loadListsFromStorage, saveListsToStorage, createList, voteItem, deleteList,
+    loadListsFromStorage, saveListsToStorage, createList, rateItem, deleteList,
     exportList, importList, toggleCreateList, submitNewList, renderCommunityLists,
     STORAGE_KEY
 } = require('../app');
@@ -111,7 +111,7 @@ describe('Community Lists — CRUD', () => {
         expect(list).not.toBeNull();
         expect(list.name).toBe('Best Foods');
         expect(list.items).toHaveLength(3);
-        expect(list.items[0].votes).toBe(0);
+        expect(list.items[0].score).toBe(0);
     });
 
     test('createList returns null for missing name or items', () => {
@@ -127,28 +127,29 @@ describe('Community Lists — CRUD', () => {
         expect(lists).toHaveLength(2);
     });
 
-    test('voteItem increments/decrements votes', () => {
+    test('rateItem assigns a score and sorts', () => {
         const list = createList('Vote Test', ['Alpha', 'Beta']);
         const itemId = list.items[0].id;
-        voteItem(list.id, itemId, 'up');
-        voteItem(list.id, itemId, 'up');
+        rateItem(list.id, itemId, 8);
         const updated = loadListsFromStorage().find(l => l.id === list.id);
         const item = updated.items.find(i => i.id === itemId);
-        expect(item.votes).toBe(2);
+        expect(item.score).toBe(8);
+        expect(updated.items[0].id).toBe(itemId);
     });
 
-    test('voteItem down does not go below 0', () => {
+    test('rateItem replaces previous score', () => {
         const list = createList('Down Test', ['X']);
         const itemId = list.items[0].id;
-        voteItem(list.id, itemId, 'down');
+        rateItem(list.id, itemId, 9);
+        rateItem(list.id, itemId, 4);
         const updated = loadListsFromStorage().find(l => l.id === list.id);
-        expect(updated.items[0].votes).toBe(0);
+        expect(updated.items[0].score).toBe(4);
     });
 
-    test('voteItem returns null for invalid list/item', () => {
-        expect(voteItem('nope', 'nope', 'up')).toBeNull();
+    test('rateItem returns null for invalid list/item', () => {
+        expect(rateItem('nope', 'nope', 10)).toBeNull();
         const list = createList('T', ['A']);
-        expect(voteItem(list.id, 'bad_id', 'up')).toBeNull();
+        expect(rateItem(list.id, 'bad_id', 10)).toBeNull();
     });
 
     test('deleteList removes a list', () => {

@@ -34,16 +34,24 @@ async function processBackgroundRemoval(file) {
     const status = document.getElementById('processing-status');
     
     try {
-        // The @imgly/background-removal UMD build exposes imglyRemoveBackground globally
-        // It accepts: Blob, File, URL string, or ImageData — NOT an Image element
-        if (typeof imglyRemoveBackground !== 'function') {
-            throw new Error('Background removal library not loaded. Please disable adblockers and refresh.');
-        }
+        if (status) status.textContent = '⏳ Fetching AI models... (this may take up to a minute on first run)';
         
+        let removeBgFunc;
+        try {
+            const imglyModule = (typeof window !== 'undefined' && window._TEST_IMGLY_) 
+                ? window._TEST_IMGLY_ 
+                : await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/+esm');
+            
+            removeBgFunc = imglyModule.removeBackground || imglyModule.default;
+            if (!removeBgFunc) throw new Error('No default export found');
+        } catch (mErr) {
+            throw new Error('Failed to load AI model logic. Please check your internet connection or adblocker.');
+        }
+
         if (status) status.textContent = '⏳ Removing background... (processing on your device)';
         
-        // Pass the File (Blob) directly — this is the correct API usage
-        const resultBlob = await imglyRemoveBackground(file);
+        // Pass the File (Blob) directly
+        const resultBlob = await removeBgFunc(file);
         processedImageUrl = URL.createObjectURL(resultBlob);
         
         // Transition to editor
