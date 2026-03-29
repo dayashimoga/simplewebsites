@@ -122,13 +122,27 @@ function processHtml(html, siteName) {
   const swScript = `<script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js?v=' + Date.now()).then(reg => {
+          function safeReload() {
+            const lastReload = sessionStorage.getItem('stacky_sw_reload');
+            if (lastReload && (Date.now() - parseInt(lastReload)) < 5000) {
+              console.warn('Infinite SW loop detected. Unregistering all workers.');
+              sessionStorage.removeItem('stacky_sw_reload');
+              navigator.serviceWorker.getRegistrations().then(regs => {
+                for (let reg of regs) reg.unregister();
+              });
+              return;
+            }
+            sessionStorage.setItem('stacky_sw_reload', Date.now());
+            window.location.reload();
+          }
+
+          navigator.serviceWorker.register('sw.js').then(reg => {
             reg.onupdatefound = () => {
               const installingWorker = reg.installing;
               if (installingWorker) {
                 installingWorker.onstatechange = () => {
                   if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    window.location.reload();
+                    safeReload();
                   }
                 };
               }
@@ -139,7 +153,7 @@ function processHtml(html, siteName) {
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (!refreshing) {
               refreshing = true;
-              window.location.reload();
+              safeReload();
             }
           });
         });
