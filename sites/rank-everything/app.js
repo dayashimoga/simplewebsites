@@ -144,12 +144,24 @@ function saveListsToStorage(lists) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
 }
 
-function createList(name, itemNames) {
+function getUserId() {
+    if (typeof localStorage === 'undefined') return 'anon';
+    let uid = localStorage.getItem('stacky_rank_user_id');
+    if (!uid) {
+        uid = 'user_' + Date.now().toString(36) + Math.random().toString(36).substring(2);
+        localStorage.setItem('stacky_rank_user_id', uid);
+    }
+    return uid;
+}
+
+function createList(name, itemNames, authorName = 'Anonymous') {
     if (!name || !itemNames || itemNames.length === 0) return null;
     const lists = loadListsFromStorage();
     const newList = {
         id: Date.now().toString(36) + Math.random().toString(36).substring(2),
         name: name.trim(),
+        authorId: getUserId(),
+        authorName: authorName.trim() || 'Anonymous',
         items: itemNames.filter(n => n.trim()).map((n, i) => ({
             id: `${i}_${Date.now().toString(36)}`,
             name: n.trim(),
@@ -161,7 +173,7 @@ function createList(name, itemNames) {
     
     // Background sync
     fetch('/api/lists', {
-        method: 'POST', body: JSON.stringify({ action: 'create', name: newList.name, items: itemNames }), headers: { 'Content-Type': 'application/json' }
+        method: 'POST', body: JSON.stringify({ action: 'create', name: newList.name, items: itemNames, authorId: newList.authorId, authorName: newList.authorName }), headers: { 'Content-Type': 'application/json' }
     }).catch(e => console.error('Cloudflare sync error', e));
 
     return newList;
@@ -183,7 +195,7 @@ function rateItem(listId, itemId, score) {
 
     // Background sync
     fetch('/api/lists', {
-        method: 'POST', body: JSON.stringify({ action: 'rate', listId, itemId, score }), headers: { 'Content-Type': 'application/json' }
+        method: 'POST', body: JSON.stringify({ action: 'rate', listId, itemId, score, userId: getUserId() }), headers: { 'Content-Type': 'application/json' }
     }).catch(e => console.error('Cloudflare sync error', e));
 
     return list;
@@ -224,14 +236,17 @@ function toggleCreateList(show) {
 
 function submitNewList() {
     const nameEl = document.getElementById('new-list-name');
+    const authorEl = document.getElementById('new-list-author');
     const itemsEl = document.getElementById('new-list-items');
     if (!nameEl || !itemsEl) return;
     const name = nameEl.value.trim();
+    const authorName = authorEl ? authorEl.value.trim() : 'Anonymous';
     const items = itemsEl.value.split('\n').map(s => s.trim()).filter(Boolean);
     if (!name) { alert('Please enter a list name.'); return; }
     if (items.length < 2) { alert('Please enter at least 2 items (one per line).'); return; }
-    createList(name, items);
+    createList(name, items, authorName);
     nameEl.value = '';
+    if (authorEl) authorEl.value = '';
     itemsEl.value = '';
     toggleCreateList(false);
     renderCommunityLists();
@@ -252,8 +267,11 @@ function renderCommunityLists() {
     
     list.innerHTML = communityLists.map(cl => `
         <div class="community-list card mb-6 p-6 shadow-md border border-border">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="m-0 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-accent">${cl.name}</h3>
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
+                <div>
+                    <h3 class="m-0 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-accent">${cl.name}</h3>
+                    <p class="text-xs text-muted mt-1 opacity-70">Created by: ${cl.authorName || 'Anonymous'}</p>
+                </div>
                 <div class="flex gap-2">
                     <button class="btn btn-secondary py-1 px-3 text-sm rounded-md" onclick="handleExportList('${cl.id}')">📤 Export</button>
                     <button class="btn btn-secondary py-1 px-3 text-sm rounded-md hover:text-red-400" onclick="if(confirm('Delete this list?')){deleteList('${cl.id}');renderCommunityLists();}">🗑️</button>

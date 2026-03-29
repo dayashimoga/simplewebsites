@@ -32,7 +32,8 @@
             
             <div id="create-list-ui" class="hidden flex-col gap-4 mb-6 p-4 border border-border rounded-lg bg-surface">
                 <h3 class="mb-2 text-accent">Create a New Ranked List</h3>
-                <input type="text" id="new-list-name" class="input-text w-full" placeholder="List Name (e.g., Best Pizza Toppings)">
+                <input type="text" id="new-list-name" class="input-text w-full" placeholder="List Name (e.g., Best Pizza Toppings)" required>
+                <input type="text" id="new-list-author" class="input-text w-full" placeholder="Your Name (Optional, defaults to Anonymous)">
                 <textarea id="new-list-items" class="input-text w-full font-mono text-sm" rows="4" placeholder="Enter items to rank (one per line)..."></textarea>
                 <div class="flex gap-2">
                     <button class="btn btn-primary" onclick="submitNewList()" id="btn-submit-list">🚀 Submit List</button>
