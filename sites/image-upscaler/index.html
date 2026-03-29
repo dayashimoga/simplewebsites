@@ -81,6 +81,7 @@
       <!-- Tab Bar -->
       <div class="tab-bar">
         <button class="toolkit-tab active" id="tab-upscale" onclick="switchTab('upscale')">🚀 AI Upscale</button>
+        <button class="toolkit-tab" id="tab-bg" onclick="switchTab('bg')">🪄 Backgrounds</button>
         <button class="toolkit-tab" id="tab-resize" onclick="switchTab('resize')">📐 Resize</button>
         <button class="toolkit-tab" id="tab-crop" onclick="switchTab('crop')">✂️ Crop</button>
         <button class="toolkit-tab" id="tab-rotate" onclick="switchTab('rotate')">🔄 Rotate & Flip</button>
@@ -106,6 +107,25 @@
           <div class="form-group"><label>Target Height</label><input type="number" id="upscale-h" class="input-text w-full" min="1"></div>
         </div>
         <button class="btn btn-accent w-full" onclick="applyCustomUpscale()">🚀 Upscale Image</button>
+      </div>
+
+      <!-- ── BACKGROUND EDITOR PANEL ───────────── -->
+      <div class="card tab-panel hidden" id="panel-bg">
+        <h4 class="mb-4">🪄 Remove & Replace Background</h4>
+        <button class="btn btn-accent w-full mb-6 py-3" onclick="applyRemoveBg()" id="btn-remove-bg">🤖 Remove Background Automatically</button>
+        
+        <p class="text-sm font-bold mb-2">After Removal: Set Solid Background Color</p>
+        <div class="flex items-center gap-4 mb-6">
+            <input type="color" id="editor-bg-color" value="#ffffff" class="w-[80px] h-[40px] p-0 cursor-pointer">
+            <button class="btn btn-secondary flex-1" onclick="applySolidBg()">Apply Solid Color</button>
+            <button class="btn btn-secondary" onclick="clearToTransparentBg()">Clear (Transparent)</button>
+        </div>
+
+        <p class="text-sm font-bold mb-2">Or: Upload Preset/Image Background</p>
+        <div class="upload-area mb-2 border border-dashed border-gray-500 rounded p-4 text-center cursor-pointer hover:bg-gray-800 transition-colors" onclick="document.getElementById('bg-image-input').click()">
+            <span class="text-sm">Click to Upload Background Image</span>
+            <input type="file" id="bg-image-input" class="hidden" accept="image/*" onchange="applyImageBg(event)">
+        </div>
       </div>
 
       <!-- ── RESIZE PANEL ─────────────────── -->

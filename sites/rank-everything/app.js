@@ -31,9 +31,13 @@ function saveApiKeys() {
 
 async function loadCategory(cat) {
     currentCategory = cat;
-    ['crypto', 'movies', 'games', 'community'].forEach(c => {
+    ['crypto', 'movies', 'games', 'community', 'creators'].forEach(c => {
         const btn = document.getElementById(`tab-${c}`);
-        if(btn) btn.className = c === cat ? 'btn btn-primary active' : 'btn btn-secondary';
+        if (btn) {
+            btn.classList.toggle('active', c === cat);
+            btn.classList.toggle('bg-primary/20', c === cat);
+            btn.classList.toggle('border-primary', c === cat);
+        }
     });
     
     const list = document.getElementById('rank-list');
@@ -61,6 +65,10 @@ async function loadCategory(cat) {
         } else if (cat === 'community') {
             await syncListsFromCloudflare();
             renderCommunityLists();
+            loader.classList.add('hidden');
+        } else if (cat === 'creators') {
+            const users = await fetchTopUsers();
+            renderUsers(users);
             loader.classList.add('hidden');
             return;
         }
@@ -117,17 +125,48 @@ async function fetchGames() {
 
 function renderList(items) {
     const list = document.getElementById('rank-list');
-    list.innerHTML = items.map(item => `
-        <div class="rank-card flex items-center p-4 gap-4 bg-surface rounded-lg border border-border hover:border-primary transition-colors">
-            <div class="rank-number text-2xl font-bold w-8 text-center text-muted">${item.rank}</div>
-            <img src="${item.image}" alt="${item.title}" class="w-16 h-16 object-cover rounded-md bg-bg">
-            <div class="flex-grow">
-                <h3 class="m-0 text-lg">${item.title}</h3>
-                <p class="text-sm text-muted m-0">${item.desc}</p>
+    list.innerHTML = items.map((item, i) => {
+        const medalColors = ['#fbbf24', '#cbd5e1', '#b45309'];
+        const numColor = i < 3 ? medalColors[i] : 'var(--color-text-muted)';
+        const glow = i < 3 ? `box-shadow: 0 0 15px ${numColor}33; border-color: ${numColor}66;` : '';
+        
+        return `
+        <div class="rank-card glass flex flex-col sm:flex-row items-center p-4 sm:p-5 gap-4 rounded-xl border border-border/50 hover:border-primary/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg mb-4" style="${glow}">
+            <div class="rank-number text-3xl sm:text-4xl font-black w-12 text-center drop-shadow-md" style="color: ${numColor}">${item.rank}</div>
+            ${item.image ? `<img src="${item.image}" alt="${item.title}" class="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-xl shadow-md border border-border/30 bg-surface/50">` : ''}
+            <div class="flex-grow text-center sm:text-left">
+                <h3 class="m-0 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${i === 0 ? 'from-yellow-400 to-amber-600' : 'from-text to-text'}">${item.title}</h3>
+                <p class="text-sm text-muted mt-2 m-0 bg-surface/50 inline-block px-3 py-1 rounded-full border border-border/30">${item.desc}</p>
             </div>
-            <div class="font-bold text-accent whitespace-nowrap">${item.stat}</div>
+            <div class="font-bold whitespace-nowrap bg-primary/10 text-primary px-4 py-2 rounded-xl border border-primary/20 shadow-inner text-lg">${item.stat}</div>
         </div>
-    `).join('');
+    `}).join('');
+}
+
+async function fetchTopUsers() {
+    try {
+        const res = await fetch('/api/lists?users=true');
+        if (!res.ok) return [];
+        const users = await res.json();
+        return users.sort((a,b) => b.listsCreated - a.listsCreated);
+    } catch {
+        return [];
+    }
+}
+
+function renderUsers(users) {
+    const list = document.getElementById('rank-list');
+    if (users.length === 0) {
+        list.innerHTML = `<p class="text-center text-muted col-span-full py-8">No community creators yet. Go create a list!</p>`;
+        return;
+    }
+    list.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">` + users.map((u, i) => `
+        <div class="glass p-6 rounded-2xl border border-border/50 flex flex-col items-center hover:border-accent/50 transition-all hover:shadow-glow hover:-translate-y-1">
+            <div class="text-4xl mb-3 ${i === 0 ? 'text-yellow-400 drop-shadow-lg scale-110' : ''}">${i === 0 ? '👑' : i === 1 ? '🥈' : i === 2 ? '🥉' : '👤'}</div>
+            <h3 class="text-lg font-bold mb-1 truncate w-full text-center">${u.name || 'Anonymous User'}</h3>
+            <p class="text-accent bg-accent/10 px-3 py-1 rounded-full text-sm font-medium border border-accent/20">Lists Created: ${u.listsCreated}</p>
+        </div>
+    `).join('') + `</div>`;
 }
 
 // ── Community Lists — localStorage + optional KV backend ──────────
@@ -266,15 +305,19 @@ function renderCommunityLists() {
     }
     
     list.innerHTML = communityLists.map(cl => `
-        <div class="community-list card mb-6 p-6 shadow-md border border-border">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3">
-                <div>
-                    <h3 class="m-0 text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-accent">${cl.name}</h3>
-                    <p class="text-xs text-muted mt-1 opacity-70">Created by: ${cl.authorName || 'Anonymous'}</p>
+        <div class="community-list glass mb-6 p-6 sm:p-8 rounded-2xl shadow-xl border border-border/50 transition-all hover:border-primary/40 relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none"></div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 relative z-10">
+                <div class="flex-grow">
+                    <h3 class="m-0 text-2xl sm:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-primary to-accent drop-shadow-sm">${cl.name}</h3>
+                    <p class="text-sm text-muted mt-2 font-medium flex items-center gap-2">
+                        <span class="bg-surface2 px-2 py-0.5 rounded-md border border-border/50">✍️ ${cl.authorName || 'Anonymous'}</span>
+                    </p>
                 </div>
-                <div class="flex gap-2">
-                    <button class="btn btn-secondary py-1 px-3 text-sm rounded-md" onclick="handleExportList('${cl.id}')">📤 Export</button>
-                    <button class="btn btn-secondary py-1 px-3 text-sm rounded-md hover:text-red-400" onclick="if(confirm('Delete this list?')){deleteList('${cl.id}');renderCommunityLists();}">🗑️</button>
+                <div class="flex gap-2 w-full md:w-auto mt-4 md:mt-0">
+                    <button class="btn btn-secondary flex-1 md:flex-none py-2 px-4 shadow-sm hover:shadow-md" onclick="handleExportList('${cl.id}')">📤 Export JSON</button>
+                    <button class="btn bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white py-2 px-4 shadow-sm hover:shadow-md transition-all rounded-lg" onclick="if(confirm('Permanently delete this list?')){deleteList('${cl.id}');renderCommunityLists();}">🗑️ Wipe</button>
                 </div>
             </div>
             <div class="flex flex-col gap-3">
@@ -290,16 +333,16 @@ function renderCommunityLists() {
                         title="Rate ${s}/10">★</button>`;
                 }
                 return `
-                <div class="rank-card flex flex-col md:flex-row md:items-center p-4 gap-4 bg-[var(--color-bg)] rounded-xl border border-[var(--color-border)] hover:border-[var(--color-primary-light)] transition-colors shadow-sm relative overflow-hidden">
+                <div class="rank-card relative z-10 flex flex-col md:flex-row md:items-center p-4 sm:p-5 gap-4 bg-surface/60 rounded-xl border border-border/50 hover:border-primary/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg shadow-sm">
                     <div class="flex items-center gap-4 flex-grow w-full md:w-auto">
-                        <div class="rank-number text-3xl font-bold w-8 text-center" style="color: ${i === 0 ? '#fbbf24' : i === 1 ? '#9ca3af' : i === 2 ? '#b45309' : 'var(--color-text-muted)'}">${i + 1}</div>
-                        <div class="flex-grow"><span class="font-medium text-lg leading-tight line-clamp-2">${item.name}</span></div>
+                        <div class="rank-number text-3xl font-black w-8 text-center drop-shadow-md" style="color: ${i === 0 ? '#fbbf24' : i === 1 ? '#cbd5e1' : i === 2 ? '#b45309' : 'var(--color-text-muted)'}">${i + 1}</div>
+                        <div class="flex-grow"><span class="font-bold text-lg sm:text-xl leading-tight line-clamp-2">${item.name}</span></div>
                     </div>
-                    <div class="flex flex-col md:flex-row items-end md:items-center gap-3 w-full md:w-auto mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 border-[var(--color-border)]">
-                        <div class="flex items-center space-x-0.5 bg-[var(--color-surface)] px-2 py-1 rounded-full border border-[var(--color-border)]">
+                    <div class="flex flex-col sm:flex-row items-end sm:items-center gap-4 w-full md:w-auto mt-3 md:mt-0 pt-3 md:pt-0 border-t border-border/30 md:border-t-0">
+                        <div class="stars-voting-container flex items-center bg-surface/80 px-3 py-1.5 rounded-full border border-border/50 shadow-inner">
                             ${starsHTML}
                         </div>
-                        <span class="font-bold whitespace-nowrap bg-[var(--color-bg)] px-3 py-1 rounded-full text-[var(--color-accent)] border border-[var(--color-border-hover)] text-sm shadow-inner min-w-[5ch] text-center">${score}/10</span>
+                        <div class="score-pill font-black whitespace-nowrap bg-primary/10 px-4 py-1.5 rounded-full text-primary border border-primary/20 text-md shadow-sm min-w-[5ch] text-center tracking-wide flex-shrink-0">${score} <span class="text-xs opacity-70">/ 10</span></div>
                     </div>
                 </div>`;
             }).join('')}
@@ -348,6 +391,6 @@ if (typeof module !== 'undefined' && module.exports) {
         saveApiKeys, fetchCrypto, fetchMovies, fetchGames, loadCategory, renderList, checkApiKeys,
         loadListsFromStorage, saveListsToStorage, createList, rateItem, deleteList,
         exportList, importList, toggleCreateList, submitNewList, renderCommunityLists,
-        handleExportList, STORAGE_KEY, syncListsFromCloudflare
+        handleExportList, STORAGE_KEY, syncListsFromCloudflare, fetchTopUsers, renderUsers
     };
 }

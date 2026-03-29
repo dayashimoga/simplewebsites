@@ -22,12 +22,13 @@
             <button class="btn btn-primary" onclick="saveApiKeys()">Save Keys Locally</button>
         </div>
 
-        <div class="card mb-8">
+        <div class="card glass shadow-xl mb-8">
             <div class="tabs flex flex-wrap justify-center gap-2 md:gap-4 mb-6">
-                <button class="btn btn-primary active" id="tab-crypto" onclick="loadCategory('crypto')">🪙 Top Crypto</button>
-                <button class="btn btn-secondary" id="tab-movies" onclick="loadCategory('movies')">🎬 Top Movies</button>
-                <button class="btn btn-secondary" id="tab-games" onclick="loadCategory('games')">🎮 Top Games</button>
-                <button class="btn btn-secondary" id="tab-community" onclick="loadCategory('community')">👥 Community Lists</button>
+                <button class="toolkit-tab px-4 py-2 rounded-lg font-medium transition-all duration-300 active" id="tab-crypto" onclick="loadCategory('crypto')">🪙 Crypto</button>
+                <button class="toolkit-tab px-4 py-2 rounded-lg font-medium transition-all duration-300" id="tab-movies" onclick="loadCategory('movies')">🎬 Movies</button>
+                <button class="toolkit-tab px-4 py-2 rounded-lg font-medium transition-all duration-300" id="tab-games" onclick="loadCategory('games')">🎮 Games</button>
+                <button class="toolkit-tab px-4 py-2 rounded-lg font-medium transition-all duration-300" id="tab-community" onclick="loadCategory('community')">👥 Community</button>
+                <button class="toolkit-tab px-4 py-2 rounded-lg font-medium transition-all duration-300" id="tab-creators" onclick="loadCategory('creators')">🏆 Config</button>
             </div>
             
             <div id="create-list-ui" class="hidden flex-col gap-4 mb-6 p-4 border border-border rounded-lg bg-surface">

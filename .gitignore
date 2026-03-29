@@ -18,6 +18,7 @@ jest_output.txt
 # test results
 test_results.txt
 test_result.json
+test_results*.json
 jest_errors.txt
 temp_errors.txt
 test_output_utf8.txt
@@ -30,6 +31,13 @@ test_json*.txt
 test_rank.txt
 test_full.txt
 test_output.txt
+errors.txt
+errors_all.txt
+errors_clean.txt
+berr.txt
+btest.json
+test_errors.txt
+print_errors.js
 *.out.txt
 *.debug.txt
 *.log.txt

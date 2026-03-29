@@ -1,4 +1,4 @@
-const { handleUpload, resetApp, rotateImage, updateBgColor, clearBgColor, downloadImage, processBackgroundRemoval } = require('../app');
+const { handleUpload, resetApp, rotateImage, updateBgColor, clearBgColor, downloadImage, processBackgroundRemoval, applyFilters } = require('../app');
 
 beforeEach(() => {
     document.body.innerHTML = `
@@ -36,6 +36,7 @@ beforeEach(() => {
     
     document.querySelector = jest.fn((sel) => {
         if (sel === '.cropper-wrap-box') return { style: {} };
+        if (sel === '.cropper-canvas img') return document.getElementById('crop-img');
         return document.getElementById(sel.replace('#', '')) || { style: {} };
     });
 });
@@ -58,7 +59,7 @@ describe('Background Remover', () => {
         await processBackgroundRemoval(file);
         
         await new Promise(r => setTimeout(r, 60));
-        expect(global._TEST_IMGLY_.removeBackground).toHaveBeenCalledWith(file);
+        expect(global._TEST_IMGLY_.removeBackground).toHaveBeenCalledWith(file, { publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.3/dist/" });
         expect(document.getElementById('editor-container').style.display).toBe('block');
         expect(document.getElementById('action-buttons').style.display).toBe('flex');
     });
@@ -123,5 +124,22 @@ describe('Background Remover', () => {
         window.location = { reload: jest.fn() };
         resetApp();
         expect(window.location.reload).toHaveBeenCalled();
+    });
+
+    test('applyFilters calculates correct filter string and updates DOM', () => {
+        document.body.innerHTML += `
+            <input type="range" id="filter-bright" max="200" value="120">
+            <input type="range" id="filter-contrast" max="200" value="90">
+            <input type="range" id="filter-saturate" max="200" value="150">
+            <span id="val-bright"></span>
+            <span id="val-contrast"></span>
+            <span id="val-saturate"></span>
+            <div class="cropper-canvas"><img id="crop-img"></div>
+        `;
+        const filterStr = applyFilters();
+        expect(filterStr).toBe('brightness(120%) contrast(90%) saturate(150%)');
+        expect(document.getElementById('val-bright').textContent).toBe('120%');
+        const img = document.querySelector('.cropper-canvas img');
+        expect(img.style.filter).toBe('brightness(120%) contrast(90%) saturate(150%)');
     });
 });

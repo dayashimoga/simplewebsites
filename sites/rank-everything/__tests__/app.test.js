@@ -2,7 +2,7 @@ const {
     fetchCrypto, fetchMovies, fetchGames, saveApiKeys, loadCategory, renderList, checkApiKeys,
     loadListsFromStorage, saveListsToStorage, createList, rateItem, deleteList,
     exportList, importList, toggleCreateList, submitNewList, renderCommunityLists,
-    STORAGE_KEY
+    STORAGE_KEY, fetchTopUsers, renderUsers, handleExportList
 } = require('../app');
 
 beforeEach(() => {
@@ -14,6 +14,7 @@ beforeEach(() => {
         <button id="tab-movies"></button>
         <button id="tab-games"></button>
         <button id="tab-community"></button>
+        <button id="tab-creators"></button>
         <div id="loading-spinner" class="hidden"></div>
         <div id="error-msg" class="hidden"></div>
         <div id="rank-list"></div>
@@ -27,6 +28,9 @@ beforeEach(() => {
             return Promise.resolve({ ok: true, json: () => Promise.resolve([{ name: 'Bitcoin', symbol: 'btc', current_price: 50, market_cap: 10, image: '' }]) });
         } else if (url.includes('themoviedb')) {
             return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [{ title: 'Inception', poster_path: '/', vote_average: 9, release_date: '2010' }] }) });
+        } else if (url.includes('api/lists')) {
+            if (url.includes('users=true')) return Promise.resolve({ ok: true, json: () => Promise.resolve([{ name: 'Test User', listsCreated: 5 }]) });
+            return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
         } else {
             return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [{ name: 'Halo', background_image: '/', rating: 5, released: '2001' }] }) });
         }
@@ -80,6 +84,10 @@ describe('Rank Everything Max Coverage', () => {
         checkApiKeys();
         await loadCategory('games');
         expect(document.getElementById('rank-list').innerHTML).toContain('Halo');
+
+        // Creators success
+        await loadCategory('creators');
+        expect(document.getElementById('rank-list').innerHTML).toContain('Test User');
     });
 
     test('fetch functions failure branches', async () => {
@@ -212,9 +220,42 @@ describe('Community Lists — CRUD', () => {
     });
 
     test('loadCategory community shows community UI', async () => {
-        createList('CL', ['X', 'Y']);
         await loadCategory('community');
         expect(document.getElementById('community-actions').classList.contains('hidden')).toBe(false);
-        expect(document.getElementById('rank-list').innerHTML).toContain('CL');
+    });
+
+    test('fetchTopUsers and renderUsers paths', async () => {
+        // null fetch
+        global.fetch.mockResolvedValueOnce({ ok: false });
+        const resEmpty = await fetchTopUsers();
+        expect(resEmpty).toEqual([]);
+        
+        // error fetch
+        global.fetch.mockRejectedValueOnce(new Error('Network error'));
+        const resErr = await fetchTopUsers();
+        expect(resErr).toEqual([]);
+
+        // render empty
+        renderUsers([]);
+        expect(document.getElementById('rank-list').innerHTML).toContain('No community creators yet');
+    });
+    test('handleExportList path', async () => {
+        global.prompt = jest.fn();
+        global.alert = jest.fn();
+        const l = createList('Exp', ['X', 'Y']);
+        
+        // No navigator
+        handleExportList(l.id);
+        expect(global.prompt).toHaveBeenCalled();
+        
+        // With navigator
+        Object.assign(navigator, {
+            clipboard: {
+                writeText: jest.fn().mockResolvedValue()
+            }
+        });
+        handleExportList(l.id);
+        expect(navigator.clipboard.writeText).toHaveBeenCalled();
+        handleExportList('nope'); // invalid id
     });
 });

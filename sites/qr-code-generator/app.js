@@ -106,24 +106,99 @@ function showQrLoading(msg) {
   }
 }
 
+let activePayloadTab = 'url';
+
+function switchPayloadTab(tabId) {
+  document.querySelectorAll('.payload-tab').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.toolkit-tab').forEach(el => el.classList.remove('active'));
+  
+  const targetTab = document.getElementById(`tab-${tabId}`);
+  if (targetTab) targetTab.classList.remove('hidden');
+  
+  const btn = Array.from(document.querySelectorAll('.toolkit-tab')).find(b => b.hasAttribute('onclick') && b.getAttribute('onclick').includes(tabId));
+  if (btn) btn.classList.add('active');
+  
+  const titles = {
+    'url': '🔗 Enter URL or Text',
+    'wifi': '📶 Configure WiFi Network',
+    'vcard': '📇 Build Digital Contact Card',
+    'email': '✉️ Pre-fill Email',
+    'phone': '📞 Call Phone Number',
+    'sms': '💬 Send Text Message',
+    'geo': '📍 Map Coordinates'
+  };
+  
+  const titleEl = document.getElementById('payload-title');
+  if (titleEl && titles[tabId]) titleEl.textContent = titles[tabId];
+  
+  activePayloadTab = tabId;
+  debounceGenerate();
+}
+
+function getPayloadData() {
+  const getVal = (id) => {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  };
+
+  switch (activePayloadTab) {
+    case 'url':
+      return getVal('payload-url-val') || ' ';
+    case 'wifi':
+      const ssid = getVal('wifi-ssid');
+      const type = getVal('wifi-type') || 'WPA';
+      const pass = getVal('wifi-pass');
+      const hidden = document.getElementById('wifi-hidden')?.checked ? 'true' : 'false';
+      if (!ssid) return ' ';
+      return `WIFI:S:${ssid};T:${type};P:${pass};H:${hidden};;`;
+    case 'vcard':
+      const fn = getVal('vcard-fn');
+      const ln = getVal('vcard-ln');
+      const tel = getVal('vcard-tel');
+      const email = getVal('vcard-email');
+      const org = getVal('vcard-org');
+      if (!fn && !ln && !tel && !email) return ' ';
+      return `BEGIN:VCARD\nVERSION:3.0\nN:${ln};${fn}\nFN:${fn} ${ln}\nORG:${org}\nTEL:${tel}\nEMAIL:${email}\nEND:VCARD`;
+    case 'email':
+      const to = getVal('email-to');
+      if (!to) return ' ';
+      const sub = getVal('email-sub');
+      const body = getVal('email-body');
+      return `MATMSG:TO:${to};SUB:${sub};BODY:${body};;`;
+    case 'phone':
+      const phone = getVal('phone-num');
+      return phone ? `tel:${phone}` : ' ';
+    case 'sms':
+      const smsNum = getVal('sms-num');
+      const smsBody = getVal('sms-body');
+      return smsNum ? `smsto:${smsNum}:${smsBody}` : ' ';
+    case 'geo':
+      const lat = getVal('geo-lat');
+      const lon = getVal('geo-lon');
+      return lat && lon ? `geo:${lat},${lon}` : ' ';
+    default:
+      return ' ';
+  }
+}
+
 async function generateQR() {
-  const dataEl = document.getElementById('qr-data');
   const darkEl = document.getElementById('qr-dark');
   const lightEl = document.getElementById('qr-light');
+  const transparentEl = document.getElementById('qr-transparent');
   const canvas = document.getElementById('qr-canvas');
 
   if (!canvas) return;
 
-  const data = (dataEl ? dataEl.value : '') || ' ';
+  const data = getPayloadData() || ' ';
   const colorDark = darkEl ? darkEl.value : '#000000';
-  const colorLight = lightEl ? lightEl.value : '#ffffff';
+  const colorLight = (transparentEl && transparentEl.checked) ? '#00000000' : (lightEl ? lightEl.value : '#ffffff');
   const ctx = canvas.getContext('2d');
 
   if (typeof QRCode === 'undefined') {
-    showQrLoading('⏳ Loading QR library...');
+    showQrLoading('⏳ Loading QR engine...');
     const loaded = await waitForQRLib();
     if (!loaded) {
-      showQrError('QR library failed to load. Please refresh the page.');
+      showQrError('QR engine failed to load via network.');
       return;
     }
   }
@@ -131,7 +206,7 @@ async function generateQR() {
   try {
     // Render QR code with high error correction for logo overlay
     await QRCode.toCanvas(canvas, data, {
-      width: 300,
+      width: Math.max(300, canvas.parentElement?.clientWidth || 300) - 32, // Responsive scale within constraints
       margin: 2,
       errorCorrectionLevel: logoImage ? 'H' : 'M',
       color: {
@@ -141,20 +216,21 @@ async function generateQR() {
     });
 
     if (logoImage) {
-      // Draw logo in the center (~25% of total size)
-      const size = 300;
-      const logoSize = size * 0.25;
+      const size = canvas.width;
+      const logoSize = size * 0.22;
       const logoX = (size - logoSize) / 2;
       const logoY = (size - logoSize) / 2;
-      const padSize = logoSize + 10;
+      const padSize = logoSize + (size * 0.03);
       const padX = (size - padSize) / 2;
       const padY = (size - padSize) / 2;
 
-      // White background behind logo for readability
-      ctx.fillStyle = colorLight;
-      ctx.beginPath();
-      roundRectFallback(ctx, padX, padY, padSize, padSize, 8);
-      ctx.fill();
+      // Draw background shield behind logo if not transparent
+      if (colorLight !== '#00000000') {
+        ctx.fillStyle = colorLight;
+        ctx.beginPath();
+        roundRectFallback(ctx, padX, padY, padSize, padSize, 12);
+        ctx.fill();
+      }
 
       ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
     }
@@ -162,17 +238,47 @@ async function generateQR() {
     showQrSuccess();
   } catch (e) {
     console.error('QR generation error:', e);
-    showQrError('Failed to generate QR code. Please check your input.');
+    showQrError('Failed to generate QR profile. Please check your payload characters.');
   }
 }
 
-function downloadQR() {
+async function downloadQR(format = 'png') {
   const canvas = document.getElementById('qr-canvas');
   if (!canvas) return;
   const link = document.createElement('a');
-  link.download = `qrcode-${Date.now()}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
+  
+  if (format === 'svg') {
+    if (typeof QRCode === 'undefined') return;
+    try {
+      showQrLoading('⏳ Generating Vector SVG...');
+      const data = getPayloadData() || ' ';
+      const darkEl = document.getElementById('qr-dark');
+      const lightEl = document.getElementById('qr-light');
+      const transparentEl = document.getElementById('qr-transparent');
+      const colorDark = darkEl ? darkEl.value : '#000000';
+      const colorLight = (transparentEl && transparentEl.checked) ? '#00000000' : (lightEl ? lightEl.value : '#ffffff');
+      
+      const svgString = await QRCode.toString(data, {
+        type: 'svg',
+        margin: 2,
+        errorCorrectionLevel: logoImage ? 'H' : 'M',
+        color: { dark: colorDark, light: colorLight }
+      });
+      
+      const blob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+      link.href = URL.createObjectURL(blob);
+      link.download = `qrcode-${Date.now()}.svg`;
+      link.click();
+      showQrSuccess();
+    } catch(e) {
+      console.error(e);
+      showQrError('Failed to generate SVG.');
+    }
+  } else {
+    link.download = `qrcode-${Date.now()}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
 }
 
 if (typeof document !== 'undefined') {
@@ -190,7 +296,8 @@ if (typeof document !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     debounceGenerate, handleLogoUpload, clearLogo, generateQR, downloadQR,
-    roundRectFallback, showQrError, showQrSuccess, showQrLoading, waitForQRLib
+    roundRectFallback, showQrError, showQrSuccess, showQrLoading, waitForQRLib,
+    switchPayloadTab, getPayloadData
   };
 }
 // Re-trigger deployment

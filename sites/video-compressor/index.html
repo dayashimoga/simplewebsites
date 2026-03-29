@@ -38,12 +38,12 @@
                 </div>
             </div>
 
-            <!-- Resolution & Quality Settings -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- Advanced Edit Settings -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <div>
-                    <h4 class="mb-3 text-lg">Resolution</h4>
-                    <select id="video-resolution" class="input w-full p-3 cursor-pointer">
-                        <option value="original" selected>Original Size (No Change)</option>
+                    <h4 class="mb-2 text-md">Resolution</h4>
+                    <select id="video-resolution" class="input text-sm w-full p-2 cursor-pointer">
+                        <option value="original" selected>Original</option>
                         <option value="1920">1080p (FHD)</option>
                         <option value="1280">720p (HD)</option>
                         <option value="854">480p (SD)</option>
@@ -51,11 +51,28 @@
                     </select>
                 </div>
                 <div>
-                    <h4 class="mb-3 text-lg">Quality Preset</h4>
-                    <div class="flex flex-col gap-2">
-                        <button class="btn btn-secondary active w-full" id="btn-hq" onclick="setQuality('high')">High Quality (Larger)</button>
-                        <button class="btn btn-secondary w-full" id="btn-mq" onclick="setQuality('medium')">Medium Quality</button>
-                        <button class="btn btn-secondary w-full" id="btn-lq" onclick="setQuality('low')">Low Quality (Smallest)</button>
+                    <h4 class="mb-2 text-md">Framerate (FPS)</h4>
+                    <select id="video-fps" class="input text-sm w-full p-2 cursor-pointer">
+                        <option value="original" selected>Original</option>
+                        <option value="60">60 FPS</option>
+                        <option value="30">30 FPS</option>
+                        <option value="24">24 FPS</option>
+                        <option value="15">15 FPS</option>
+                    </select>
+                </div>
+                <div>
+                    <h4 class="mb-2 text-md">Audio</h4>
+                    <select id="video-audio" class="input text-sm w-full p-2 cursor-pointer">
+                        <option value="keep" selected>Keep Audio</option>
+                        <option value="mute">Mute (Remove Audio)</option>
+                    </select>
+                </div>
+                <div>
+                    <h4 class="mb-2 text-md">Quality Preset</h4>
+                    <div class="flex flex-col gap-1">
+                        <button class="btn btn-secondary active w-full text-xs p-1" id="btn-hq" onclick="setQuality('high')">High</button>
+                        <button class="btn btn-secondary w-full text-xs p-1" id="btn-mq" onclick="setQuality('medium')">Medium</button>
+                        <button class="btn btn-secondary w-full text-xs p-1" id="btn-lq" onclick="setQuality('low')">Low</button>
                     </div>
                 </div>
             </div>

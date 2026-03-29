@@ -32,7 +32,7 @@ function makeMockCanvas(w = 100, h = 100) {
     createRadialGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
     canvas: { width: w, height: h }
   };
-  const canvas = { width: w, height: h, getContext: jest.fn().mockReturnValue(ctx), toDataURL: jest.fn().mockReturnValue('data:image/png;base64,abc') };
+  const canvas = { width: w, height: h, getContext: jest.fn().mockReturnValue(ctx), toDataURL: jest.fn().mockReturnValue('data:image/png;base64,abc'), toBlob: jest.fn(cb => { cb(new Blob([''], { type: 'image/png' })); }) };
   ctx.canvas = canvas;
   return { canvas, ctx };
 }
@@ -89,6 +89,9 @@ beforeEach(() => {
 
   global.FileReader = class {
     readAsDataURL() { this.onload({ target: { result: 'data:image/png;base64,abc' } }); }
+  };
+  global.URL = {
+    createObjectURL: jest.fn().mockReturnValue('blob:mock')
   };
   global.Image = class {
     constructor() {
@@ -498,6 +501,55 @@ describe('DOM Interactions & Tools', () => {
 
 // ── Upscale Operations ────────────────────────────────────
 
+// ── Background Operations ─────────────────────────────────
+
+const { applyRemoveBg, applySolidBg, clearToTransparentBg, applyImageBg } = require('../app');
+
+describe('Background Operations', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    resetToolkit();
+    const { canvas } = makeMockCanvas(100, 100);
+    setCurrentCanvas(canvas);
+    document.body.innerHTML += `
+      <button id="btn-remove-bg">Remove</button>
+      <input type="color" id="editor-bg-color" value="#ff0000" />
+    `;
+    global._TEST_IMGLY_ = { 
+        removeBackground: jest.fn().mockResolvedValue(new Blob([''], { type: 'image/png' }))
+    };
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('applyRemoveBg processes background', async () => {
+    jest.useRealTimers();
+    await applyRemoveBg();
+    await new Promise(r => setTimeout(r, 100)); // wait for mocked image onload and promises
+    expect(document.getElementById('status-text').textContent).toContain('Background removed successfully');
+    expect(document.getElementById('btn-remove-bg').disabled).toBe(false);
+  });
+
+  test('applySolidBg fills background color', () => {
+    applySolidBg();
+    expect(document.getElementById('status-text').textContent).toContain('Solid background applied');
+  });
+
+  test('clearToTransparentBg shows info', () => {
+    clearToTransparentBg();
+    expect(document.getElementById('status-text').textContent).toContain('already transparent');
+  });
+  
+  test('applyImageBg processing file', () => {
+    const file = new File([''], 'test.png', { type: 'image/png' });
+    applyImageBg({ target: { files: [file] } });
+    jest.runAllTimers();
+    expect(getCurrentCanvas()).toBeTruthy();
+  });
+});
+
 describe('Upscale Operations', () => {
   beforeEach(() => {
     jest.useFakeTimers();
@@ -533,8 +585,8 @@ describe('Upscale Operations', () => {
     expect(getCurrentCanvas().height).toBe(300);
   });
 
-  test('applyCustomUpscale warns if target isn\'t larger', () => {
-    document.getElementById('upscale-w').value = '50';
+  test('applyCustomUpscale warns if target isn\'t larger or valid limits', () => {
+    document.getElementById('upscale-w').value = '-50';
     document.getElementById('upscale-h').value = '50';
     applyCustomUpscale();
     expect(document.getElementById('status-text').textContent).toContain('larger than current');

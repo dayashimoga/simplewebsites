@@ -501,6 +501,97 @@ function applyCropPreset(preset) {
   showStatus(`Cropped to ${preset} (${currentCanvas.width}×${currentCanvas.height}px)`, 'success');
 }
 
+
+// ── Background Editing ───────────────────────────────
+
+async function applyRemoveBg() {
+  if (!currentCanvas) return;
+  const btn = document.getElementById('btn-remove-bg');
+  const ogText = btn.textContent;
+  btn.textContent = '⏳ Fetching AI Engine...';
+  btn.classList.add('animate-pulse');
+  btn.disabled = true;
+  showStatus('Removing Background using AI (runs locally)...', 'info');
+
+  try {
+    const importFn = new Function('url', 'return import(url)');
+    const imglyModule = (typeof window !== 'undefined' && window._TEST_IMGLY_) 
+          ? window._TEST_IMGLY_ 
+          : await importFn('https://unpkg.com/@imgly/background-removal@1.4.3/dist/index.mjs');
+      
+    const removeBgFunc = imglyModule.removeBackground || imglyModule.default;
+    const config = { publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.3/dist/" };
+    
+    currentCanvas.toBlob(async (blob) => {
+      try {
+        btn.textContent = '🤖 Computing Matrix...';
+        const resultBlob = await removeBgFunc(blob, config);
+        const img = new Image();
+        img.onload = () => {
+          const out = createCanvas(currentCanvas.width, currentCanvas.height);
+          const ctx = out.getContext('2d');
+          ctx.drawImage(img, 0, 0, currentCanvas.width, currentCanvas.height);
+          currentCanvas = out;
+          updatePreview();
+          showStatus('Background removed successfully!', 'success');
+          btn.textContent = ogText;
+          btn.classList.remove('animate-pulse');
+          btn.disabled = false;
+        };
+        img.src = URL.createObjectURL(resultBlob);
+      } catch (err) {
+        throw err;
+      }
+    }, 'image/png');
+  } catch (err) {
+    console.error(err);
+    showStatus('Failed to load AI model logic. Ensure adblockers or tracking protection are disabled.', 'error');
+    btn.textContent = ogText;
+    btn.classList.remove('animate-pulse');
+    btn.disabled = false;
+  }
+}
+
+function applySolidBg() {
+  if (!currentCanvas) return;
+  const color = document.getElementById('editor-bg-color')?.value || '#ffffff';
+  const out = createCanvas(currentCanvas.width, currentCanvas.height);
+  const ctx = out.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(currentCanvas, 0, 0);
+  currentCanvas = out;
+  updatePreview();
+  showStatus(`Solid background applied: ${color}`, 'success');
+}
+
+function clearToTransparentBg() {
+  showStatus('Image is already transparent if removed. Download as PNG to keep transparency.', 'info');
+}
+
+function applyImageBg(event) {
+  if (!currentCanvas) return;
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const img = new Image();
+  img.onload = () => {
+    const out = createCanvas(currentCanvas.width, currentCanvas.height);
+    const ctx = out.getContext('2d');
+    // Cover the background
+    const scale = Math.max(out.width / img.width, out.height / img.height);
+    const x = (out.width / 2) - (img.width / 2) * scale;
+    const y = (out.height / 2) - (img.height / 2) * scale;
+    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+    ctx.drawImage(currentCanvas, 0, 0);
+    currentCanvas = out;
+    updatePreview();
+    showStatus('Image background applied', 'success');
+    event.target.value = '';
+  };
+  img.src = URL.createObjectURL(file);
+}
+
 // ── Color Adjustments ────────────────────────
 
 function applyColors() {
@@ -737,6 +828,7 @@ if (typeof module !== 'undefined' && module.exports) {
     handleUpload, initWorkspace, updatePreview, downloadResult, resetToolkit, showStatus,
     applyResize, applyRotate, applyFlip, applyTilt, applyCropManual, applyCropPreset,
     applyColors, resetColorSliders, applySplit, applyMerge, applyUpscale, applyCustomUpscale,
+    applyRemoveBg, applySolidBg, clearToTransparentBg, applyImageBg,
     initMergeFlow, handleMergeUpload, renderMergeList, removeMergeImage, switchTab,
     parsePageRange: (str, total) => {
       // re-export for tests
@@ -756,4 +848,3 @@ if (typeof module !== 'undefined' && module.exports) {
     getMergeImages: () => mergeImages
   };
 }
-// Re-trigger deployment

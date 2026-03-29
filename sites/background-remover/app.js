@@ -40,18 +40,19 @@ async function processBackgroundRemoval(file) {
         try {
             const imglyModule = (typeof window !== 'undefined' && window._TEST_IMGLY_) 
                 ? window._TEST_IMGLY_ 
-                : await import('https://cdn.jsdelivr.net/npm/@imgly/background-removal@1.4.3/+esm');
+                : await import('https://unpkg.com/@imgly/background-removal@1.4.3/dist/index.mjs');
             
             removeBgFunc = imglyModule.removeBackground || imglyModule.default;
             if (!removeBgFunc) throw new Error('No default export found');
         } catch (mErr) {
-            throw new Error('Failed to load AI model logic. Please check your internet connection or adblocker.');
+            console.error(mErr);
+            throw new Error('Failed to load AI model logic from CDN. Please disable Tracking Blockers or adblockers for this processing.');
         }
 
-        if (status) status.textContent = '⏳ Removing background... (processing on your device)';
+        if (status) status.textContent = '⏳ Removing background... (processing privately on your device)';
         
-        // Pass the File (Blob) directly
-        const resultBlob = await removeBgFunc(file);
+        const config = { publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.3/dist/" };
+        const resultBlob = await removeBgFunc(file, config);
         processedImageUrl = URL.createObjectURL(resultBlob);
         
         // Transition to editor
@@ -110,17 +111,26 @@ function clearBgColor() {
     }
 }
 
+function applyFilters() {
+    const b = document.getElementById('filter-bright')?.value || 100;
+    const c = document.getElementById('filter-contrast')?.value || 100;
+    const s = document.getElementById('filter-saturate')?.value || 100;
+    
+    const valBright = document.getElementById('val-bright');
+    if (valBright) valBright.textContent = b + '%';
+    const valContrast = document.getElementById('val-contrast');
+    if (valContrast) valContrast.textContent = c + '%';
+    const valSaturate = document.getElementById('val-saturate');
+    if (valSaturate) valSaturate.textContent = s + '%';
+    
+    const filterString = `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
+    const cropperCanvasImg = document.querySelector('.cropper-canvas img');
+    if (cropperCanvasImg) cropperCanvasImg.style.filter = filterString;
+    return filterString;
+}
+
 function downloadImage() {
-    if (!cropper) {
-        // Fallback: download the processed image directly if cropper isn't available
-        if (processedImageUrl) {
-            const link = document.createElement('a');
-            link.href = processedImageUrl;
-            link.download = `bg-removed-${Date.now()}.png`;
-            link.click();
-        }
-        return;
-    }
+    if (!cropper) return;
     
     const format = document.getElementById('download-format')?.value || 'image/png';
     const btn = document.getElementById('download-btn');
@@ -130,11 +140,27 @@ function downloadImage() {
     setTimeout(() => {
         const fillColor = currentBgColor === 'transparent' ? 'transparent' : currentBgColor;
         
-        const canvas = cropper.getCroppedCanvas({
+        let canvas = cropper.getCroppedCanvas({
             fillColor: fillColor,
             imageSmoothingEnabled: true,
             imageSmoothingQuality: 'high'
         });
+        
+        // Bake the active CSS filters into the final export
+        const filterStr = applyFilters();
+        if (filterStr !== 'brightness(100%) contrast(100%) saturate(100%)') {
+           const finalCanvas = document.createElement('canvas');
+           finalCanvas.width = canvas.width;
+           finalCanvas.height = canvas.height;
+           const ctx = finalCanvas.getContext('2d');
+           if (fillColor !== 'transparent') {
+               ctx.fillStyle = fillColor;
+               ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+           }
+           ctx.filter = filterStr;
+           ctx.drawImage(canvas, 0, 0);
+           canvas = finalCanvas;
+        }
         
         canvas.toBlob((blob) => {
             const link = document.createElement('a');
@@ -153,5 +179,5 @@ function resetApp() {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { handleUpload, resetApp, processBackgroundRemoval, rotateImage, updateBgColor, clearBgColor, downloadImage };
+    module.exports = { handleUpload, resetApp, processBackgroundRemoval, rotateImage, updateBgColor, clearBgColor, downloadImage, applyFilters };
 }

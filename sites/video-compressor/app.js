@@ -91,18 +91,20 @@ async function initFFmpeg() {
     const statusEl = document.getElementById('processing-status');
     if (statusEl) { statusEl.textContent = 'Loading AI Engine... (This may take a minute)'; statusEl.classList.remove('hidden'); }
 
-    // Use toBlobURL to bypass CORS Worker Restrictions
+    // Use toBlobURL to bypass CORS Worker Restrictions natively
     try {
-        const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
         const coreURL = await FFmpegUtil.toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
         const wasmURL = await FFmpegUtil.toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
-        // Load the worker properly to prevent Cross-Origin Worker Block
-        const workerURL = await FFmpegUtil.toBlobURL(`https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.15/dist/umd/814.ffmpeg.js`, 'text/javascript');
         
-        await ff.load({ coreURL, wasmURL, classWorkerURL: workerURL });
+        await ff.load({ coreURL, wasmURL });
     } catch (loadErr) {
-        console.warn('Blob load failed, trying standard load:', loadErr.message);
-        await ff.load();
+        console.warn('Blob load failed, trying standard load:', loadErr.message || loadErr);
+        try {
+            await ff.load();
+        } catch (stdErr) {
+            throw new Error('Could not instantiate WebAssembly Compiler: ' + (stdErr.message || JSON.stringify(stdErr)));
+        }
     }
     
     if (statusEl) statusEl.classList.add('hidden');
@@ -217,6 +219,8 @@ async function executeCompression() {
         const startTrim = parseFloat(document.getElementById('trim-start')?.value);
         const endTrim = parseFloat(document.getElementById('trim-end')?.value);
         const resolution = document.getElementById('video-resolution')?.value;
+        const fps = document.getElementById('video-fps')?.value;
+        const audio = document.getElementById('video-audio')?.value;
 
         let args = ['-i', inputName];
         
@@ -232,6 +236,14 @@ async function executeCompression() {
         
         if (resolution && resolution !== 'original') {
             args.push('-vf', `scale='min(${resolution},iw)':-2`);
+        }
+        
+        if (fps && fps !== 'original') {
+            args.push('-r', fps.toString());
+        }
+        
+        if (audio === 'mute') {
+            args.push('-an');
         }
         
         args.push('-movflags', '+faststart', outputName);
