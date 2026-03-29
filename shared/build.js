@@ -235,13 +235,22 @@ function buildSite(siteName) {
   };
   fs.writeFileSync(path.join(distDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
 
-  // Generate generic sw.js (Service Worker)
-  const swCode = `const CACHE_NAME = '${siteName}-v1';
+  // Generate cache-busting sw.js (Service Worker)
+  const buildTimestamp = Date.now();
+  const swCode = `const CACHE_NAME = '${siteName}-${buildTimestamp}';
 self.addEventListener('install', e => {
+  self.skipWaiting();
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['./', 'index.html', 'style.css', 'app.js', 'shared-styles.css'])));
 });
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(names => Promise.all(
+      names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n))
+    )).then(() => self.clients.claim())
+  );
+});
 self.addEventListener('fetch', e => {
-  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
 });`;
   fs.writeFileSync(path.join(distDir, 'sw.js'), swCode);
 

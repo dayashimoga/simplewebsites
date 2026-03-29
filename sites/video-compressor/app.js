@@ -88,13 +88,20 @@ async function initFFmpeg() {
         if (statusEl) statusEl.textContent = `Compressing... ${pct}%`;
     });
 
-    const coreURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js';
-    const wasmURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm';
+    const coreURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.js';
+    const wasmURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm';
 
     const statusEl = document.getElementById('processing-status');
     if (statusEl) { statusEl.textContent = 'Loading compression engine...'; statusEl.classList.remove('hidden'); }
 
-    await ff.load({ coreURL, wasmURL });
+    try {
+        await ff.load({ coreURL, wasmURL });
+    } catch (loadErr) {
+        // SharedArrayBuffer may not be available without COOP/COEP headers
+        // Try loading without explicit URLs (uses default CDN)
+        console.warn('FFmpeg load with explicit URLs failed, trying defaults:', loadErr.message);
+        await ff.load();
+    }
     
     if (statusEl) statusEl.classList.add('hidden');
     ffmpegInstance = ff;

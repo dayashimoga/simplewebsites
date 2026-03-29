@@ -1,9 +1,11 @@
 /**
- * Background Remover & Editor Logic using img.ly & Cropper.js
+ * Background Remover & Editor Logic
+ * Uses @imgly/background-removal (WASM) + Cropper.js for editing
  */
 
 let cropper = null;
 let currentBgColor = 'transparent';
+let processedImageUrl = null;
 
 function handleUpload(event) {
     const file = event.target.files[0];
@@ -12,90 +14,116 @@ function handleUpload(event) {
     document.getElementById('upload-area')?.classList.add('hidden');
     document.getElementById('results')?.classList.remove('hidden');
     document.getElementById('processing-view').style.display = 'block';
+    document.getElementById('editor-container').style.display = 'none';
+    document.getElementById('action-buttons').style.display = 'none';
     
-    const uiBox = document.getElementById('bg-canvas');
-    uiBox.src = URL.createObjectURL(file); // preview original while loading
+    const status = document.getElementById('processing-status');
+    if (status) {
+        status.textContent = '⏳ Loading AI model (this may take 30-60s on first use)...';
+        status.style.color = '';
+    }
     
-    // Begin AI processing
+    // Show original image preview while processing
+    const previewImg = document.getElementById('bg-canvas');
+    previewImg.src = URL.createObjectURL(file);
+    
     processBackgroundRemoval(file);
 }
 
 async function processBackgroundRemoval(file) {
     const status = document.getElementById('processing-status');
-    const imgObj = new Image();
     
-    imgObj.onload = async () => {
-        try {
-            if (typeof imglyRemoveBackground !== 'function') {
-                throw new Error("imglyRemoveBackground not loaded. Please ensure scripts are not blocked.");
-            }
-            
-            const resultBlob = await imglyRemoveBackground(imgObj);
-            const url = URL.createObjectURL(resultBlob);
-            
-            document.getElementById('processing-view').style.display = 'none';
-            document.getElementById('editor-container').style.display = 'block';
-            document.getElementById('action-buttons').style.display = 'flex';
-            
-            const rImg = document.getElementById('bg-canvas');
-            rImg.src = url;
-            
-            // Wait for image render before cropping
-            rImg.onload = () => {
+    try {
+        // The @imgly/background-removal UMD build exposes imglyRemoveBackground globally
+        // It accepts: Blob, File, URL string, or ImageData — NOT an Image element
+        if (typeof imglyRemoveBackground !== 'function') {
+            throw new Error('Background removal library not loaded. Please disable adblockers and refresh.');
+        }
+        
+        if (status) status.textContent = '⏳ Removing background... (processing on your device)';
+        
+        // Pass the File (Blob) directly — this is the correct API usage
+        const resultBlob = await imglyRemoveBackground(file);
+        processedImageUrl = URL.createObjectURL(resultBlob);
+        
+        // Transition to editor
+        document.getElementById('processing-view').style.display = 'none';
+        document.getElementById('editor-container').style.display = 'block';
+        document.getElementById('action-buttons').style.display = 'flex';
+        
+        const rImg = document.getElementById('bg-canvas');
+        rImg.src = processedImageUrl;
+        
+        // Initialize Cropper once image loads
+        rImg.onload = () => {
+            if (typeof Cropper !== 'undefined') {
                 if (cropper) cropper.destroy();
                 cropper = new Cropper(rImg, {
                     viewMode: 1,
                     dragMode: 'move',
-                    background: false, // Make crop box transparent, we use css for checkerboard
+                    background: false,
                     autoCropArea: 1,
                     responsive: true
                 });
-            };
-        } catch (e) {
-            console.error("BG Removal Error:", e);
-            if (status) {
-                status.textContent = "❌ Error: Background removal failed.";
-                status.style.color = "var(--error)";
             }
+        };
+    } catch (e) {
+        console.error('BG Removal Error:', e);
+        if (status) {
+            status.textContent = '❌ Error: ' + (e.message || 'Background removal failed.');
+            status.style.color = 'var(--color-error, #ef4444)';
         }
-    };
-    imgObj.src = URL.createObjectURL(file);
+        // Show a retry button
+        document.getElementById('action-buttons').style.display = 'flex';
+    }
 }
 
 // Editor Tools
 function rotateImage(degree) {
-    if (cropper) {
-        cropper.rotate(degree);
-    }
+    if (cropper) cropper.rotate(degree);
 }
 
 function updateBgColor() {
-    const color = document.getElementById('bg-color').value;
+    const color = document.getElementById('bg-color')?.value || '#000000';
     currentBgColor = color;
-    document.querySelector('.cropper-wrap-box').style.backgroundColor = color;
+    const wrapBox = document.querySelector('.cropper-wrap-box');
+    if (wrapBox) {
+        wrapBox.style.backgroundColor = color;
+        wrapBox.style.backgroundImage = 'none';
+    }
 }
 
 function clearBgColor() {
     currentBgColor = 'transparent';
-    document.querySelector('.cropper-wrap-box').style.backgroundColor = 'transparent';
-    document.querySelector('.cropper-wrap-box').style.backgroundImage = 'linear-gradient(45deg, var(--color-border) 25%, transparent 25%), linear-gradient(-45deg, var(--color-border) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--color-border) 75%), linear-gradient(-45deg, transparent 75%, var(--color-border) 75%)';
+    const wrapBox = document.querySelector('.cropper-wrap-box');
+    if (wrapBox) {
+        wrapBox.style.backgroundColor = 'transparent';
+        wrapBox.style.backgroundImage = '';
+    }
 }
 
 function downloadImage() {
-    if (!cropper) return;
+    if (!cropper) {
+        // Fallback: download the processed image directly if cropper isn't available
+        if (processedImageUrl) {
+            const link = document.createElement('a');
+            link.href = processedImageUrl;
+            link.download = `bg-removed-${Date.now()}.png`;
+            link.click();
+        }
+        return;
+    }
     
-    const format = document.getElementById('download-format').value;
+    const format = document.getElementById('download-format')?.value || 'image/png';
     const btn = document.getElementById('download-btn');
-    const ogText = btn.textContent;
-    btn.textContent = '⏳ Processing...';
-    btn.disabled = true;
+    const ogText = btn ? btn.textContent : '';
+    if (btn) { btn.textContent = '⏳ Processing...'; btn.disabled = true; }
     
     setTimeout(() => {
-        const isTransparent = currentBgColor === 'transparent';
-        const exportColor = isTransparent ? 'transparent' : currentBgColor;
+        const fillColor = currentBgColor === 'transparent' ? 'transparent' : currentBgColor;
         
         const canvas = cropper.getCroppedCanvas({
-            fillColor: exportColor,
+            fillColor: fillColor,
             imageSmoothingEnabled: true,
             imageSmoothingQuality: 'high'
         });
@@ -107,8 +135,7 @@ function downloadImage() {
             link.download = `edited-image-${Date.now()}.${ext}`;
             link.click();
             
-            btn.textContent = ogText;
-            btn.disabled = false;
+            if (btn) { btn.textContent = ogText; btn.disabled = false; }
         }, format, 0.95);
     }, 100);
 }

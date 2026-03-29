@@ -1,4 +1,4 @@
-const { handleUpload, resetApp, rotateImage, updateBgColor, clearBgColor, downloadImage } = require('../app');
+const { handleUpload, resetApp, rotateImage, updateBgColor, clearBgColor, downloadImage, processBackgroundRemoval } = require('../app');
 
 beforeEach(() => {
     document.body.innerHTML = `
@@ -9,7 +9,7 @@ beforeEach(() => {
         </div>
         <div id="editor-container" style="display:none"></div>
         <div id="action-buttons" style="display:none">
-            <button id="download-btn"></button>
+            <button id="download-btn">Download</button>
         </div>
         <img id="bg-canvas" />
         <input type="color" id="bg-color" value="#000000" />
@@ -18,76 +18,108 @@ beforeEach(() => {
     global.imglyRemoveBackground = jest.fn().mockResolvedValue(new Blob([''], { type: 'image/png' }));
     global.URL.createObjectURL = jest.fn().mockReturnValue('blob:test');
     
-    // Improved Image Mock
     global.Image = class {
         constructor() { this.onload = null; this.src = ''; }
         set src(v) { this._src = v; if (v) setTimeout(() => { if (this.onload) this.onload(); }, 5); }
     };
     
     global.Cropper = class {
-        constructor(el, opts) {
-            this.rotateArgs = [];
-            this.canvasMock = {
-                toBlob: (cb) => cb(new Blob([''], { type: 'image/png' }))
-            };
-        }
+        constructor(el, opts) { this.rotateArgs = []; }
         rotate(d) { this.rotateArgs.push(d); }
-        getCroppedCanvas() { return this.canvasMock; }
+        getCroppedCanvas() {
+            return { toBlob: (cb) => cb(new Blob([''], { type: 'image/png' })) };
+        }
         destroy() {}
     };
     
-    // Polyfill querySelector for the wrap box mocking
     document.querySelector = jest.fn((sel) => {
         if (sel === '.cropper-wrap-box') return { style: {} };
         return document.getElementById(sel.replace('#', '')) || { style: {} };
     });
 });
 
-describe('Background Remover Exhaustive', () => {
-    test('handleUpload complete success path', async () => {
-        const file = new File([''], 'test.png', { type: 'image/png' });
+describe('Background Remover', () => {
+    test('handleUpload shows processing state and calls processBackgroundRemoval', () => {
+        const file = new File(['data'], 'test.png', { type: 'image/png' });
         handleUpload({ target: { files: [file] } });
         
-        await new Promise(r => setTimeout(r, 50));
-        expect(document.getElementById('editor-container').style.display).toBe('block');
+        // Upload area should be hidden
+        expect(document.getElementById('upload-area').classList.contains('hidden')).toBe(true);
+        // Results section should be visible
+        expect(document.getElementById('results').classList.contains('hidden')).toBe(false);
+        // Processing view should be visible
+        expect(document.getElementById('processing-view').style.display).toBe('block');
     });
 
-    test('handleUpload handles error', async () => {
-        global.imglyRemoveBackground.mockRejectedValue(new Error('Fail'));
-        const file = new File([''], 'test.png', { type: 'image/png' });
-        handleUpload({ target: { files: [file] } });
+    test('processBackgroundRemoval succeeds and shows editor', async () => {
+        const file = new File(['data'], 'test.png', { type: 'image/png' });
+        await processBackgroundRemoval(file);
         
-        await new Promise(r => setTimeout(r, 50));
+        await new Promise(r => setTimeout(r, 30));
+        expect(global.imglyRemoveBackground).toHaveBeenCalledWith(file);
+        expect(document.getElementById('editor-container').style.display).toBe('block');
+        expect(document.getElementById('action-buttons').style.display).toBe('flex');
+    });
+
+    test('processBackgroundRemoval handles error', async () => {
+        global.imglyRemoveBackground.mockRejectedValue(new Error('Test failure'));
+        const file = new File(['data'], 'test.png', { type: 'image/png' });
+        await processBackgroundRemoval(file);
+        
+        await new Promise(r => setTimeout(r, 30));
         expect(document.getElementById('processing-status').textContent).toContain('Error');
     });
 
-    test('editor controls: bgColor and rotation', async () => {
-        // Mock a ready state
-        const file = new File([''], 'test.png', { type: 'image/png' });
-        handleUpload({ target: { files: [file] } });
-        await new Promise(r => setTimeout(r, 50));
+    test('processBackgroundRemoval handles missing library', async () => {
+        delete global.imglyRemoveBackground;
+        const file = new File(['data'], 'test.png', { type: 'image/png' });
+        await processBackgroundRemoval(file);
         
-        // Let image onload fire so cropper is initialized
-        document.getElementById('bg-canvas').onload();
-        
+        await new Promise(r => setTimeout(r, 30));
+        expect(document.getElementById('processing-status').textContent).toContain('not loaded');
+    });
+
+    test('rotateImage does not throw when cropper is null', () => {
+        expect(() => rotateImage(90)).not.toThrow();
+    });
+
+    test('updateBgColor and clearBgColor work', () => {
         updateBgColor();
-        expect(document.querySelector('.cropper-wrap-box')).toBeTruthy();
+        expect(document.querySelector).toHaveBeenCalledWith('.cropper-wrap-box');
         
         clearBgColor();
-        expect(document.querySelector('.cropper-wrap-box')).toBeTruthy();
-        
-        rotateImage(90); // Cropper is isolated inside module state but we can run the function to track coverage
+        expect(document.querySelector).toHaveBeenCalledWith('.cropper-wrap-box');
+    });
+
+    test('downloadImage fallback when no cropper', () => {
+        // No cropper initialized, should not throw
+        expect(() => downloadImage()).not.toThrow();
+    });
+
+    test('handleUpload ignores non-image files', () => {
+        const file = new File(['data'], 'test.txt', { type: 'text/plain' });
+        handleUpload({ target: { files: [file] } });
+        expect(document.getElementById('upload-area').classList.contains('hidden')).toBe(false);
     });
     
-    test('download image logic', async () => {
-        const file = new File([''], 'test.png', { type: 'image/png' });
-        handleUpload({ target: { files: [file] } });
-        await new Promise(r => setTimeout(r, 50));
-        document.getElementById('bg-canvas').onload(); // Initialize cropper
+    test('downloadImage with full cropper + format flow', async () => {
+        const file = new File(['data'], 'test.png', { type: 'image/png' });
+        await processBackgroundRemoval(file);
+        await new Promise(r => setTimeout(r, 30));
         
+        const bgCanvas = document.getElementById('bg-canvas');
+        if (bgCanvas && bgCanvas.onload) bgCanvas.onload();
+        
+        document.getElementById('download-format').innerHTML = '<option value="image/jpeg" selected>JPG</option>';
         downloadImage();
-        // Uses setTimeout internally
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise(r => setTimeout(r, 200));
         expect(document.getElementById('download-btn').disabled).toBe(false);
+    });
+    
+    test('resetApp reloads the page', () => {
+        delete window.location;
+        window.location = { reload: jest.fn() };
+        resetApp();
+        expect(window.location.reload).toHaveBeenCalled();
     });
 });
