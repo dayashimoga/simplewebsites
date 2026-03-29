@@ -88,7 +88,28 @@ jobs:
         run: npm ci
 
       - name: Build all sites
-        run: npm run build
+        run: |
+          set -e
+          echo "--- Starting build ---"
+          node shared/build.js
+          echo "--- Build complete ---"
+
+      - name: Verify build output
+        run: |
+          set -e
+          SITE_COUNT=$(ls -d dist/*/ 2>/dev/null | wc -l)
+          echo "Built $SITE_COUNT site directories in dist/"
+          ls -la dist/
+          if [ "$SITE_COUNT" -lt 10 ]; then
+            echo "::error::Build produced only $SITE_COUNT site directories — expected 30+. Build may have failed silently."
+            exit 1
+          fi
+          # Spot-check a key file
+          if [ ! -f dist/qr-code-generator/index.html ]; then
+            echo "::error::dist/qr-code-generator/index.html missing after build"
+            exit 1
+          fi
+          echo "Build verified successfully."
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

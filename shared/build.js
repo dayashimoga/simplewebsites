@@ -17,10 +17,15 @@ const CF_ANALYTICS_TOKEN = process.env.CF_ANALYTICS_TOKEN || '';
 const GLOBAL_DIST = path.join(ROOT, 'dist');
 
 function getAllSites() {
-  if (!fs.existsSync(SITES_DIR)) return [];
-  return fs.readdirSync(SITES_DIR).filter(f =>
+  if (!fs.existsSync(SITES_DIR)) {
+    console.error(`ERROR: Sites directory not found at ${SITES_DIR}`);
+    return [];
+  }
+  const all = fs.readdirSync(SITES_DIR).filter(f =>
     fs.statSync(path.join(SITES_DIR, f)).isDirectory()
   );
+  console.log(`Found ${all.length} site directories in ${SITES_DIR}`);
+  return all;
 }
 
 function copyFileSync(src, dest) {
@@ -248,10 +253,13 @@ self.addEventListener('fetch', e => {
 }
 
 function buildAll() {
+  console.log(`ROOT: ${ROOT}`);
+  console.log(`SITES_DIR: ${SITES_DIR}`);
+  console.log(`GLOBAL_DIST: ${GLOBAL_DIST}`);
   const sites = getAllSites();
   if (sites.length === 0) {
-    console.log('No sites found in sites/ directory.');
-    return;
+    console.error('ERROR: No sites found in sites/ directory. Build cannot continue.');
+    process.exit(1);
   }
   
   // Clean/Create global dist

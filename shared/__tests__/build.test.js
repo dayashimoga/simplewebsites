@@ -54,6 +54,9 @@ describe('Build Pipeline', () => {
         const spyRead = jest.spyOn(fs, 'readFileSync').mockReturnValue('<html><body><footer id="footer"></footer></body></html>');
         const spyWrite = jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
         const spyMkdir = jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
+        const spyRm = jest.spyOn(fs, 'rmSync').mockImplementation(() => {});
+        const spyCopy = jest.spyOn(fs, 'copyFileSync').mockImplementation(() => {});
+        const spyAppend = jest.spyOn(fs, 'appendFileSync').mockImplementation(() => {});
 
         const { buildAll } = require('../build.js');
         try { buildAll(); } catch(e) {}
@@ -64,6 +67,9 @@ describe('Build Pipeline', () => {
         spyRead.mockRestore();
         spyWrite.mockRestore();
         spyMkdir.mockRestore();
+        spyRm.mockRestore();
+        spyCopy.mockRestore();
+        spyAppend.mockRestore();
     });
 
     test('generateSitemap logic', () => {
