@@ -15,6 +15,16 @@ coverage_report/
 coverage_report_final/
 jest_output.json
 jest_output.txt
+*.log
+*.log.*
+*.txt
+!requirements.txt
+!README.md
+!LICENSE.md
+!manifest.json
+!manifest.json.txt # If any needed
+!robots.txt # Only if in root and needed, but usually we ignore dist
+!ads.txt # Same here
 # test results
 test_results.txt
 test_result.json
@@ -43,6 +53,20 @@ print_errors.js
 *.log.txt
 pdf_out.txt
 baby_out.txt
+*fail*.txt
+*err*.txt
+*out*.txt
+*cov*.txt
+*.test.js.output
+*.log
+*.log.*
+lfail.txt
+rawfail.txt
+git_output.txt
+globalcov.txt
+inv_err.txt
+inv_output.txt
+jest.txt
 
 # Specialized Artifacts
 .gemini/
