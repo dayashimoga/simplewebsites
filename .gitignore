@@ -26,52 +26,26 @@ jest_output.txt
 *.log
 *.log.*
 logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Test results and temporary analysis outputs
-*fail*.txt
-*err*.txt
-*out*.txt
-*cov*.txt
-jest.txt
-lfail.txt
-rawfail.txt
-git_output.txt
-globalcov.txt
-inv_err.txt
-inv_output.txt
-test_results.txt
+*.txt
+*.out
+*.tmp
+*.debug
+*.test.js.output
+jest_output.json
 test_result.json
 test_results*.json
-jest_errors.txt
-temp_errors.txt
-test_output_utf8.txt
-out.txt
-audit_coverage.js
-test_report*.txt
-coverage.json
-__tests_output.txt
-test_json*.txt
-test_rank.txt
-test_full.txt
-test_output.txt
-errors.txt
-errors_all.txt
-errors_clean.txt
-berr.txt
-btest.json
-test_errors.txt
-print_errors.js
-*.out.txt
-*.debug.txt
-*.log.txt
-pdf_out.txt
-baby_out.txt
-*.test.js.output
+debug*
+temp*
 
-# Specialized Artifacts
+# Tool-specific script leftovers
+print*.js
+batch-create*.js
+gen-*.js
+audit_coverage.js
+
+# Specialized Artifacts (Gemini/Antigravity)
 .gemini/
 brain/
 implementation_plan.md
@@ -82,84 +56,6 @@ task.md
 .DS_Store
 Thumbs.db
 .history/
-
-# Root Temp Files (specific ones only)
-cov2.txt
-coverage_output.txt
-final2.txt
-meme.txt
-allfail.txt
-print*.js
-batch-create*.js
-gen-*.js
-audit_coverage.js
-lfail.txt
-rawfail.txt
-git_output.txt
-globalcov.txt
-inv_err.txt
-inv_output.txt
-jest.txt
-out.txt
-final_cov.txt
-failures.txt
-fails.txt
-currency_output.txt
-# test results
-test_results.txt
-test_result.json
-test_results*.json
-jest_errors.txt
-temp_errors.txt
-test_output_utf8.txt
-out.txt
-audit_coverage.js
-test_report*.txt
-coverage.json
-__tests_output.txt
-test_json*.txt
-test_rank.txt
-test_full.txt
-test_output.txt
-errors.txt
-errors_all.txt
-errors_clean.txt
-berr.txt
-btest.json
-test_errors.txt
-print_errors.js
-*.out.txt
-*.debug.txt
-*.log.txt
-pdf_out.txt
-baby_out.txt
-*fail*.txt
-*err*.txt
-*out*.txt
-*cov*.txt
-*.test.js.output
-*.log
-*.log.*
-lfail.txt
-rawfail.txt
-git_output.txt
-globalcov.txt
-inv_err.txt
-inv_output.txt
-jest.txt
-
-# Specialized Artifacts
-.gemini/
-brain/
-implementation_plan.md
-walkthrough.md
-task.md
-
-# Terraform
-.terraform/
-*.tfstate
-*.tfstate.backup
-.terraform.lock.hcl
 
 # IDEs and Editors
 .vscode/
@@ -167,33 +63,13 @@ task.md
 *.swp
 *.swo
 
-# OS Files
-.DS_Store
-Thumbs.db
-.history/
-
 # Environment
 .env
 .env*
 !.env.example
 
-# Logs
-logs/
-*.log
-*.log.*
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Root Temp Files
-*.txt
-*.out
-*.tmp
-debug*
-temp*
-print*.js
-batch-create*.js
-gen-*.js
-audit_coverage.js
-allfail.txt
-
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl

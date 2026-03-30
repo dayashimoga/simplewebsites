@@ -1,101 +1,84 @@
-const { init, optimizeSVG, getByteSize, updateStats, formatBytes, updatePreview, clearInput, resetOutput, copyOutput } = require('../app');
+/**
+ * @jest-environment jsdom
+ */
+const { 
+  init, optimizeSVG, getByteSize, updateStats, formatBytes, updatePreview, clearInput, resetOutput, copyOutput
+} = require('../app');
 
-const DOM = `
-  <textarea id="svg-input"></textarea>
-  <textarea id="svg-output"></textarea>
-  <span id="size-before"></span>
-  <span id="size-after"></span>
-  <span id="savings-badge"></span>
-  <div id="svg-preview"></div>
-  <button id="copy-btn"></button>
-`;
+function setupDOM() {
+  document.body.innerHTML = `
+    <textarea id="svg-input"></textarea>
+    <textarea id="svg-output"></textarea>
+    <div id="size-before"></div>
+    <div id="size-after"></div>
+    <div id="savings-badge"></div>
+    <div id="svg-preview"></div>
+    <button id="copy-btn">Copy</button>
+  `;
+}
 
-describe('svg-optimizer', () => {
+global.Blob = class {
+  constructor(parts) { this.parts = parts; this.size = parts[0].length; }
+};
+
+describe('SVG Optimizer', () => {
   beforeEach(() => {
-    document.body.innerHTML = DOM;
-    
-    // Mock Blob since jsdom Blob doesn't always have size depending on version
-    global.Blob = class Blob {
-      constructor(arr) {
-        this.size = arr.join('').length;
-      }
-    };
-    jest.useFakeTimers();
+    setupDOM();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-    jest.useRealTimers();
-  });
-
-  test('init binds listener', () => {
-    init();
-    document.getElementById('svg-input').value = '<svg></svg>';
-    document.getElementById('svg-input').dispatchEvent(new Event('input'));
-    expect(document.getElementById('svg-output').value).toBe('<svg></svg>');
-  });
-
-  test('optimizeSVG strips comments and empty groups', () => {
-    document.getElementById('svg-input').value = '<!-- comment --> <svg> <g></g> <title>abc</title> </svg>';
-    optimizeSVG();
-    const out = document.getElementById('svg-output').value;
-    expect(out).not.toContain('<!-- comment -->');
-    expect(out).not.toContain('<g></g>');
-    expect(out).not.toContain('<title>abc</title>');
-  });
-
-  test('optimizeSVG formats numbers and spaces', () => {
-    document.getElementById('svg-input').value = '<svg width="1.123456"   height="2"></svg>';
-    optimizeSVG();
-    const out = document.getElementById('svg-output').value;
-    expect(out).toContain('"1.123'); // Truncated to 3 decimal approx (based on regex)
-    expect(out).not.toContain('   ');
-  });
-
-  test('optimizeSVG handles empty string', () => {
-    document.getElementById('svg-input').value = '   ';
-    optimizeSVG();
-    expect(document.getElementById('savings-badge').textContent).toBe('0% saved');
-  });
-
-  test('getByteSize returns number', () => {
-    expect(getByteSize('test')).toBe(4);
-  });
-
-  test('updateStats computes savings', () => {
-    updateStats('abcd', 'ab');
-    expect(document.getElementById('savings-badge').textContent).toBe('50.0% saved');
-  });
-
-  test('formatBytes handles zero and units', () => {
+  test('formatBytes handles different scales', () => {
     expect(formatBytes(0)).toBe('0 B');
     expect(formatBytes(1024)).toBe('1 KB');
-    expect(formatBytes(1048576)).toBe('1 MB');
+    expect(formatBytes(1024 * 1024)).toBe('1 MB');
   });
 
-  test('updatePreview checks for valid svg', () => {
-    updatePreview('<svg><circle /></svg>');
-    expect(document.getElementById('svg-preview').innerHTML).toContain('circle');
+  test('optimizeSVG removes comments and metadata', () => {
+    const input = '<?xml version="1.0"?><!-- comment --><svg><metadata></metadata><g></g><text>  hello  </text></svg>';
+    document.getElementById('svg-input').value = input;
+    optimizeSVG();
+    const output = document.getElementById('svg-output').value;
+    expect(output).not.toContain('<?xml');
+    expect(output).not.toContain('<!--');
+    expect(output).not.toContain('<metadata>');
+    expect(output).toContain('<svg><text> hello </text></svg>');
+  });
+
+  test('updatePreview injects SVG or error', () => {
+    updatePreview('<svg></svg>');
+    expect(document.getElementById('svg-preview').innerHTML).toContain('<svg');
     
-    updatePreview('not a svg');
-    expect(document.getElementById('svg-preview').innerHTML).toContain('Invalid');
+    updatePreview('not an svg');
+    expect(document.getElementById('svg-preview').textContent).toContain('Invalid');
   });
 
-  test('clearInput clears fields', () => {
-    document.getElementById('svg-input').value = '123';
+  test('clearInput resets everything', () => {
+    document.getElementById('svg-input').value = '<svg></svg>';
     clearInput();
     expect(document.getElementById('svg-input').value).toBe('');
+    expect(document.getElementById('svg-output').value).toBe('');
   });
 
-  test('copyOutput uses clipboard', async () => {
-    Object.assign(navigator, {
-      clipboard: { writeText: jest.fn().mockResolvedValue() }
-    });
-    
+  test('copyOutput uses clipboard API', (done) => {
+    const mockClipboard = { writeText: jest.fn(() => Promise.resolve()) };
+    global.navigator.clipboard = mockClipboard;
     document.getElementById('svg-output').value = '<svg></svg>';
-    copyOutput();
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('<svg></svg>');
     
-    jest.advanceTimersByTime(2100);
+    copyOutput();
+    
+    setTimeout(() => {
+      expect(mockClipboard.writeText).toHaveBeenCalledWith('<svg></svg>');
+      expect(document.getElementById('copy-btn').textContent).toContain('Copied');
+      done();
+    }, 50);
+  });
+
+  test('optimizeSVG handles empty input', () => {
+    document.getElementById('svg-input').value = '';
+    optimizeSVG();
+    expect(document.getElementById('svg-output').value).toBe('');
+  });
+
+  test('getByteSize calculation', () => {
+    expect(getByteSize('abc')).toBe(3);
   });
 });

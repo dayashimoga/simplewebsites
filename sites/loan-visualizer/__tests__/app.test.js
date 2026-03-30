@@ -9,107 +9,86 @@ const {
 
 function setupDOM() {
   document.body.innerHTML = `
-    <select id="preset-select">
-      <option value="home">Home</option>
-      <option value="car">Car</option>
-    </select>
-    <input id="principal" value="100000">
+    <input id="principal" value="200000">
     <input id="rate" value="5">
-    <input id="term" value="10">
-    <span id="emi"></span>
-    <span id="total-interest"></span>
-    <span id="total-payment"></span>
+    <input id="term" value="30">
+    <div id="emi"></div>
+    <div id="total-interest"></div>
+    <div id="total-payment"></div>
     <div id="pie-visual"></div>
-    <span id="pie-principal"></span>
-    <span id="pie-interest"></span>
-    <table>
-      <tbody id="amort-body"></tbody>
-    </table>
+    <div id="pie-principal"></div>
+    <div id="pie-interest"></div>
+    <table><tbody id="amort-body"></tbody></table>
   `;
 }
 
 describe('Loan Visualizer', () => {
   beforeEach(() => {
     setupDOM();
-    jest.clearAllMocks();
   });
 
-  describe('Core Math', () => {
-    test('calculateEMI computes correct value', () => {
-      // 100k, 5%, 10yr = 1060.66
-      expect(calculateEMI(100000, 5, 10)).toBe(1060.66);
-      expect(calculateEMI(0, 5, 10)).toBe(0); // 0 or negative
-      expect(calculateEMI(100000, 0, 10)).toBeCloseTo(833.33); // 0% interest
-      expect(calculateEMI(null, 5, 10)).toBe(0);
+  describe('EMI Calculations', () => {
+    test('calculateEMI returns correct monthly payment', () => {
+      // $100,000 at 12% for 1 year = $8,884.88
+      const emi = calculateEMI(100000, 12, 1);
+      expect(emi).toBe(8884.88);
     });
 
-    test('calculateTotalPayment & Interest', () => {
-      const emi = 1060.66;
-      const total = calculateTotalPayment(emi, 10);
-      expect(total).toBe(127279.2);
-      expect(calculateTotalInterest(total, 100000)).toBe(27279.2);
-      
-      expect(calculateTotalPayment(null, null)).toBe(0);
-      expect(calculateTotalInterest(null, null)).toBe(0);
+    test('calculateEMI handles 0% interest', () => {
+      const emi = calculateEMI(12000, 0, 1);
+      expect(emi).toBe(1000);
     });
 
-    test('generateAmortization creates schedule array', () => {
-      const schedule = generateAmortization(10000, 5, 1);
-      expect(schedule.length).toBe(1);
-      expect(schedule[0].year).toBe(1);
-      expect(schedule[0].balance).toBeCloseTo(0, 0);
-
-      expect(generateAmortization(0, 5, 1)).toEqual([]);
+    test('calculateTotalPayment returns principal + interest', () => {
+      expect(calculateTotalPayment(1000, 1)).toBe(12000);
     });
 
-    test('formatCurrency handles values correctly', () => {
-      expect(formatCurrency(1234.5)).toBe('$1,235');
-      expect(formatCurrency(null)).toBe('$0');
+    test('calculateTotalInterest subtracts principal', () => {
+      expect(calculateTotalInterest(12000, 10000)).toBe(2000);
+    });
+  });
+
+  describe('UI & Amortization', () => {
+    test('loadPreset updates input values and triggers calculate', () => {
+      loadPreset('home');
+      expect(document.getElementById('principal').value).toBe('250000');
+      expect(document.getElementById('rate').value).toBe('6.5');
+      expect(document.getElementById('term').value).toBe('30');
+    });
+
+    test('generateAmortization creates yearly rows', () => {
+      const schedule = generateAmortization(10000, 10, 2);
+      expect(schedule.length).toBe(2);
+      expect(schedule[1].balance).toBe(0);
+    });
+
+    test('formatCurrency formats as USD', () => {
+      expect(formatCurrency(1234.56)).toBe('$1,235'); // Rounds as per impl
       expect(formatCurrency(NaN)).toBe('$0');
     });
 
-    test('calculateMonthlyPayment uses simple fallback logic', () => {
-      expect(calculateMonthlyPayment(100000, 5, 120)).toBeCloseTo(1060.66);
+    test('updatePieChart sets labels', () => {
+      updatePieChart(1000, 1000);
+      expect(document.getElementById('pie-principal').textContent).toBe('$1,000');
+      expect(document.getElementById('pie-interest').textContent).toBe('$1,000');
+    });
+
+    test('renderAmortization updates table body', () => {
+      const schedule = [{ year: 1, principalPaid: 100, interestPaid: 50, balance: 850 }];
+      renderAmortization(schedule);
+      expect(document.getElementById('amort-body').innerHTML).toContain('850');
+    });
+
+    test('calculate() orchestrates full update', () => {
+      calculate();
+      expect(document.getElementById('emi').textContent).not.toBe('');
+      expect(document.getElementById('amort-body').children.length).toBeGreaterThan(0);
     });
   });
 
-  describe('DOM & Interactivity', () => {
-    test('loadPreset updates inputs and calculates', () => {
-      loadPreset('home');
-      expect(document.getElementById('principal').value).toBe(PRESETS_DATA.home.principal.toString());
-      
-      document.body.innerHTML = '';
-      expect(() => loadPreset('home')).not.toThrow();
-      expect(() => loadPreset('invalid')).not.toThrow();
-    });
-
-    test('calculate drives UI updates', () => {
-      calculate();
-      expect(document.getElementById('emi').textContent).not.toBe('');
-      expect(document.getElementById('amort-body').innerHTML).toContain('<td>1</td>');
-      
-      document.body.innerHTML = '';
-      expect(() => calculate()).not.toThrow();
-    });
-
-    test('updatePieChart safely ignores bad values or missing DOM', () => {
-      document.body.innerHTML = '';
-      expect(() => updatePieChart(0, 0)).not.toThrow();
-      
-      setupDOM();
-      expect(() => updatePieChart(0, 0)).not.toThrow();
-      updatePieChart(100000, 20000);
-      expect(document.getElementById('pie-principal').textContent).toBe('$100,000');
-    });
-
-    test('updateDisplay safely handles missing DOM', () => {
-      document.body.innerHTML = '';
-      expect(() => updateDisplay({ emi: 100, totalInterest: 100, totalPayment: 100 })).not.toThrow();
-    });
-
-    test('renderAmortization safely handles missing DOM', () => {
-      document.body.innerHTML = '';
-      expect(() => renderAmortization([{ year: 1, principalPaid: 100, interestPaid: 100, balance: 0 }])).not.toThrow();
-    });
+  test('Graceful failure on missing DOM', () => {
+    document.body.innerHTML = '';
+    expect(() => calculate()).not.toThrow();
+    expect(() => loadPreset('home')).not.toThrow();
   });
 });

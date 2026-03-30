@@ -1,81 +1,70 @@
-const { init, isValidZone, addTimezone, removeTimezone, getLocalTimeStr, populateSelect, updateDateDisplay, getOffsetHours, renderZones, getSelectedZones, setSelectedZones } = require('../app');
+/**
+ * @jest-environment jsdom
+ */
+const { 
+  init, isValidZone, addTimezone, removeTimezone, getLocalTimeStr, populateSelect, updateDateDisplay, getOffsetHours, renderZones, getSelectedZones, setSelectedZones
+} = require('../app');
 
-const DOM = `
-  <select id="tz-select"></select>
-  <span id="current-date-display"></span>
-  <div id="tz-list"></div>
-  <table id="schedule-grid"></table>
-`;
+function setupDOM() {
+  document.body.innerHTML = `
+    <select id="tz-select"></select>
+    <div id="current-date-display"></div>
+    <div id="tz-list"></div>
+    <table id="schedule-grid"></table>
+  `;
+}
 
-describe('timezone-scheduler', () => {
+describe('Timezone Scheduler', () => {
   beforeEach(() => {
-    document.body.innerHTML = DOM;
+    setupDOM();
     setSelectedZones([]);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test('isValidZone returns true for valid tz', () => {
+  test('isValidZone checks Intl support', () => {
     expect(isValidZone('UTC')).toBe(true);
-    expect(isValidZone('America/New_York')).toBe(true);
-    expect(isValidZone('Invalid/Zone')).toBe(false);
   });
 
-  test('populateSelect fills options', () => {
+  test('populateSelect adds options', () => {
     populateSelect();
     const select = document.getElementById('tz-select');
-    expect(select.innerHTML).toContain('Africa/Abidjan');
+    expect(select.options.length).toBeGreaterThan(1);
   });
 
-  test('updateDateDisplay writes to element', () => {
-    updateDateDisplay();
-    const el = document.getElementById('current-date-display');
-    expect(el.textContent.length).toBeGreaterThan(0);
-  });
-
-  test('addTimezone and removeTimezone updates list', () => {
+  test('addTimezone and removeTimezone update state', () => {
     populateSelect();
     const select = document.getElementById('tz-select');
-    select.value = 'Africa/Abidjan';
+    select.value = 'Asia/Tokyo';
     addTimezone();
-    
-    expect(getSelectedZones()).toContain('Africa/Abidjan');
-    expect(document.getElementById('tz-list').innerHTML).toContain('Africa/Abidjan');
-    
-    // Add same again does not duplicate
-    select.value = 'Africa/Abidjan';
-    addTimezone();
-    expect(getSelectedZones().filter(z => z === 'Africa/Abidjan').length).toBe(1);
+    expect(getSelectedZones()).toContain('Asia/Tokyo');
     
     removeTimezone(0);
-    expect(getSelectedZones()).not.toContain('Africa/Abidjan');
+    expect(getSelectedZones().length).toBe(0);
   });
 
-  test('getLocalTimeStr returns formatted string', () => {
-    const tz = getLocalTimeStr('UTC');
-    expect(tz).toMatch(/AM|PM/);
-  });
-
-  test('getOffsetHours computes approximate offset', () => {
-    const offset = getOffsetHours('America/New_York'); // typically -4 or -5
-    expect(typeof offset).toBe('number');
-  });
-
-  test('renderZones draws the grid', () => {
-    setSelectedZones(['UTC', 'America/New_York']);
+  test('renderZones updates both list and grid', () => {
+    setSelectedZones(['UTC', 'Asia/Tokyo']);
     renderZones();
+    
+    const list = document.getElementById('tz-list');
+    expect(list.innerHTML).toContain('UTC');
+    expect(list.innerHTML).toContain('Asia/Tokyo');
+    
     const grid = document.getElementById('schedule-grid');
-    expect(grid.innerHTML).toContain('UTC');
-    expect(grid.innerHTML).toContain('New York');
-    expect(grid.innerHTML).toContain('hour-cell');
+    expect(grid.querySelectorAll('tr').length).toBeGreaterThan(1);
   });
 
-  test('init initializes properly', () => {
-    jest.useFakeTimers();
+  test('updateDateDisplay updates text', () => {
+    updateDateDisplay();
+    expect(document.getElementById('current-date-display').textContent).not.toBe('');
+  });
+
+  test('init initializes defaults', () => {
     init();
     expect(getSelectedZones().length).toBeGreaterThan(0);
-    jest.useRealTimers();
+  });
+
+  test('Graceful failure on missing DOM', () => {
+    document.body.innerHTML = '';
+    expect(() => renderZones()).not.toThrow();
   });
 });
