@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro Timer — Boost Your Productivity</title>
+  <meta name="description" content="Free online Pomodoro timer to help you stay focused, take effective breaks, and boost your daily productivity.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm text-center">
+    <section class="hero mb-4">
+      <h1>🍅 <span class="text-gradient">Pomodoro Timer</span></h1>
+      <p>Stay focused and get more done with the Pomodoro technique</p>
+    </section>
+
+    <div class="card timer-card mb-6">
+      <div class="timer-nav d-flex justify-center gap-3 mb-5">
+        <button class="btn btn-secondary active" id="btn-pomodoro" onclick="setMode('pomodoro')">Pomodoro</button>
+        <button class="btn btn-secondary" id="btn-short" onclick="setMode('short')">Short Break</button>
+        <button class="btn btn-secondary" id="btn-long" onclick="setMode('long')">Long Break</button>
+      </div>
+
+      <div class="timer-display mb-5">
+        <span id="time-left">25:00</span>
+      </div>
+
+      <div class="timer-controls d-flex justify-center gap-3 mt-4">
+        <button class="btn btn-primary btn-lg font-bold" id="start-btn" onclick="toggleTimer()">START</button>
+        <button class="btn btn-secondary btn-lg" id="reset-btn" onclick="resetTimer()">RESET</button>
+      </div>
+    </div>
+    
+    <div class="card bg-surface p-4 text-left">
+      <h3 class="mb-3">How it works:</h3>
+      <ol class="text-dim space-y-2 pl-4">
+        <li>Decide on the task to be done.</li>
+        <li>Set the Pomodoro timer (typically 25 minutes).</li>
+        <li>Work on the task until the timer rings.</li>
+        <li>Take a short break (typically 5 minutes).</li>
+        <li>After four Pomodoros, take a long break (typically 15 minutes).</li>
+      </ol>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Pomodoro Timer. Stay productive.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

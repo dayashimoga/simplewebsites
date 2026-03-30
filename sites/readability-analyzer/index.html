@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Readability Analyzer — Check Your Writing Quality</title>
+  <meta name="description" content="Analyze text readability with Flesch-Kincaid, Gunning Fog, word frequency, and passive voice detection. Improve your writing!">
+  <link rel="stylesheet" href="shared-styles.css"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <section class="hero"><h1>📖 <span class="text-gradient">Readability Analyzer</span></h1><p>Measure and improve your writing quality</p></section>
+    <div class="card"><textarea id="text-input" class="input w-full" rows="10" placeholder="Paste your text here to analyze readability..." oninput="analyze()"></textarea></div>
+    <div class="stats-grid mt-4" id="stats-grid"></div>
+    <div class="card mt-4" id="details-card" style="display:none">
+      <h4>📊 Detailed Analysis</h4>
+      <div id="details"></div>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Readability Analyzer.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

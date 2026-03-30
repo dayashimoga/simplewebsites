@@ -67,4 +67,51 @@ describe('Color Palette Extractor', () => {
       done();
     }, 10);
   });
+
+  test('copyColor uses navigator.clipboard', () => {
+    copyColor('#ffffff');
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('#ffffff');
+  });
+
+  test('exportPalette generates CSS and copies', () => {
+    setExtractedColors([[255, 0, 0], [0, 255, 0]]);
+    exportPalette();
+    expect(navigator.clipboard.writeText).toHaveBeenCalled();
+  });
+
+  test('resetUpload clears UI', () => {
+    document.getElementById('preview-section').classList.remove('hidden');
+    resetUpload();
+    expect(document.getElementById('preview-section').classList.contains('hidden')).toBe(true);
+    expect(getExtractedColors().length).toBe(0);
+  });
+
+  test('rgbToHex converts properly', () => {
+    expect(rgbToHex(255, 0, 0)).toBe('#ff0000');
+  });
+
+  test('drop-zone events bind in DOMContentLoaded', () => {
+    require('../app');
+    document.body.innerHTML += '<div id="drop-zone"></div>';
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+    const dz = document.getElementById('drop-zone');
+    
+    // dragover
+    const doEvent = new Event('dragover');
+    doEvent.preventDefault = jest.fn();
+    dz.dispatchEvent(doEvent);
+    expect(dz.classList.contains('dragover')).toBe(true);
+    
+    // dragleave
+    dz.dispatchEvent(new Event('dragleave'));
+    expect(dz.classList.contains('dragover')).toBe(false);
+    
+    // drop
+    const dropEvent = new Event('drop');
+    dropEvent.preventDefault = jest.fn();
+    dropEvent.dataTransfer = { files: [new File([''], 'test.png', { type: 'image/png' })] };
+    dz.classList.add('dragover');
+    dz.dispatchEvent(dropEvent);
+    expect(dz.classList.contains('dragover')).toBe(false);
+  });
 });

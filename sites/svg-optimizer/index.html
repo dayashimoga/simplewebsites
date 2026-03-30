@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free SVG Optimizer & Minifier</title>
+  <meta name="description" content="Clean and minify SVG code instantly. Reduce file sizes, remove unnecessary metadata, and optimize vector graphics offline.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-6">
+      <h1>📐 <span class="text-gradient">SVG Optimizer</span></h1>
+      <p>Clean up messy SVG code and reduce file size instantly</p>
+    </section>
+
+    <div class="layout-grid">
+      <!-- Input -->
+      <div class="card bg-surface p-4 d-flex flex-column h-full">
+        <h3 class="mb-3 text-lg d-flex justify-between align-center">
+          <span>Raw SVG Input</span>
+          <button class="btn btn-sm btn-secondary" onclick="clearInput()">Clear</button>
+        </h3>
+        <textarea id="svg-input" class="input w-full p-4 font-mono text-xs flex-1 min-h-64 resize-none" placeholder="Paste your <svg> code here..." oninput="optimizeSVG()"></textarea>
+      </div>
+
+      <!-- Output -->
+      <div class="card p-4 d-flex flex-column h-full">
+        <h3 class="mb-3 text-lg d-flex justify-between align-center">
+          <span>Optimized Output</span>
+          <span class="badge bg-success" id="savings-badge">0% saved</span>
+        </h3>
+        <textarea id="svg-output" class="input w-full p-4 font-mono text-xs flex-1 min-h-64 resize-none bg-surface border-primary mb-3" readonly></textarea>
+        
+        <div class="d-flex justify-between align-center">
+          <div class="text-sm font-bold">
+            <span class="text-dim" id="size-before">Original: 0 B</span> → 
+            <span class="text-success" id="size-after">Optimized: 0 B</span>
+          </div>
+          <button class="btn btn-primary px-6" onclick="copyOutput()" id="copy-btn">📋 Copy Minified</button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card mt-6 text-center">
+      <h3 class="mb-3">Preview</h3>
+      <div id="svg-preview" class="svg-preview-box rounded border border-border bg-bg mx-auto d-inline-block p-4">
+        <!-- Preview injected here -->
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 SVG Optimizer.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

@@ -58,58 +58,55 @@ function isVideoFile(file) {
 async function initFFmpeg() {
     if (ffmpegInstance) return ffmpegInstance;
 
-    let FFmpegLib = null;
-    let FFmpegUtil = null;
-    let attempts = 0;
-    while (attempts < 25) {
-      FFmpegLib = (typeof window !== 'undefined') ? (window.FFmpegWASM || window.FFmpeg || window['@ffmpeg/ffmpeg']) : null;
-      FFmpegUtil = (typeof window !== 'undefined') ? (window.FFmpegUtil || window['@ffmpeg/util']) : null;
-      if (FFmpegLib && (FFmpegLib.FFmpeg || typeof FFmpegLib === 'function') && FFmpegUtil && FFmpegUtil.toBlobURL) break;
-      await new Promise(r => setTimeout(r, 200));
-      attempts++;
-    }
-
-    if (!FFmpegLib || !FFmpegUtil) {
-        throw new Error('FFmpeg libraries not available. Please check your connection or refresh the page.');
-    }
-
-    const ff = FFmpegLib.FFmpeg ? new FFmpegLib.FFmpeg() : new FFmpegLib();
-    
-    ff.on('log', ({ message }) => {
-        const logEl = document.getElementById('ffmpeg-log');
-        if (logEl) logEl.textContent = message;
-    });
-    
-    ff.on('progress', ({ progress }) => {
-        const pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
-        const bar = document.getElementById('progress-bar');
-        const statusEl = document.getElementById('processing-status');
-        if (bar) bar.style.width = pct + '%';
-        if (statusEl) statusEl.textContent = `Processing Video... ${pct}%`;
-    });
-
     const statusEl = document.getElementById('processing-status');
     if (statusEl) { statusEl.textContent = 'Loading AI Engine... (This may take a minute)'; statusEl.classList.remove('hidden'); }
 
-    // Use toBlobURL to bypass CORS Worker Restrictions natively
     try {
+        // Dynamically import both libraries via ESM to avoid cross-origin Worker issues
+        const importFn = new Function('url', 'return import(url)');
+        
+        const [ffmpegModule, utilModule] = await Promise.all([
+            importFn('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js'),
+            importFn('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js')
+        ]);
+
+        const { FFmpeg } = ffmpegModule;
+        const { toBlobURL, fetchFile } = utilModule;
+
+        // Store fetchFile globally for use during compression
+        window._ffmpegFetchFile = fetchFile;
+
+        const ff = new FFmpeg();
+        
+        ff.on('log', ({ message }) => {
+            const logEl = document.getElementById('ffmpeg-log');
+            if (logEl) logEl.textContent = message;
+        });
+        
+        ff.on('progress', ({ progress }) => {
+            const pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
+            const bar = document.getElementById('progress-bar');
+            const sEl = document.getElementById('processing-status');
+            if (bar) bar.style.width = pct + '%';
+            if (sEl) sEl.textContent = `Processing Video... ${pct}%`;
+        });
+
+        // Use toBlobURL for ALL artifacts to bypass cross-origin Worker restrictions
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-        const coreURL = await FFmpegUtil.toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
-        const wasmURL = await FFmpegUtil.toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+        const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
+        const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
+        // The worker is already bundled in the ESM build — no separate workerURL needed
         
         await ff.load({ coreURL, wasmURL });
-    } catch (loadErr) {
-        console.warn('Blob load failed, trying standard load:', loadErr.message || loadErr);
-        try {
-            await ff.load();
-        } catch (stdErr) {
-            throw new Error('Could not instantiate WebAssembly Compiler: ' + (stdErr.message || JSON.stringify(stdErr)));
-        }
+        
+        if (statusEl) statusEl.classList.add('hidden');
+        ffmpegInstance = ff;
+        return ff;
+    } catch (e) {
+        console.error('FFmpeg init error:', e);
+        if (statusEl) statusEl.classList.add('hidden');
+        throw new Error('Could not load video processing engine. Please refresh and try again. (' + e.message + ')');
     }
-    
-    if (statusEl) statusEl.classList.add('hidden');
-    ffmpegInstance = ff;
-    return ff;
 }
 
 function handleUpload(event) {
@@ -207,8 +204,8 @@ async function executeCompression() {
     try {
         const ff = await initFFmpeg();
         
-        let FFmpegUtil = window.FFmpegUtil || window['@ffmpeg/util'];
-        if (!FFmpegUtil || !FFmpegUtil.fetchFile) throw new Error('FFmpeg utility library not available.');
+        const fetchFile = window._ffmpegFetchFile;
+        if (!fetchFile) throw new Error('FFmpeg utility library not available.');
 
         const ext = (videoFile.name.split('.').pop() || 'mp4').toLowerCase();
         const inputName = `input.${ext}`;
@@ -249,7 +246,7 @@ async function executeCompression() {
         args.push('-movflags', '+faststart', outputName);
 
         if (statusEl) statusEl.textContent = 'Writing File...';
-        await ff.writeFile(inputName, await FFmpegUtil.fetchFile(videoFile));
+        await ff.writeFile(inputName, await fetchFile(videoFile));
         
         if (statusEl) statusEl.textContent = 'Executing AI Render...';
         await ff.exec(args);

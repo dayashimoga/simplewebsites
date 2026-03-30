@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Scramble — Unscramble Words & Build Vocabulary</title>
+  <meta name="description" content="Fun word scramble game for all ages. Unscramble letters to form words. Multiple difficulty levels, hints, and streaks!">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero"><h1>🔤 <span class="text-gradient">Word Scramble</span></h1><p>Unscramble the letters to find the hidden word!</p></section>
+    <div id="game-screen" class="card text-center">
+      <div class="game-header">
+        <span class="badge" id="difficulty-badge">Easy</span>
+        <span class="badge badge-streak" id="streak-badge">🔥 0</span>
+        <span class="badge" id="score-badge">⭐ 0</span>
+      </div>
+      <div class="difficulty-tabs mt-4 mb-4">
+        <button class="tab-btn active" onclick="setDifficulty('easy')">Easy</button>
+        <button class="tab-btn" onclick="setDifficulty('medium')">Medium</button>
+        <button class="tab-btn" onclick="setDifficulty('hard')">Hard</button>
+      </div>
+      <div class="scrambled-word" id="scrambled-word"></div>
+      <div class="hint-text hidden" id="hint-text"></div>
+      <input type="text" id="guess-input" class="input text-center text-lg mt-4" placeholder="Type your answer..." autocomplete="off">
+      <div class="flex gap-3 justify-center mt-4">
+        <button class="btn btn-primary" onclick="checkGuess()" id="check-btn">Check ✓</button>
+        <button class="btn btn-secondary" onclick="showHint()" id="hint-btn">💡 Hint</button>
+        <button class="btn btn-secondary" onclick="skipWord()" id="skip-btn">⏭ Skip</button>
+      </div>
+      <div class="feedback hidden" id="feedback"></div>
+      <div class="timer-bar mt-4"><div class="timer-fill" id="timer-fill"></div></div>
+    </div>
+    <div class="card mt-4">
+      <h4 class="mb-3">🏅 High Scores</h4>
+      <div id="high-scores"></div>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Word Scramble.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

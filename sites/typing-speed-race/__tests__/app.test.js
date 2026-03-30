@@ -2,55 +2,71 @@
  * @jest-environment jsdom
  */
 const { 
-  TEXTS, getRandomText, calculateWPM, calculateAccuracy, setDuration, startRace, 
-  handleTyping, renderText, finishRace, restartRace, renderLeaderboard,
-  getState, setCurrentText, setIsRunning, setIsFinished
+  TEXTS, DIFFICULTY_CONFIG, getRandomText, calculateWPM, calculateAccuracy, setDifficulty, setDuration, startRace, 
+  handleTyping, renderText, finishRace, restartRace, renderLeaderboard, getPerformanceRating, saveScore,
+  getState, setCurrentText, setIsRunning, setIsFinished, setCurrentDifficulty
 } = require('../app');
 
 function setupDOM() {
   document.body.innerHTML = `
     <div class="typing-area"></div>
-    <div id="timer">60</div>
-    <div id="wpm">0</div>
-    <div id="accuracy">100</div>
-    <div id="errors">0</div>
-    <input id="typing-input">
-    <div id="progress-fill"></div>
-    <div id="text-display"></div>
-    <div id="leaderboard"></div>
-    <button class="time-btn" onclick="setDuration(30)"></button>
+    <div id="timer">60</div><div id="wpm">0</div><div id="accuracy">100</div><div id="errors">0</div>
+    <input id="typing-input"><div id="progress-fill"></div><div id="text-display"></div><div id="leaderboard"></div>
+    <div id="diff-description"></div><div id="beginner-helper"></div>
+    <button class="time-btn"></button><button class="diff-btn"></button><button class="diff-btn"></button><button class="diff-btn"></button>
   `;
 }
 
-// Mock localStorage
-const mockStorage = {
-  getItem: jest.fn().mockReturnValue('[]'),
-  setItem: jest.fn()
-};
+const mockStorage = { getItem: jest.fn().mockReturnValue('[]'), setItem: jest.fn() };
 Object.defineProperty(global, 'localStorage', { value: mockStorage });
 
 describe('Typing Speed Race', () => {
-  beforeEach(() => {
-    setupDOM();
-    jest.useFakeTimers();
-    jest.clearAllMocks();
-    mockStorage.getItem.mockReturnValue('[]');
-    setDuration(60);
-    restartRace();
-  });
-  
-  afterEach(() => {
-    jest.useRealTimers();
+  beforeEach(() => { setupDOM(); jest.useFakeTimers(); jest.clearAllMocks(); mockStorage.getItem.mockReturnValue('[]'); setCurrentDifficulty('beginner'); setDuration(60); restartRace(); });
+  afterEach(() => jest.useRealTimers());
+
+  describe('Difficulty System', () => {
+    test('TEXTS has three difficulty levels', () => {
+      expect(TEXTS.beginner).toBeDefined();
+      expect(TEXTS.intermediate).toBeDefined();
+      expect(TEXTS.advanced).toBeDefined();
+      expect(TEXTS.beginner.length).toBeGreaterThan(0);
+    });
+
+    test('DIFFICULTY_CONFIG has configs for all levels', () => {
+      expect(DIFFICULTY_CONFIG.beginner.label).toBe('Beginner');
+      expect(DIFFICULTY_CONFIG.intermediate.label).toBe('Intermediate');
+      expect(DIFFICULTY_CONFIG.advanced.label).toBe('Advanced');
+      expect(DIFFICULTY_CONFIG.advanced.defaultDuration).toBe(45);
+    });
+
+    test('setDifficulty changes text pool and duration', () => {
+      setDifficulty('advanced');
+      expect(getState().currentDifficulty).toBe('advanced');
+      expect(getState().duration).toBe(45);
+
+      setDifficulty('beginner');
+      expect(getState().currentDifficulty).toBe('beginner');
+      expect(getState().duration).toBe(60);
+    });
+
+    test('getRandomText returns text from correct pool', () => {
+      expect(TEXTS.beginner).toContain(getRandomText('beginner'));
+      expect(TEXTS.advanced).toContain(getRandomText('advanced'));
+    });
+
+    test('getPerformanceRating returns correct tiers', () => {
+      expect(getPerformanceRating(10, 95).tier).toBe('bronze');
+      expect(getPerformanceRating(25, 95).tier).toBe('silver');
+      expect(getPerformanceRating(50, 95).tier).toBe('gold');
+      expect(getPerformanceRating(80, 95).tier).toBe('platinum');
+      expect(getPerformanceRating(40, 70).tier).toBe('bronze'); // low accuracy
+    });
   });
 
   describe('Math and Logic', () => {
-    test('getRandomText gets a genuine string', () => {
-      expect(TEXTS).toContain(getRandomText());
-    });
-
     test('calculateWPM computes normally', () => {
       expect(calculateWPM(0, 0)).toBe(0);
-      expect(calculateWPM(25, 60)).toBe(5); // 5 words in 1 min
+      expect(calculateWPM(25, 60)).toBe(5);
     });
 
     test('calculateAccuracy computes percentage', () => {
@@ -59,99 +75,85 @@ describe('Typing Speed Race', () => {
     });
   });
 
-  describe('Interactive Race Flow', () => {
-    test('setDuration updates state and clears DOM active', () => {
+  describe('Race Flow', () => {
+    test('setDuration updates state', () => {
       setDuration(45);
       expect(getState().duration).toBe(45);
-      
-      document.body.innerHTML = '';
-      expect(() => setDuration(30)).not.toThrow();
     });
 
-    test('Race starts, updates timer, handles typing, finishes correctly', () => {
+    test('Full race lifecycle', () => {
       const input = document.getElementById('typing-input');
-      const sampleText = 'The dog';
-      setCurrentText(sampleText);
-      
+      setCurrentText('The dog');
       startRace();
       expect(getState().isRunning).toBeTruthy();
-      
-      // Re-starting does nothing
-      startRace();
-      
-      // Update timer visually
-      jest.advanceTimersByTime(1000); // 1 second
-      expect(document.getElementById('timer').textContent).toBe('59'); 
-      
-      // Type correctly
+      startRace(); // no-op
+
+      jest.advanceTimersByTime(1000);
+      expect(document.getElementById('timer').textContent).toBe('59');
+
       input.value = 'The d';
       handleTyping();
       expect(document.getElementById('accuracy').textContent).toBe('100');
-      
-      // Type incorrectly
+
       input.value = 'The z';
       handleTyping();
       expect(document.getElementById('errors').textContent).toBe('1');
-      
-      // Type fully
-      input.value = sampleText;
+
+      input.value = 'The dog';
       handleTyping();
       expect(getState().isFinished).toBeTruthy();
-      
-      // Input disabled
       expect(input.disabled).toBeTruthy();
-      // Scores saved
       expect(mockStorage.setItem).toHaveBeenCalled();
     });
-    
-    test('handleTyping ignores input in invalid states', () => {
+
+    test('handleTyping ignores invalid states', () => {
       setIsRunning(false);
-      handleTyping(); // No-op
-      
+      handleTyping();
       setIsRunning(true);
-      document.body.innerHTML = ''; // Missing input
+      document.body.innerHTML = '';
       expect(() => handleTyping()).not.toThrow();
     });
 
-    test('renderText highlights active text', () => {
+    test('renderText highlights correctly', () => {
       setCurrentText('abc');
       renderText('a');
-      const display = document.getElementById('text-display');
-      expect(display.innerHTML).toContain('class="correct"');
-      expect(display.innerHTML).toContain('class="current"');
-      
+      expect(document.getElementById('text-display').innerHTML).toContain('correct');
+      expect(document.getElementById('text-display').innerHTML).toContain('current');
       document.body.innerHTML = '';
       expect(() => renderText('a')).not.toThrow();
     });
 
-    test('finishRace missing DOM', () => {
-      document.body.innerHTML = '';
-      expect(() => finishRace()).not.toThrow();
-    });
-
     test('Timer expiry ends race', () => {
       startRace();
-      jest.advanceTimersByTime(61000); // Over 60 seconds
-      expect(getState().isFinished).toBeTruthy(); // Called finishRace
+      jest.advanceTimersByTime(61000);
+      expect(getState().isFinished).toBeTruthy();
+    });
+
+    test('finishRace with missing DOM', () => {
+      document.body.innerHTML = '';
+      expect(() => finishRace()).not.toThrow();
     });
   });
 
   describe('Leaderboard', () => {
-    test('renderLeaderboard uses localStorage', () => {
+    test('renders scores from localStorage', () => {
       mockStorage.getItem.mockReturnValue(JSON.stringify([{ wpm: 120, accuracy: 95, date: 'today' }]));
-      
       renderLeaderboard();
-      const el = document.getElementById('leaderboard');
-      expect(el.innerHTML).toContain('120 WPM');
-      
-      document.body.innerHTML = '';
+      expect(document.getElementById('leaderboard').innerHTML).toContain('120 WPM');
+    });
+
+    test('handles empty and invalid JSON', () => {
+      renderLeaderboard();
+      expect(document.getElementById('leaderboard').innerHTML).toContain('No scores');
+
+      mockStorage.getItem.mockReturnValue('INVALID');
       expect(() => renderLeaderboard()).not.toThrow();
     });
-    
-    test('renderLeaderboard handles exceptions gracefully', () => {
-      mockStorage.getItem.mockReturnValue('INVALID JSON');
-      expect(() => renderLeaderboard()).not.toThrow();
-      expect(document.getElementById('leaderboard').innerHTML).toBe('');
+
+    test('saveScore uses difficulty-specific key', () => {
+      setCurrentDifficulty('advanced');
+      saveScore(50, 95);
+      expect(mockStorage.setItem).toHaveBeenCalledWith('typingScores_advanced', expect.any(String));
     });
   });
 });

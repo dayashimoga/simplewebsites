@@ -1,0 +1,52 @@
+.timer-card {
+  padding: 3rem 2rem;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-xl);
+}
+
+.timer-display {
+  font-size: 6rem;
+  font-weight: 900;
+  font-family: 'Inter', monospace;
+  color: var(--color-text);
+  line-height: 1;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+.timer-nav button {
+  min-width: 120px;
+  border-radius: 999px;
+}
+
+body.mode-short {
+  background-color: #0f172a;
+}
+
+body.mode-long {
+  background-color: #1e1b4b;
+}
+
+body.mode-short .timer-card {
+  border-color: #38bdf8;
+  box-shadow: 0 10px 30px rgba(56, 189, 248, 0.1);
+}
+
+body.mode-long .timer-card {
+  border-color: #818cf8;
+  box-shadow: 0 10px 30px rgba(129, 140, 248, 0.1);
+}
+
+#start-btn {
+  min-width: 150px;
+}
+
+#reset-btn {
+  min-width: 120px;
+}
+
+@media (max-width: 480px) {
+  .timer-display {
+    font-size: 4rem;
+  }
+}

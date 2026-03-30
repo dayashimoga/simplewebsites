@@ -1,0 +1,11 @@
+.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-btn { padding: 6px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-full); background: transparent; color: var(--color-text); cursor: pointer; font-size: .8rem; transition: all .2s; }
+.filter-btn:hover { border-color: var(--color-primary); }
+.filter-btn.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.shortcut-card { padding: 14px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
+.shortcut-card:hover { background: rgba(99,102,241,.05); }
+.sc-action { flex: 1; }
+.sc-keys { display: flex; gap: 4px; flex-wrap: wrap; }
+.key { padding: 4px 10px; background: var(--color-surface-alt); border: 1px solid var(--color-border); border-radius: 6px; font-family: monospace; font-size: .85rem; font-weight: 600; box-shadow: 0 2px 0 var(--color-border); }
+.sc-app { font-size: .75rem; color: var(--color-text-secondary); margin-top: 2px; }
+.section-title { padding: 12px 16px; background: var(--color-surface-alt); border-radius: var(--radius-md); margin-bottom: 4px; font-weight: 700; }

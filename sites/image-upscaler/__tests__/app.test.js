@@ -551,27 +551,36 @@ describe('Background Operations', () => {
 });
 
 describe('Upscale Operations', () => {
+  let rafCallbacks;
+
   beforeEach(() => {
-    jest.useFakeTimers();
     resetToolkit();
     const { canvas } = makeMockCanvas(100, 100);
     setCurrentCanvas(canvas);
+    // Mock requestAnimationFrame to execute synchronously
+    rafCallbacks = [];
+    global.requestAnimationFrame = jest.fn(cb => { rafCallbacks.push(cb); return rafCallbacks.length; });
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    delete global.requestAnimationFrame;
   });
+
+  function flushRAF() {
+    rafCallbacks.forEach(cb => cb());
+    rafCallbacks = [];
+  }
 
   test('applyUpscale increases canvas dims and updates UI', () => {
     applyUpscale(2);
-    jest.advanceTimersByTime(200);
+    flushRAF();
     expect(getCurrentCanvas().width).toBe(200);
-    expect(document.getElementById('status-text').textContent).toContain('Successfully upscaled');
+    expect(document.getElementById('status-text').textContent).toContain('Upscaled');
   });
 
   test('applyUpscale aborts if dimensions exceed bounds', () => {
     applyUpscale(100); // 100x100 * 100 = 10000 > 8000
-    jest.advanceTimersByTime(200);
+    flushRAF();
     expect(getCurrentCanvas().width).toBe(100);
     expect(document.getElementById('status-text').textContent).toContain('too large');
   });
@@ -580,16 +589,17 @@ describe('Upscale Operations', () => {
     document.getElementById('upscale-w').value = '300';
     document.getElementById('upscale-h').value = '300';
     applyCustomUpscale();
-    jest.advanceTimersByTime(200);
+    flushRAF();
     expect(getCurrentCanvas().width).toBe(300);
     expect(getCurrentCanvas().height).toBe(300);
   });
 
-  test('applyCustomUpscale warns if target isn\'t larger or valid limits', () => {
+  test('applyCustomUpscale warns if target is invalid', () => {
     document.getElementById('upscale-w').value = '-50';
     document.getElementById('upscale-h').value = '50';
     applyCustomUpscale();
-    expect(document.getElementById('status-text').textContent).toContain('larger than current');
+    flushRAF();
+    expect(document.getElementById('status-text').textContent).toContain('valid');
     expect(getCurrentCanvas().width).toBe(100);
   });
 
@@ -597,7 +607,7 @@ describe('Upscale Operations', () => {
     document.getElementById('upscale-w').value = '9000';
     document.getElementById('upscale-h').value = '9000';
     applyCustomUpscale();
-    jest.advanceTimersByTime(200);
+    flushRAF();
     expect(document.getElementById('status-text').textContent).toContain('limits');
   });
 });

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meme Generator — Create Custom Memes Free</title>
+  <meta name="description" content="Free online meme generator. Upload an image, add custom top and bottom text, and download your customized meme instantly.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <section class="hero text-center mb-6">
+      <h1>🤭 <span class="text-gradient">Meme Generator</span></h1>
+      <p>Upload a template, add your text, and create viral memes instantly.</p>
+    </section>
+
+    <div class="layout-grid">
+      <!-- Controls Column -->
+      <div class="card controls-section">
+        <div class="form-group mb-4">
+          <label for="image-upload" class="form-label font-bold">Upload Template Image</label>
+          <input type="file" id="image-upload" accept="image/png, image/jpeg, image/jpg, image/webp" class="input w-full p-2">
+        </div>
+        
+        <div class="form-group mb-4">
+          <label for="top-text" class="form-label font-bold">Top Text</label>
+          <input type="text" id="top-text" class="input w-full p-2" placeholder="TOP TEXT" oninput="drawMeme()">
+        </div>
+        
+        <div class="form-group mb-4">
+          <label for="bottom-text" class="form-label font-bold">Bottom Text</label>
+          <input type="text" id="bottom-text" class="input w-full p-2" placeholder="BOTTOM TEXT" oninput="drawMeme()">
+        </div>
+
+        <div class="grid col-2 gap-3 mb-4">
+          <div>
+            <label for="text-color" class="form-label text-sm">Text Color</label>
+            <input type="color" id="text-color" value="#ffffff" class="input w-full h-10 p-1" onchange="drawMeme()">
+          </div>
+          <div>
+            <label for="outline-color" class="form-label text-sm">Outline Color</label>
+            <input type="color" id="outline-color" value="#000000" class="input w-full h-10 p-1" onchange="drawMeme()">
+          </div>
+        </div>
+        
+        <div class="form-group mb-4">
+          <label for="font-size" class="form-label text-sm d-flex justify-between">
+            <span>Font Size: <span id="font-size-val">40</span>px</span>
+          </label>
+          <input type="range" id="font-size" min="10" max="100" value="40" class="w-full" oninput="drawMeme()">
+        </div>
+
+        <button class="btn btn-primary w-full py-3 mt-2 font-bold text-lg" id="download-btn" disabled onclick="downloadMeme()">
+          💾 Download Meme
+        </button>
+      </div>
+
+      <!-- Preview Column -->
+      <div class="card preview-section d-flex align-center justify-center flex-column text-center">
+        <h3 class="mb-3 text-sm text-dim">Preview</h3>
+        <div class="canvas-container relative w-full overflow-hidden border-dashed rounded bg-surface p-2" id="canvas-wrapper">
+          <div id="placeholder" class="py-12 text-dim text-center w-full">
+            <span class="text-4xl block mb-2">🖼️</span>
+            Upload an image to start generating
+          </div>
+          <canvas id="meme-canvas" class="hidden max-w-full rounded shadow-sm" style="max-height: 60vh;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Meme Generator. Free forever.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

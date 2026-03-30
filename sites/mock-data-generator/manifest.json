@@ -1,0 +1,8 @@
+{
+  "name": "Mock Data Generator",
+  "emoji": "🗄️",
+  "description": "Generate thousands of rows of realistic test data instantly. Fully customizable schema, outputs as JSON or CSV completely offline.",
+  "category": "Developer Tools",
+  "path": "/sites/mock-data-generator/",
+  "enabled": true
+}

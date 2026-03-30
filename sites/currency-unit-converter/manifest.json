@@ -1,0 +1,8 @@
+{
+  "name": "Currency & Unit Converter",
+  "emoji": "💱",
+  "description": "Real-time currency converter providing live exchange rates, plus a comprehensive tool for converting length, mass, and temperature units.",
+  "category": "Utility",
+  "path": "/sites/currency-unit-converter/",
+  "enabled": true
+}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Audio Trimmer & Cutter</title>
+  <meta name="description" content="Trim, cut, and crop audio files (MP3, WAV) locally in your browser. Fast, private, and entirely free.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero text-center mb-6">
+      <h1>✂️ <span class="text-gradient">Audio Trimmer</span></h1>
+      <p>Cut and extract sections from your audio files privately</p>
+    </section>
+
+    <div class="card mb-6 mb-4">
+      <div id="drop-zone" class="drop-zone text-center p-6 border-dashed border-2 border-border rounded bg-surface mb-4 transition-all hover:border-primary cursor-pointer">
+        <div class="text-4xl mb-3">🎵</div>
+        <h3 class="m-0 mb-1">Drag & Drop Audio File Here</h3>
+        <p class="text-sm text-dim m-0">Supports MP3, WAV, OGG, AAC</p>
+        <input type="file" id="file-input" class="hidden" accept="audio/*">
+      </div>
+
+      <div id="editor-section" class="hidden">
+        <div class="d-flex align-center justify-between p-3 bg-surface rounded mb-4">
+          <div class="font-bold text-sm" id="file-name">audio.mp3</div>
+          <button class="btn btn-sm btn-secondary" onclick="resetApp()">✕ Clear</button>
+        </div>
+
+        <!-- Waveform Visualization -->
+        <div class="waveform-container relative w-full h-32 bg-bg rounded mb-4 overflow-hidden border border-border" id="waveform-box">
+          <canvas id="waveform-canvas" class="w-full h-full"></canvas>
+          <div id="trim-left" class="trim-handle left-handle absolute top-0 bottom-0 bg-primary opacity-50 border-r-2 border-primary" style="left: 0; width: 25%;"></div>
+          <div id="trim-right" class="trim-handle right-handle absolute top-0 bottom-0 bg-primary opacity-50 border-l-2 border-primary" style="right: 0; width: 25%;"></div>
+          <div id="playhead" class="absolute top-0 bottom-0 w-1 bg-accent hidden pointer-events-none"></div>
+        </div>
+
+        <div class="grid col-2 gap-4 mb-4">
+          <div class="form-group">
+            <label class="form-label font-bold text-sm">Start Time (sec)</label>
+            <input type="number" id="start-time" class="input w-full p-2 font-mono" min="0" step="0.1" value="0" onchange="updateSlidersFromInputs()">
+          </div>
+          <div class="form-group">
+            <label class="form-label font-bold text-sm">End Time (sec)</label>
+            <input type="number" id="end-time" class="input w-full p-2 font-mono" min="0" step="0.1" value="10" onchange="updateSlidersFromInputs()">
+          </div>
+        </div>
+        
+        <div class="d-flex justify-center gap-3 mb-4">
+          <button class="btn btn-secondary btn-icon rounded-full" id="play-btn" onclick="togglePlay()">▶️</button>
+        </div>
+
+        <button class="btn btn-primary w-full py-3 text-lg font-bold" id="cut-btn" onclick="exportAudio()">
+          ✂️ Trim & Download (.WAV)
+        </button>
+        
+        <p class="text-center text-xs text-dim mt-3" id="status-msg"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Audio Trimmer. No server uploads.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

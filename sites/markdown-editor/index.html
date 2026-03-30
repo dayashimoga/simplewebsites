@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Markdown Editor & Previewer</title>
+  <meta name="description" content="Free, local-only Markdown editor with side-by-side live preview. Write, format, and download HTML or Markdown instantly.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="overflow-hidden">
+  <div class="d-flex flex-column h-screen">
+    <header class="navbar p-3 border-b border-border bg-surface d-flex justify-between align-center">
+      <div class="d-flex align-center gap-3">
+        <a href="../" class="btn btn-icon btn-sm" aria-label="Back">🔙</a>
+        <h1 class="m-0 text-xl font-bold">📝 Markdown Editor</h1>
+      </div>
+      <div class="d-flex gap-3">
+        <button class="btn btn-secondary btn-sm" onclick="clearEditor()">Clear</button>
+        <button class="btn btn-primary btn-sm" onclick="downloadFile('md')">Download .md</button>
+        <button class="btn btn-primary btn-sm" onclick="downloadFile('html')">Export HTML</button>
+        <button class="btn btn-icon btn-sm" onclick="toggleTheme()" id="theme-toggle-btn" aria-label="Theme">☀️</button>
+      </div>
+    </header>
+
+    <div class="editor-layout flex-1 overflow-hidden d-flex w-full">
+      <div class="editor-pane w-1/2 d-flex flex-column border-r border-border relative">
+        <div class="pane-header bg-bg p-2 text-sm text-dim font-bold uppercase tracking-wider">Markdown Source</div>
+        <textarea id="md-input" class="w-full flex-1 p-4 font-mono text-sm resize-none bg-surface border-none outline-none text-text m-0" spellcheck="false" placeholder="Type Markdown here..."></textarea>
+      </div>
+      
+      <div class="preview-pane w-1/2 d-flex flex-column bg-bg relative">
+        <div class="pane-header bg-surface p-2 border-b border-border text-sm text-dim font-bold uppercase tracking-wider">Live Preview</div>
+        <div id="md-preview" class="w-full flex-1 p-6 overflow-y-auto markdown-body"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

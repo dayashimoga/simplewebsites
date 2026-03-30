@@ -1,0 +1,14 @@
+PASS sites/currency-unit-converter/__tests__/app.test.js
+  currency-unit-converter
+    √ init fetches rates and sets category (24 ms)
+    √ fetchRates falls back on error (6 ms)
+    √ switchCategory updates tabs and selects (10 ms)
+    √ swapUnits reverses selections and converts (27 ms)
+    √ convert performs correct computations (12 ms)
+    √ convert handles formatting correctly (5 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       6 passed, 6 total
+Snapshots:   0 total
+Time:        0.787 s, estimated 1 s
+Ran all test suites matching /sites\\currency-unit-converter/i.

@@ -1,0 +1,43 @@
+.controls-section {
+  flex: 1;
+}
+
+.preview-section {
+  flex: 1.5;
+}
+
+.invoice-paper {
+  background-color: white;
+  min-height: 297mm; /* A4 Paper ratio */
+  width: 100%;
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  color: #1a1a1a;
+}
+
+/* Light theme overrides for PDF */
+.color-text { color: #1a1a1a !important; }
+.color-text-dim { color: #666 !important; }
+.border-border-light { border-color: #e5e7eb !important; }
+
+.invoice-title {
+  font-size: 2rem;
+  font-weight: 900;
+  margin: 0;
+  color: #1a1a1a;
+}
+
+.invoice-table th {
+  border-bottom: 2px solid #1a1a1a;
+  color: #666;
+  font-weight: bold;
+}
+
+@media screen and (max-width: 768px) {
+  .invoice-paper {
+    padding: 20px;
+    min-height: auto;
+  }
+}

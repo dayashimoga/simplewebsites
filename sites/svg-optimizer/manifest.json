@@ -1,0 +1,8 @@
+{
+  "name": "SVG Optimizer",
+  "emoji": "📐",
+  "description": "Clean and minify your SVG code instantly. Reduce file sizes, remove unnecessary metadata, and optimize vector graphics for the web completely offline.",
+  "category": "Developer Tools",
+  "path": "/sites/svg-optimizer/",
+  "enabled": true
+}

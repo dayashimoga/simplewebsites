@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dev Toolkit — Cron, Chmod, HTTP Status, Base64, Subnet Calculator</title>
+  <meta name="description" content="All-in-one developer toolkit: Cron expression parser, Chmod calculator, HTTP status codes, Base64 encoder/decoder, and IP Subnet calculator.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <section class="hero"><h1>🛠️ <span class="text-gradient">Dev Toolkit</span></h1><p>5 essential developer tools in one place</p></section>
+    <div class="tabs" id="tool-tabs">
+      <button class="tab active" onclick="switchTool('cron')">⏰ Cron</button>
+      <button class="tab" onclick="switchTool('chmod')">🔐 Chmod</button>
+      <button class="tab" onclick="switchTool('http')">📡 HTTP</button>
+      <button class="tab" onclick="switchTool('base64')">🔄 Base64</button>
+      <button class="tab" onclick="switchTool('subnet')">🌐 Subnet</button>
+    </div>
+    <!-- Cron Tool -->
+    <div class="tool-panel card" id="tool-cron">
+      <h3>Cron Expression Parser</h3>
+      <input type="text" id="cron-input" class="input w-full mt-3" value="*/5 * * * *" placeholder="e.g. */5 * * * *" oninput="parseCron()">
+      <div class="cron-desc mt-3" id="cron-desc"></div>
+      <div class="mt-3"><h4>Next 5 Runs</h4><div id="cron-next" class="mt-2"></div></div>
+    </div>
+    <!-- Chmod Tool -->
+    <div class="tool-panel card" id="tool-chmod" style="display:none">
+      <h3>Unix Chmod Calculator</h3>
+      <div class="chmod-grid mt-3" id="chmod-grid"></div>
+      <div class="chmod-result mt-4">
+        <div class="result-box"><span class="label">Numeric</span><span class="value" id="chmod-numeric">755</span></div>
+        <div class="result-box"><span class="label">Symbolic</span><span class="value" id="chmod-symbolic">rwxr-xr-x</span></div>
+      </div>
+    </div>
+    <!-- HTTP Status Tool -->
+    <div class="tool-panel card" id="tool-http" style="display:none">
+      <h3>HTTP Status Code Reference</h3>
+      <input type="text" id="http-search" class="input w-full mt-3" placeholder="Search by code or description..." oninput="filterHTTP()">
+      <div id="http-list" class="mt-3"></div>
+    </div>
+    <!-- Base64 Tool -->
+    <div class="tool-panel card" id="tool-base64" style="display:none">
+      <h3>Base64 Encoder / Decoder</h3>
+      <div class="flex gap-3 mt-3">
+        <button class="tab active" id="b64-enc-btn" onclick="setB64Mode('encode')">Encode</button>
+        <button class="tab" id="b64-dec-btn" onclick="setB64Mode('decode')">Decode</button>
+      </div>
+      <textarea id="b64-input" class="input w-full mt-3" rows="4" placeholder="Enter text to encode..." oninput="processB64()"></textarea>
+      <textarea id="b64-output" class="input w-full mt-3" rows="4" readonly placeholder="Result..."></textarea>
+      <button class="btn btn-primary mt-2" onclick="copyB64()">📋 Copy Result</button>
+    </div>
+    <!-- Subnet Tool -->
+    <div class="tool-panel card" id="tool-subnet" style="display:none">
+      <h3>IP Subnet Calculator</h3>
+      <div class="flex gap-3 mt-3">
+        <input type="text" id="subnet-ip" class="input" placeholder="192.168.1.0" value="192.168.1.0">
+        <select id="subnet-cidr" class="input" onchange="calcSubnet()">
+          <option value="8">/8</option><option value="16">/16</option><option value="20">/20</option>
+          <option value="24" selected>/24</option><option value="25">/25</option><option value="26">/26</option>
+          <option value="27">/27</option><option value="28">/28</option><option value="30">/30</option>
+        </select>
+        <button class="btn btn-primary" onclick="calcSubnet()">Calculate</button>
+      </div>
+      <div id="subnet-result" class="mt-4"></div>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Dev Toolkit.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

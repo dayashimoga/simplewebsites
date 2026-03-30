@@ -1,0 +1,31 @@
+.drop-zone {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 2px dashed var(--color-border);
+  background-color: var(--color-bg-surface);
+}
+
+.drop-zone.dragover {
+  border-color: var(--color-primary);
+  background-color: rgba(108, 92, 231, 0.1);
+}
+
+.waveform-container {
+  cursor: text;
+}
+
+.trim-handle {
+  cursor: ew-resize;
+  z-index: 10;
+}
+
+.left-handle:hover, .right-handle:hover {
+  background-color: rgba(108, 92, 231, 0.7);
+}
+
+#playhead {
+  z-index: 20;
+}

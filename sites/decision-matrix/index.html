@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decision Matrix — Make Better Decisions Systematically</title>
+  <meta name="description" content="Weighted decision matrix tool. Compare options with scored criteria for data-driven decisions. Export as CSV.">
+  <link rel="stylesheet" href="shared-styles.css"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <section class="hero"><h1>📊 <span class="text-gradient">Decision Matrix</span></h1><p>Make data-driven decisions with weighted criteria scoring</p></section>
+    <div class="card">
+      <div class="flex gap-3 mb-4 flex-wrap">
+        <div class="flex-1"><label class="label">Options (comma-separated)</label><input type="text" id="options-input" class="input w-full" value="Option A, Option B, Option C" oninput="buildMatrix()"></div>
+        <div class="flex-1"><label class="label">Criteria (comma-separated)</label><input type="text" id="criteria-input" class="input w-full" value="Cost, Quality, Speed" oninput="buildMatrix()"></div>
+      </div>
+      <div class="overflow-x"><table class="matrix-table" id="matrix-table"></table></div>
+    </div>
+    <div class="card mt-4" id="results-card" style="display:none">
+      <h3>🏆 Results</h3>
+      <div id="ranking"></div>
+      <button class="btn btn-secondary mt-3" onclick="exportCSV()">📥 Export CSV</button>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Decision Matrix.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "Live Markdown Editor",
+  "emoji": "📝",
+  "description": "Free, local-only Markdown editor with side-by-side live preview. Write, format, and download HTML or Markdown instantly. Works entirely in your browser.",
+  "category": "Developer Tools",
+  "path": "/sites/markdown-editor/",
+  "enabled": true
+}

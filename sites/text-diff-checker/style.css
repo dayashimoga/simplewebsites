@@ -1,0 +1,48 @@
+.diff-container {
+  min-height: 200px;
+  max-height: 600px;
+}
+
+.diff-line {
+  display: flex;
+  padding: 2px 4px;
+}
+
+.diff-line span:first-child {
+  width: 24px;
+  flex-shrink: 0;
+  display: inline-block;
+  user-select: none;
+  opacity: 0.5;
+}
+
+.diff-add {
+  background-color: rgba(16, 185, 129, 0.15); /* bg-success */
+  color: #10b981;
+}
+
+.diff-del {
+  background-color: rgba(239, 68, 68, 0.15); /* bg-danger */
+  color: #ef4444;
+  text-decoration: line-through;
+  opacity: 0.8;
+}
+
+.diff-equal {
+  color: var(--color-text);
+}
+
+.diff-add-word {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.diff-del-word {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  text-decoration: line-through;
+  padding: 0 2px;
+  border-radius: 2px;
+}

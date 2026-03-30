@@ -1,0 +1,8 @@
+{
+  "name": "Audio Trimmer",
+  "emoji": "✂️",
+  "description": "Trim, cut, and extract sections from your audio files locally in your browser. Fast, private, and entirely free.",
+  "category": "Tools",
+  "path": "/sites/audio-trimmer/",
+  "enabled": true
+}

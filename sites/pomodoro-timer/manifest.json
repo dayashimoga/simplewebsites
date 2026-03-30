@@ -1,0 +1,8 @@
+{
+  "name": "Pomodoro Timer",
+  "emoji": "🍅",
+  "description": "Stay focused and get more done with this customizable Pomodoro technique timer with sounds and notifications.",
+  "category": "Productivity",
+  "path": "/sites/pomodoro-timer/",
+  "enabled": true
+}

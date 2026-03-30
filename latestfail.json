@@ -1,0 +1,16 @@
+PASS sites/css-shadow-gradient/__tests__/app.test.js
+  css-shadow-gradient
+    √ hexToRgba converts correctly (20 ms)
+    √ init calls updateStyles (16 ms)
+    √ switchTab toggles modes (10 ms)
+    √ updateStyles sets inset shadow (6 ms)
+    √ updateStyles draws radial gradient (6 ms)
+    √ randomGradient assigns new values (6 ms)
+    √ copyCSS copies text and animates (8 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       7 passed, 7 total
+Snapshots:   0 total
+Time:        0.809 s, estimated 1 s
+Ran all test suites matching /sites\\css-shadow-gradient/i.
+{"numFailedTestSuites":0,"numFailedTests":0,"numPassedTestSuites":1,"numPassedTests":7,"numPendingTestSuites":0,"numPendingTests":0,"numRuntimeErrorTestSuites":0,"numTodoTests":0,"numTotalTestSuites":1,"numTotalTests":7,"openHandles":[],"snapshot":{"added":0,"didUpdate":false,"failure":false,"filesAdded":0,"filesRemoved":0,"filesRemovedList":[],"filesUnmatched":0,"filesUpdated":0,"matched":0,"total":0,"unchecked":0,"uncheckedKeysByFile":[],"unmatched":0,"updated":0},"startTime":1774843477812,"success":true,"testResults":[{"assertionResults":[{"ancestorTitles":["css-shadow-gradient"],"duration":20,"failureDetails":[],"failureMessages":[],"fullName":"css-shadow-gradient hexToRgba converts correctly","invocations":1,"location":null,"numPassingAsserts":2,"retryReasons":[],"status":"passed","title":"hexToRgba converts correctly"},{"ancestorTitles":["css-shadow-gradient"],"duration":16,"failureDetails":[],"failureMessages":[],"fullName":"css-shadow-gradient init calls updateStyles","invocations":1,"location":null,"numPassingAsserts":1,"retryReasons":[],"status":"passed","title":"init calls updateStyles"},{"ancestorTitles":["css-shadow-gradient"],"duration":10,"failureDetails":[],"failureMessages":[],"fullName":"css-shadow-gradient switchTab toggles modes","invocations":1,"location":null,"numPassingAsserts":4,"retryReasons":[],"status":"passed","title":"switchTab toggles modes"},{"ancestorTitles":["css-shadow-gradient"],"duration":6,"failureDetails":[],"failureMessages":[],"fullName":"css-shadow-gradient updateStyles sets inset shadow","invocations":1,"location":null,"numPassingAsserts":1,"retryReasons":[],"status":"passed","title":"updateStyles sets inset shadow"},{"ancestorTitles":["css-shadow-gradient"],"duration":6,"failureDetails":[],"failureMessages":[],"fullName":"css-shadow-gradient updateStyles draws radial gradient","invocations":1,"location":null,"numPassingAsserts":2,"retryReasons":[],"status":"passed","title":"updateStyles draws radial gradient"},{"ancestorTitles":["css-shadow-gradient"],"duration":6,"failureDetails":[],"failureMessages":[],"fullName":"css-shadow-gradient randomGradient assigns new values","invocations":1,"location":null,"numPassingAsserts":2,"retryReasons":[],"status":"passed","title":"randomGradient assigns new values"},{"ancestorTitles":["css-shadow-gradient"],"duration":8,"failureDetails":[],"failureMessages":[],"fullName":"css-shadow-gradient copyCSS copies text and animates","invocations":1,"location":null,"numPassingAsserts":1,"retryReasons":[],"status":"passed","title":"copyCSS copies text and animates"}],"endTime":1774843478612,"message":"","name":"J:\\simplewebsites\\simplewebsites\\sites\\css-shadow-gradient\\__tests__\\app.test.js","startTime":1774843478269,"status":"passed","summary":""}],"wasInterrupted":false}

@@ -1,0 +1,8 @@
+.input[readonly] {
+  opacity: 1;
+  background-color: var(--color-bg-surface);
+}
+
+#single-uuid {
+  letter-spacing: 1px;
+}

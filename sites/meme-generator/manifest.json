@@ -1,0 +1,8 @@
+{
+  "name": "Meme Generator",
+  "emoji": "🤭",
+  "description": "Upload an image, add custom top and bottom text, and generate viral memes instantly for free.",
+  "category": "Fun",
+  "path": "/sites/meme-generator/",
+  "enabled": true
+}

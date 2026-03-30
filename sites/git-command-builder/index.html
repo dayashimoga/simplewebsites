@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Git Command Builder</title>
+  <meta name="description" content="Visual builder for complex Git commands. Generates the exact CLI syntax you need without having to remember the flags.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero text-center mb-6">
+      <h1>🐙 <span class="text-gradient">Git Command Builder</span></h1>
+      <p>Stop Googling Git commands. Build them visually here.</p>
+    </section>
+
+    <div class="card mb-6">
+      <div class="mb-4">
+        <label class="form-label font-bold">What do you want to do?</label>
+        <select id="task-select" class="input w-full p-3 font-bold text-lg" onchange="renderOptions()">
+          <option value="commit-amend">Change my last commit message</option>
+          <option value="undo-commit">Undo a commit (keep changes)</option>
+          <option value="hard-reset">Throw away all uncommitted changes</option>
+          <option value="stash-save">Save my work temporarily (Stash)</option>
+          <option value="stash-pop">Bring back stashed work</option>
+          <option value="delete-branch-local">Delete a local branch</option>
+          <option value="delete-branch-remote">Delete a remote branch</option>
+          <option value="new-branch">Create a new branch and switch to it</option>
+          <option value="rebase-interactive">Squash / edit multiple past commits</option>
+          <option value="cherry-pick">Copy a commit from another branch</option>
+          <option value="log-pretty">View a beautiful, readable Git log</option>
+          <option value="rename-branch">Rename my current branch</option>
+        </select>
+      </div>
+
+      <div id="options-container" class="bg-surface p-4 rounded border border-border mb-4 space-y-3">
+        <!-- Input fields injected here based on selection -->
+      </div>
+      
+      <div class="bg-bg border border-border rounded p-4 relative">
+        <h4 class="text-xs text-dim uppercase tracking-wider m-0 mb-2">Generated Command:</h4>
+        <div class="d-flex align-center gap-3">
+          <input type="text" id="command-output" class="input flex-1 font-mono text-accent text-lg" readonly>
+          <button class="btn btn-primary" onclick="copyCommand()">📋 Copy</button>
+        </div>
+        <p class="text-sm text-dim mt-3 m-0" id="command-desc">Description goes here</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Git Command Builder.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

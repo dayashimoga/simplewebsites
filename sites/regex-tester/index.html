@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regular Expression (Regex) Tester</title>
+  <meta name="description" content="Test your regular expressions in real-time. Highlights matches and explains groups purely in your browser.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-6">
+      <h1>🔤 <span class="text-gradient">Regex Tester</span></h1>
+      <p>Test and debug Regular Expressions in real-time</p>
+    </section>
+
+    <div class="card mb-6">
+      <!-- Regex Input Area -->
+      <div class="bg-surface p-4 rounded border border-border mb-4 d-flex gap-2 align-center">
+        <span class="text-2xl font-mono text-dim">/</span>
+        <input type="text" id="regex-input" class="input flex-1 p-3 font-mono text-lg font-bold text-accent" placeholder="^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$" value="[a-z0-9_\.-]+@[a-z0-9\.-]+\.[a-z]{2,6}" oninput="testRegex()">
+        <span class="text-2xl font-mono text-dim">/</span>
+        <input type="text" id="flag-input" class="input w-24 p-3 font-mono text-lg text-primary" placeholder="gim" value="g" oninput="testRegex()">
+      </div>
+
+      <div class="layout-grid">
+        <!-- Test String Area -->
+        <div class="d-flex flex-column h-full">
+          <h3 class="mb-2 text-md d-flex justify-between">
+            <span>Test String</span>
+          </h3>
+          <div class="relative flex-1" style="min-height: 250px;">
+            <!-- Backdrop for highlights -->
+            <div id="highlight-layer" class="absolute top-0 left-0 w-full h-full p-4 font-mono text-sm whitespace-pre-wrap break-words pointer-events-none bg-bg rounded border border-transparent z-0"></div>
+            <!-- Actual Textarea -->
+            <textarea id="test-string" class="absolute top-0 left-0 w-full h-full p-4 font-mono text-sm resize-none bg-transparent text-transparent border border-border rounded z-10 outline-none caret-text m-0" spellcheck="false" placeholder="Type test string here..." oninput="syncScroll(); testRegex()" onscroll="syncScroll()">Hello there! My email is test@example.com.
+You can also reach me at hello.world@domain.co.uk.
+Invalid emails like user@.com or @domain.com shouldn't match.</textarea>
+          </div>
+        </div>
+
+        <!-- Results Area -->
+        <div class="d-flex flex-column h-full">
+          <h3 class="mb-2 text-md">Match Information <span class="badge bg-surface ml-2" id="match-count">0 matches</span></h3>
+          <div id="results-area" class="bg-surface p-4 rounded border border-border flex-1 overflow-y-auto space-y-3 p-4 font-mono text-sm" style="max-height: 250px;">
+            <p class="text-dim italic m-0">Matches will appear here...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Regex Tester. 100% Client-side.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

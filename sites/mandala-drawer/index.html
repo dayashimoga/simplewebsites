@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mandala Drawer — Infinite Symmetric Art</title>
+  <meta name="description" content="Draw beautiful symmetric mandalas effortlessly. Choose segments, colors, and brush sizes to create stunning digital art.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-6">
+      <h1>🌸 <span class="text-gradient">Mandala Drawer</span></h1>
+      <p>Draw once, mirror everywhere. Create mesmerizing symmetric art.</p>
+    </section>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- Toolbar -->
+      <div class="card lg:col-span-1 p-4 shadow-xl border border-gray-800 flex flex-col gap-5 h-fit">
+        <div>
+          <h4 class="text-sm uppercase text-gray-400 mb-2 font-bold tracking-wider">🪞 Symmetry</h4>
+          <div class="flex items-center justify-between bg-gray-900 rounded-lg p-3">
+            <span class="text-sm font-medium">Segments:</span>
+            <input type="number" id="segments" class="input w-20 text-center text-lg" value="12" min="1" max="36" onchange="updateSymmetry()">
+          </div>
+          <input type="range" id="segment-slider" class="w-full mt-3 accent-accent" min="1" max="36" value="12" oninput="document.getElementById('segments').value=this.value; updateSymmetry()">
+          
+          <label class="flex items-center gap-2 mt-4 text-sm cursor-pointer select-none">
+            <input type="checkbox" id="mirror-lines" checked onchange="updateSymmetry()"> Mirror within segment
+          </label>
+          <label class="flex items-center gap-2 mt-2 text-sm cursor-pointer select-none">
+            <input type="checkbox" id="show-guidelines" checked onchange="drawGuides()"> Show Guidelines
+          </label>
+        </div>
+
+        <hr class="border-gray-800">
+
+        <div>
+          <h4 class="text-sm uppercase text-gray-400 mb-2 font-bold tracking-wider">🖌️ Brush</h4>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div class="bg-gray-900 rounded-lg p-2 flex flex-col items-center cursor-pointer border-2 border-transparent hover:border-gray-700 transition tool-btn active" id="tool-draw" onclick="setTool('draw')">
+              <span class="text-xl mb-1">✍️</span><span class="text-xs">Draw</span>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-2 flex flex-col items-center cursor-pointer border-2 border-transparent hover:border-gray-700 transition tool-btn" id="tool-erase" onclick="setTool('erase')">
+              <span class="text-xl mb-1">🧹</span><span class="text-xs">Erase</span>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm">Size: <span id="size-val">3</span>px</span>
+            <input type="range" id="brush-size" class="w-1/2 accent-accent" min="1" max="50" value="3" oninput="setBrushSize(this.value)">
+          </div>
+          
+          <div class="mt-4">
+            <span class="text-sm block mb-2">Color:</span>
+            <input type="color" id="brush-color" class="w-full h-10 border-none rounded cursor-pointer p-0" value="#6366f1" onchange="setBrushColor(this.value)">
+          </div>
+        </div>
+
+        <hr class="border-gray-800">
+
+        <div>
+           <h4 class="text-sm uppercase text-gray-400 mb-2 font-bold tracking-wider">🎨 Canvas</h4>
+           <div class="mt-2">
+            <span class="text-sm block mb-2">Background:</span>
+            <input type="color" id="bg-color" class="w-full h-8 border-none rounded cursor-pointer p-0" value="#121212" onchange="setBgColor(this.value)">
+           </div>
+        </div>
+        
+        <div class="mt-auto pt-4 flex flex-col gap-2">
+          <button class="btn btn-secondary w-full py-2 hover:border-red-500 hover:text-red-500 transition" onclick="clearCanvas()">🗑️ Clear Canvas</button>
+          <button class="btn btn-accent w-full py-3 text-lg font-bold shadow-glow" onclick="downloadImage()">📥 Save Art</button>
+        </div>
+      </div>
+
+      <!-- Canvas Area -->
+      <div class="lg:col-span-3 flex justify-center items-center bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-inner relative overflow-hidden" id="canvas-container" style="min-height: 500px">
+        <canvas id="mandala-canvas" class="cursor-crosshair w-full max-w-[600px] aspect-square rounded-full shadow-2xl bg-black touch-none"></canvas>
+        <canvas id="guide-canvas" class="absolute w-full max-w-[600px] aspect-square pointer-events-none rounded-full"></canvas>
+      </div>
+    </div>
+  </div>
+  <footer class="footer mt-12"><p>&copy; 2026 Mandala Drawer. Pure HTML5 Canvas rendering.</p></footer>
+  <script src="app.js"></script><script src="shared-theme-toggle.js"></script>
+</body>
+</html>

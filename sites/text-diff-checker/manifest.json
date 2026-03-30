@@ -1,0 +1,8 @@
+{
+  "name": "Text Diff Checker",
+  "emoji": "🔍",
+  "description": "Compare two text files side by side. Find additions, deletions, and modifications completely offline with line-by-line and word-by-word diffs.",
+  "category": "Developer Tools",
+  "path": "/sites/text-diff-checker/",
+  "enabled": true
+}

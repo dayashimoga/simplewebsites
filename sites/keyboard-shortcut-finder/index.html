@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Keyboard Shortcut Finder — Master Productivity Keys</title>
+  <meta name="description" content="Searchable database of 200+ keyboard shortcuts for VS Code, Chrome, Photoshop, Excel, and more. Boost your productivity!">
+  <link rel="stylesheet" href="shared-styles.css"><link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <section class="hero"><h1>⌨️ <span class="text-gradient">Shortcut Finder</span></h1><p>Master keyboard shortcuts for your favorite apps</p></section>
+    <div class="card">
+      <input type="text" id="search" class="input w-full text-lg" placeholder="🔍 Search shortcuts..." oninput="filterShortcuts()">
+      <div class="filter-bar mt-3" id="filter-bar"></div>
+    </div>
+    <div id="shortcuts-list" class="mt-4"></div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Keyboard Shortcut Finder.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

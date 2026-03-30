@@ -152,7 +152,7 @@ describe('SEO Module', () => {
     const cpe = require('../../sites/color-palette-extractor/app');
     const fsd = require('../../sites/face-shape-detector/app');
     const bfg = require('../../sites/baby-face-generator/app');
-    const bgr = require('../../sites/background-remover/app');
+
     const jyf = require('../../sites/json-yaml-formatter/app');
     const smg = require('../../sites/seo-meta-generator/app');
     const vco = require('../../sites/video-compressor/app');
@@ -198,8 +198,7 @@ describe('SEO Module', () => {
         bfg.generateTraits();
         bfg.resetAll();
         
-        bgr.handleUpload({target:{files:[new File([], 'i.png', {type:'image/png'})]}});
-        
+
         document.body.innerHTML += '<textarea id="raw-input">{}</textarea><select id="input-type"></select><select id="output-type"></select><span id="status-label"></span><code id="formatted-output"></code><div id="error-box"></div>';
         try { jyf.processData(); } catch(e) {}
         

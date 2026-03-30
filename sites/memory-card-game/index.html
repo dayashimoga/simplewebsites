@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Memory Card Game — Train Your Brain</title>
+  <meta name="description" content="Classic card matching memory game. Multiple difficulty levels, emoji themes, move counter, and timer. Free!">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero"><h1>🃏 <span class="text-gradient">Memory Card Game</span></h1><p>Flip cards, find matching pairs, and train your memory!</p></section>
+    <div class="card">
+      <div class="game-controls">
+        <div class="stats-bar">
+          <span class="stat" id="moves-stat">Moves: 0</span>
+          <span class="stat" id="pairs-stat">Pairs: 0/0</span>
+          <span class="stat" id="timer-stat">⏱ 0s</span>
+        </div>
+        <div class="flex gap-3 justify-center mt-3 flex-wrap">
+          <button class="tab-btn active" onclick="setSize(4,3)">Easy (4×3)</button>
+          <button class="tab-btn" onclick="setSize(4,4)">Medium (4×4)</button>
+          <button class="tab-btn" onclick="setSize(6,4)">Hard (6×4)</button>
+        </div>
+      </div>
+      <div class="board" id="board"></div>
+      <button class="btn btn-primary w-full mt-4" onclick="resetGame()">🔄 New Game</button>
+    </div>
+    <div class="card mt-4">
+      <h4 class="mb-3">🏆 Best Scores</h4>
+      <div id="best-scores"></div>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Memory Card Game.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

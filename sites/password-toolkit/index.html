@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Generator & Strength Checker</title>
+  <meta name="description" content="Secure, local-only password generator and strength checker. Create unbreakable passwords and evaluate your existing ones safely online.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero text-center mb-6">
+      <h1>🔐 <span class="text-gradient">Password Toolkit</span></h1>
+      <p>Generate secure passwords and check password strength (runs 100% locally)</p>
+    </section>
+
+    <div class="card mb-6 mb-4">
+      <div class="d-flex justify-center gap-2 mb-5 tabs">
+        <button class="btn btn-secondary flex-1 active" id="tab-generator" onclick="switchMode('generator')">🛠️ Generator</button>
+        <button class="btn btn-secondary flex-1" id="tab-checker" onclick="switchMode('checker')">🛡️ Strength Checker</button>
+      </div>
+
+      <!-- Generator Mode -->
+      <div id="mode-generator">
+        <div class="mb-4 relative">
+          <input type="text" id="gen-result" class="input w-full p-4 font-mono text-xl text-center" readonly>
+          <button class="btn btn-primary absolute" style="right: 8px; top: 8px; bottom: 8px;" onclick="copyPassword()">Copy</button>
+        </div>
+        
+        <div class="mb-4">
+          <label class="form-label d-flex justify-between">
+            <span>Length: <span id="len-val">16</span></span>
+          </label>
+          <input type="range" id="gen-length" min="8" max="128" value="16" class="w-full" oninput="updateLen(); generatePassword()">
+        </div>
+        
+        <div class="grid col-2 gap-3 mb-4 text-sm">
+          <label class="d-flex align-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-upper" checked onchange="generatePassword()"> Uppercase (A-Z)
+          </label>
+          <label class="d-flex align-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-lower" checked onchange="generatePassword()"> Lowercase (a-z)
+          </label>
+          <label class="d-flex align-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-nums" checked onchange="generatePassword()"> Numbers (0-9)
+          </label>
+          <label class="d-flex align-center gap-2 cursor-pointer">
+            <input type="checkbox" id="chk-syms" checked onchange="generatePassword()"> Symbols (!@#$)
+          </label>
+        </div>
+        
+        <button class="btn btn-secondary w-full py-3" onclick="generatePassword()">🔄 Generate New Password</button>
+      </div>
+
+      <!-- Checker Mode -->
+      <div id="mode-checker" class="hidden">
+        <div class="form-group mb-4">
+          <label class="form-label">Enter Password to Check</label>
+          <input type="password" id="chk-input" class="input w-full p-3 font-mono" placeholder="Typing is secure (runs entirely in browser)..." oninput="checkStrength()">
+          <button type="button" class="btn btn-sm btn-secondary mt-2" onclick="toggleVisibility()">👁️ Show/Hide</button>
+        </div>
+        
+        <div class="strength-meter mb-4">
+          <div class="meter-bar bg-surface rounded h-2 w-full overflow-hidden">
+            <div id="meter-fill" class="h-2 w-0 transition-all"></div>
+          </div>
+          <div class="d-flex justify-between mt-2 text-sm font-bold">
+            <span id="strength-text">Very Weak</span>
+            <span id="entropy-text" class="text-dim">0 bits</span>
+          </div>
+        </div>
+        
+        <div class="bg-surface p-3 rounded text-sm mb-4">
+          <strong class="block mb-1">Time to crack (estimated):</strong>
+          <span id="crack-time" class="text-accent text-lg">Instant</span>
+        </div>
+        
+        <ul id="feedback-list" class="text-sm text-dim pl-4 space-y-1">
+          <!-- Hints populated here -->
+        </ul>
+      </div>
+      
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Password Toolkit. Your data never leaves your browser.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

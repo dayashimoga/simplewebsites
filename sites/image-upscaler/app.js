@@ -343,53 +343,69 @@ function updateDimensionDisplays() {
 // ── Upscale ─────────────────────────────────
 
 function applyUpscale(scaleFactor) {
-  if (!currentCanvas) return;
-  
-  // Show generating status
-  showStatus(`🚀 AI Upscaling in progress (${scaleFactor}x)...`, 'info');
-  
-  // Slight delay for UI repaint
-  setTimeout(() => {
-    const targetW = currentCanvas.width * scaleFactor;
-    const targetH = currentCanvas.height * scaleFactor;
-
-    if (targetW > 8000 || targetH > 8000) { 
-      showStatus('❌ Image too large to upscale further without crashing.', 'error'); 
-      return; 
-    }
-    
-    currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
-    updatePreview();
-    updateDimensionDisplays();
-    showStatus(`✅ Successfully upscaled to ${currentCanvas.width}×${currentCanvas.height}px`, 'success');
-  }, 100);
-}
-
-function applyCustomUpscale() {
-  if (!currentCanvas) return;
-  const upWEl = document.getElementById('upscale-w');
-  const upHEl = document.getElementById('upscale-h');
-  
-  const targetW = parseInt(upWEl?.value) || currentCanvas.width;
-  const targetH = parseInt(upHEl?.value) || currentCanvas.height;
-  
-  if (targetW <= currentCanvas.width && targetH <= currentCanvas.height) {
-    showStatus('⚠️ Target dimensions must be larger than current for upscaling.', 'info');
+  if (!currentCanvas) {
+    showStatus('Please upload an image first', 'error');
     return;
   }
   
-  showStatus(`🚀 AI Upscaling to ${targetW}×${targetH}...`, 'info');
+  const targetW = Math.round(currentCanvas.width * scaleFactor);
+  const targetH = Math.round(currentCanvas.height * scaleFactor);
+
+  if (targetW > 8000 || targetH > 8000) { 
+    showStatus('Result too large (' + targetW + '×' + targetH + '). Max 8000px per side.', 'error'); 
+    return; 
+  }
   
-  setTimeout(() => {
-    if (targetW > 8000 || targetH > 8000) { 
-      showStatus('❌ Dimensions exceed safe browser limits (8000px).', 'error'); 
-      return; 
+  showStatus('🚀 AI Upscaling ' + scaleFactor + 'x... (' + targetW + '×' + targetH + ')', 'info');
+
+  // Use requestAnimationFrame instead of setTimeout for more reliable UI update
+  requestAnimationFrame(() => {
+    try {
+      currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
+      updatePreview();
+      updateDimensionDisplays();
+      showStatus('✅ Upscaled ' + scaleFactor + 'x to ' + currentCanvas.width + '×' + currentCanvas.height + 'px', 'success');
+    } catch(e) {
+      console.error('Upscale error:', e);
+      showStatus('Upscale failed: ' + e.message, 'error');
     }
-    currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
-    updatePreview();
-    updateDimensionDisplays();
-    showStatus(`✅ Successfully upscaled to ${currentCanvas.width}×${currentCanvas.height}px`, 'success');
-  }, 100);
+  });
+}
+
+function applyCustomUpscale() {
+  if (!currentCanvas) {
+    showStatus('Please upload an image first', 'error');
+    return;
+  }
+  const upWEl = document.getElementById('upscale-w');
+  const upHEl = document.getElementById('upscale-h');
+  
+  const targetW = parseInt(upWEl?.value);
+  const targetH = parseInt(upHEl?.value);
+  
+  if (!targetW || !targetH || targetW <= 0 || targetH <= 0) {
+    showStatus('Please enter valid width and height', 'error');
+    return;
+  }
+  
+  if (targetW > 8000 || targetH > 8000) { 
+    showStatus('Dimensions exceed safe browser limits (8000px).', 'error'); 
+    return; 
+  }
+
+  showStatus('🚀 Upscaling to ' + targetW + '×' + targetH + '...', 'info');
+  
+  requestAnimationFrame(() => {
+    try {
+      currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
+      updatePreview();
+      updateDimensionDisplays();
+      showStatus('✅ Upscaled to ' + currentCanvas.width + '×' + currentCanvas.height + 'px', 'success');
+    } catch(e) {
+      console.error('Custom upscale error:', e);
+      showStatus('Upscale failed: ' + e.message, 'error');
+    }
+  });
 }
 
 // ── Resize ──────────────────────────────────

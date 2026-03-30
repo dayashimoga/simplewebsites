@@ -1,0 +1,27 @@
+FAIL sites/image-converter/__tests__/app.test.js
+  ● image-converter › convertImage handles failure
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "Conversion failed!"
+
+    Number of calls: 0
+
+    [0m [90m 125 |[39m     convertImage()[33m;[39m
+     [90m 126 |[39m     
+    [31m[1m>[22m[39m[90m 127 |[39m     expect(window[33m.[39malert)[33m.[39mtoHaveBeenCalledWith([32m'Conversion failed!'[39m)[33m;[39m
+     [90m     |[39m                          [31m[1m^[22m[39m
+     [90m 128 |[39m   })[33m;[39m
+     [90m 129 |[39m })[33m;[39m
+     [90m 130 |[39m[0m
+
+      at Object.toHaveBeenCalledWith (sites/image-converter/__tests__/app.test.js:127:26)
+
+PASS sites/css-shadow-gradient/__tests__/app.test.js
+PASS sites/svg-optimizer/__tests__/app.test.js
+
+Test Suites: 1 failed, 2 passed, 3 total
+Tests:       1 failed, 22 passed, 23 total
+Snapshots:   0 total
+Time:        0.993 s, estimated 1 s
+Ran all test suites matching /sites\\css-shadow-gradient|sites\\image-converter|sites\\svg-optimizer/i.

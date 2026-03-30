@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Currency & Unit Converter</title>
+  <meta name="description" content="Free, fast, real-time currency converter and comprehensive unit converter for length, weight, temperature, and more.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero text-center mb-6">
+      <h1>💱 <span class="text-gradient">Universal Converter</span></h1>
+      <p>Real-time currency exchange rates and unit conversion</p>
+    </section>
+
+    <div class="card mb-6">
+      <div class="d-flex justify-center gap-2 mb-5 tabs">
+        <button class="btn btn-secondary flex-1 active" id="tab-currency" onclick="switchCategory('currency')">💵 Currency</button>
+        <button class="btn btn-secondary flex-1" id="tab-length" onclick="switchCategory('length')">📏 Length</button>
+        <button class="btn btn-secondary flex-1" id="tab-mass" onclick="switchCategory('mass')">⚖️ Mass</button>
+        <button class="btn btn-secondary flex-1" id="tab-temp" onclick="switchCategory('temp')">🌡️ Temp</button>
+      </div>
+
+      <div class="converter-box p-4 bg-surface rounded mb-4">
+        <div class="grid col-2 gap-4 align-end mb-4">
+          <div class="form-group">
+            <label class="form-label text-sm font-bold">From</label>
+            <input type="number" id="input-from" class="input w-full p-3 font-mono text-lg" value="1" oninput="convert('from')">
+          </div>
+          <div class="form-group">
+            <select id="select-from" class="input w-full p-3 font-bold" onchange="convert('from')">
+              <!-- populated -->
+            </select>
+          </div>
+        </div>
+        
+        <div class="text-center my-2">
+          <button class="btn btn-icon btn-secondary rounded-full" onclick="swapUnits()">
+            🔃
+          </button>
+        </div>
+
+        <div class="grid col-2 gap-4 align-end mt-2">
+          <div class="form-group">
+            <label class="form-label text-sm font-bold">To</label>
+            <input type="number" id="input-to" class="input w-full p-3 font-mono text-lg font-bold text-accent" readonly>
+          </div>
+          <div class="form-group">
+            <select id="select-to" class="input w-full p-3 font-bold" onchange="convert('from')">
+              <!-- populated -->
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <p class="text-center text-sm text-dim m-0" id="status-text">Ready</p>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Currency & Unit Converter.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

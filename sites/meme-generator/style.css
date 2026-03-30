@@ -1,0 +1,39 @@
+.controls-section {
+  flex: 1;
+}
+
+.preview-section {
+  flex: 1.5;
+  min-height: 400px;
+}
+
+.canvas-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  background-color: var(--color-bg-subtle, rgba(0,0,0,0.1));
+}
+
+#placeholder {
+  pointer-events: none;
+}
+
+input[type="color"] {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+}
+
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}

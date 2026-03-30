@@ -1,0 +1,30 @@
+.layout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .layout-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tabs button {
+  border-radius: 8px 8px 0 0;
+  border-bottom: 2px solid transparent;
+}
+
+.preview-box {
+  width: 250px;
+  height: 250px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+/* Base style for preview background wrapper */
+.bg-preview {
+  background-color: var(--color-bg-surface);
+  background-image: radial-gradient(var(--color-border) 1px, transparent 1px);
+  background-size: 20px 20px;
+}

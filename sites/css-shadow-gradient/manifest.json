@@ -1,0 +1,8 @@
+{
+  "name": "CSS Shadow & Gradient Generator",
+  "emoji": "🎨",
+  "description": "Visually create complex CSS box-shadows and beautiful gradients. Generate cross-browser compatible CSS code instantly offline.",
+  "category": "Developer Tools",
+  "path": "/sites/css-shadow-gradient/",
+  "enabled": true
+}

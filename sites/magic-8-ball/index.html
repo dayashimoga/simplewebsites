@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magic 8 Ball — Ask the Oracle</title>
+  <meta name="description" content="Shake the Magic 8 Ball and get instant answers to your yes-or-no questions. Fun, free, and addictive!">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero"><h1>🎱 <span class="text-gradient">Magic 8 Ball</span></h1><p>Ask a yes-or-no question, then shake the ball for your fate!</p></section>
+    <div class="card text-center mb-6">
+      <input type="text" id="question-input" class="input w-full mb-4 text-lg p-3" placeholder="Type your question here..." maxlength="120">
+      <div id="ball-wrapper" onclick="shakeBall()">
+        <div id="ball">
+          <div id="ball-window">
+            <div id="triangle"><span id="answer-text">8</span></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-accent w-full mt-6 py-3 text-lg" onclick="shakeBall()" id="shake-btn">🎱 Shake the Ball</button>
+      <p class="hint mt-3" id="instruction">Click or tap the ball to reveal your answer</p>
+    </div>
+    <div class="card" id="history-card" style="display:none">
+      <h4 class="mb-3">📜 Answer History</h4>
+      <div id="history-list"></div>
+      <button class="btn btn-secondary w-full mt-3" onclick="clearHistory()">Clear History</button>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Magic 8 Ball.</p></footer>
+  <script src="app.js"></script><script src="shared-theme-toggle.js"></script>
+</body>
+</html>

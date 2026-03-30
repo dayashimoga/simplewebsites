@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Diff Checker</title>
+  <meta name="description" content="Compare two text files side by side. Instantly find additions, deletions, and modifications completely offline.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-6">
+      <h1>🔍 <span class="text-gradient">Text Diff Checker</span></h1>
+      <p>Compare two pieces of text to easily spot the differences</p>
+    </section>
+
+    <div class="card mb-6 mb-4 bg-surface p-4">
+      
+      <div class="grid col-2 gap-4 mb-4">
+        <div>
+          <h3 class="mb-2 text-md">Original Text</h3>
+          <textarea id="text-old" class="input w-full h-64 p-3 font-mono text-sm" placeholder="Paste original text here..." oninput="triggerDiff()"></textarea>
+        </div>
+        <div>
+          <h3 class="mb-2 text-md">Changed Text</h3>
+          <textarea id="text-new" class="input w-full h-64 p-3 font-mono text-sm" placeholder="Paste modified text here..." oninput="triggerDiff()"></textarea>
+        </div>
+      </div>
+      
+      <div class="d-flex justify-between align-center border-t border-border pt-4 mt-2">
+        <div class="d-flex gap-3 align-center">
+          <label class="d-flex align-center gap-2 cursor-pointer text-sm">
+            <input type="radio" name="diff-mode" value="line" checked onchange="triggerDiff()"> Line-by-Line
+          </label>
+          <label class="d-flex align-center gap-2 cursor-pointer text-sm">
+            <input type="radio" name="diff-mode" value="word" onchange="triggerDiff()"> Word-by-Word
+          </label>
+        </div>
+        <button class="btn btn-primary px-6" onclick="triggerDiff()">Find Differences</button>
+      </div>
+
+    </div>
+    
+    <div class="card" id="diff-results" style="display: none;">
+      <div class="d-flex justify-between align-center mb-3">
+        <h3 class="m-0">Differences Found</h3>
+        <div class="text-sm font-mono d-flex gap-3">
+          <span class="text-success" id="count-add">+ 0 additions</span>
+          <span class="text-danger" id="count-del">- 0 deletions</span>
+        </div>
+      </div>
+      
+      <div class="diff-container bg-bg p-4 rounded border border-border overflow-x-auto font-mono text-sm whitespace-pre-wrap" id="diff-output">
+        <!-- Diff injected here -->
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Text Diff Checker. Secure and local.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

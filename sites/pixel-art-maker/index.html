@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Art Maker — Free Online Pixel Art Editor</title>
+  <meta name="description" content="Create pixel art online with our free editor. Adjustable grid, color palette, mirror mode, fill tool, and PNG export.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <section class="hero"><h1>🎨 <span class="text-gradient">Pixel Art Maker</span></h1><p>Create beautiful pixel art with a simple grid editor. Draw, fill, mirror, and export!</p></section>
+    <div class="app-layout">
+      <div class="card toolbar">
+        <h4 class="mb-3">Tools</h4>
+        <div class="tool-group">
+          <button class="tool-btn active" id="tool-draw" onclick="setTool('draw')" title="Draw">✏️</button>
+          <button class="tool-btn" id="tool-erase" onclick="setTool('erase')" title="Eraser">🧹</button>
+          <button class="tool-btn" id="tool-fill" onclick="setTool('fill')" title="Fill">🪣</button>
+          <button class="tool-btn" id="tool-pick" onclick="setTool('pick')" title="Color Picker">💉</button>
+        </div>
+        <div class="mt-4">
+          <label class="label">Color</label>
+          <input type="color" id="color-picker" value="#6366f1" class="color-input">
+        </div>
+        <div class="palette mt-3" id="palette"></div>
+        <div class="mt-4">
+          <label class="label">Grid Size</label>
+          <select id="grid-size" class="input" onchange="initGrid()">
+            <option value="8">8 × 8</option>
+            <option value="16" selected>16 × 16</option>
+            <option value="32">32 × 32</option>
+            <option value="64">64 × 64</option>
+          </select>
+        </div>
+        <div class="mt-3">
+          <label class="label"><input type="checkbox" id="mirror-mode"> Mirror Mode</label>
+        </div>
+        <div class="mt-4 flex flex-col gap-2">
+          <button class="btn btn-primary w-full" onclick="exportPNG()">📥 Export PNG</button>
+          <button class="btn btn-secondary w-full" onclick="clearGrid()">🗑️ Clear</button>
+        </div>
+      </div>
+      <div class="canvas-area">
+        <div class="grid-container" id="grid-container"></div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Pixel Art Maker.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

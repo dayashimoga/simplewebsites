@@ -1,0 +1,8 @@
+{
+  "name": "Regex Tester",
+  "emoji": "🔤",
+  "description": "Test and debug your Regular Expressions in real-time. Highlights matches and explains capture groups natively in your browser.",
+  "category": "Developer Tools",
+  "path": "/sites/regex-tester/",
+  "enabled": true
+}

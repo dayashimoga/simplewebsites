@@ -1,0 +1,7 @@
+/* Mandala Drawer Styles */
+.tool-btn { border-color: transparent; }
+.tool-btn:hover { border-color: var(--color-border); background: var(--color-surface); }
+.tool-btn.active { border-color: var(--color-accent); background: rgba(99,102,241,.1); color: var(--color-accent); }
+.touch-none { touch-action: none; }
+#canvas-container { position: relative; }
+#mandala-canvas, #guide-canvas { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; max-width: 600px; max-height: 100%; height: auto; display: block; }

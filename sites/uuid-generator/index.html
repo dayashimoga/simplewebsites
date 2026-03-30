@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk UUID V4 Generator</title>
+  <meta name="description" content="Generate thousands of cryptographically secure UUID version 4 tokens instantly. Options for uppercase, hyphens, and bulk generation.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero text-center mb-6">
+      <h1>🔑 <span class="text-gradient">UUID v4 Generator</span></h1>
+      <p>Cryptographically secure UUIDs generated offline</p>
+    </section>
+
+    <div class="card bg-surface p-4 text-center mb-4 border border-border">
+      <h3 class="text-sm text-dim uppercase tracking-wider mb-2">Your New UUID</h3>
+      <div class="d-flex align-center justify-center gap-3">
+        <input type="text" id="single-uuid" class="input flex-1 p-4 font-mono text-2xl font-bold text-center text-accent bg-bg border-none" readonly>
+        <button class="btn btn-icon btn-secondary rounded-full" onclick="generateSingle()" aria-label="Refresh">🔄</button>
+        <button class="btn btn-primary px-5 py-3" onclick="copySingle()">📋 Copy</button>
+      </div>
+    </div>
+
+    <div class="card mb-6">
+      <h3 class="mb-4 text-lg border-b border-border pb-2">Bulk Generator Settings</h3>
+      
+      <div class="grid col-2 gap-4 mb-4">
+        <div class="form-group">
+          <label class="form-label font-bold text-sm">How many?</label>
+          <input type="number" id="gen-count" class="input w-full p-2" min="1" max="10000" value="10">
+        </div>
+        
+        <div class="d-flex flex-column justify-center gap-2 mt-2">
+          <label class="d-flex align-center gap-2 cursor-pointer text-sm font-bold">
+            <input type="checkbox" id="chk-uppercase" onchange="generateBulk(); generateSingle()"> Uppercase
+          </label>
+          <label class="d-flex align-center gap-2 cursor-pointer text-sm font-bold">
+            <input type="checkbox" id="chk-hyphens" checked onchange="generateBulk(); generateSingle()"> Include Hyphens
+          </label>
+        </div>
+      </div>
+      
+      <button class="btn btn-secondary w-full py-3 mb-4 font-bold" onclick="generateBulk()">⚡ Generate Bulk UUIDs</button>
+      
+      <div class="relative">
+        <textarea id="bulk-output" class="input w-full p-4 font-mono text-sm h-64 resize-none bg-bg" readonly></textarea>
+        <button class="btn btn-sm btn-primary absolute" style="top: 8px; right: 8px;" onclick="copyBulk()">📋 Copy All</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 UUID Generator. Utilizes highly secure web cryptography.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

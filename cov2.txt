@@ -1,0 +1,171 @@
+PASS sites/markdown-editor/__tests__/app.test.js
+  ● Console
+
+    console.warn
+      Parsing error Error: parse error
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\markdown-editor\__tests__\app.test.js:70:62)
+          at J:\simplewebsites\simplewebsites\node_modules\jest-mock\build\index.js:397:39
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\node_modules\jest-mock\build\index.js:404:13)
+          at Object.mockConstructor [as parse] (J:\simplewebsites\simplewebsites\node_modules\jest-mock\build\index.js:103:19)
+          at parse (J:\simplewebsites\simplewebsites\sites\markdown-editor\app.js:90:30)
+          at Object.updatePreview (J:\simplewebsites\simplewebsites\sites\markdown-editor\__tests__\app.test.js:71:5)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+
+    [0m [90m 93 |[39m     previewEl[33m.[39minnerHTML [33m=[39m cleanHtml[33m;[39m
+     [90m 94 |[39m   } [36mcatch[39m(e) {
+    [31m[1m>[22m[39m[90m 95 |[39m     console[33m.[39mwarn([32m'Parsing error'[39m[33m,[39m e)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 96 |[39m   }
+     [90m 97 |[39m }
+     [90m 98 |[39m[0m
+
+      at warn (sites/markdown-editor/app.js:95:13)
+      at Object.updatePreview (sites/markdown-editor/__tests__/app.test.js:71:5)
+
+PASS sites/image-converter/__tests__/app.test.js
+-------------------------------------------|---------|----------|---------|---------|----------------------
+File                                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s    
+-------------------------------------------|---------|----------|---------|---------|----------------------
+All files                                  |    2.41 |     1.63 |    2.25 |    2.82 |                      
+ shared                                    |       0 |        0 |       0 |       0 |                      
+  ads.js                                   |       0 |        0 |       0 |       0 | 6-87                 
+  analytics.js                             |       0 |        0 |       0 |       0 | 11-35                
+  build.js                                 |       0 |        0 |       0 |       0 | 6-431                
+  seo.js                                   |       0 |        0 |       0 |       0 | 24-214               
+  theme-toggle.js                          |       0 |        0 |       0 |       0 | 7-75                 
+ shared/functions                          |       0 |        0 |       0 |       0 |                      
+  _middleware.js                           |       0 |        0 |       0 |       0 | 2-54                 
+ sites/admin-dashboard                     |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 1-128                
+ sites/admin-dashboard/functions/api/admin |       0 |        0 |       0 |       0 |                      
+  status.js                                |       0 |        0 |       0 |       0 | 2-17                 
+  toggle.js                                |       0 |        0 |       0 |       0 | 2-14                 
+ sites/audio-trimmer                       |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-322                
+ sites/awesome-free-tools                  |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-3485               
+ sites/aws-cost-estimator                  |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 4-111                
+ sites/baby-face-generator                 |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-430                
+ sites/bill-splitter                       |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-214                
+ sites/cicd-visualizer                     |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 4-118                
+ sites/cloud-service-comparison            |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 4-55                 
+ sites/code-explainer                      |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-271                
+ sites/color-palette-extractor             |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-146                
+ sites/css-shadow-gradient                 |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-168                
+ sites/currency-unit-converter             |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-178                
+ sites/emoji-translator                    |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-159                
+ sites/face-shape-detector                 |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-117                
+ sites/festival-countdown                  |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-222                
+ sites/git-command-builder                 |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-185                
+ sites/glassmorphism-generator             |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 14-154               
+ sites/height-comparison                   |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 4-132                
+ sites/image-converter                     |   96.73 |       68 |   85.71 |     100 |                      
+  app.js                                   |   96.73 |       68 |   85.71 |     100 | 14-41,66-100,123-147 
+ sites/image-upscaler                      |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 7-864                
+ sites/invoice-generator                   |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-136                
+ sites/json-yaml-formatter                 |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 16-274               
+ sites/loan-visualizer                     |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-207                
+ sites/magic-8-ball                        |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 1-133                
+ sites/mandala-drawer                      |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 2-272                
+ sites/markdown-editor                     |   94.11 |    61.11 |   91.66 |   97.46 |                      
+  app.js                                   |   94.11 |    61.11 |   91.66 |   97.46 | 153-154              
+ sites/meme-generator                      |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-146                
+ sites/mock-data-generator                 |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-217                
+ sites/mood-board-generator                |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 4-98                 
+ sites/noise-meter                         |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-127                
+ sites/password-toolkit                    |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-215                
+ sites/pdf-toolkit                         |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-392                
+ sites/pet-breed-identifier                |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-346                
+ sites/picker-wheel                        |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-296                
+ sites/pomodoro-timer                      |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-167                
+ sites/qr-code-generator                   |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-297                
+ sites/rank-everything                     |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-390                
+ sites/rank-everything/functions/api       |       0 |        0 |       0 |       0 |                      
+  lists.js                                 |       0 |        0 |       0 |       0 | 5-74                 
+ sites/regex-tester                        |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-142                
+ sites/resume-ats-checker                  |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 4-112                
+ sites/seo-meta-generator                  |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-74                 
+ sites/sleep-calculator                    |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-182                
+ sites/soundboard-synth                    |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-168                
+ sites/startup-idea-generator              |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-192                
+ sites/svg-optimizer                       |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-149                
+ sites/temp-mail                           |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 7-300                
+ sites/terraform-snippet-generator         |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 4-86                 
+ sites/text-diff-checker                   |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 9-140                
+ sites/text-to-handwriting                 |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 7-156                
+ sites/timezone-scheduler                  |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-157                
+ sites/typing-speed-race                   |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 4-182                
+ sites/uuid-generator                      |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-106                
+ sites/video-compressor                    |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 6-318                
+ sites/voice-to-text-counter               |       0 |        0 |       0 |       0 |                      
+  app.js                                   |       0 |        0 |       0 |       0 | 5-139                
+-------------------------------------------|---------|----------|---------|---------|----------------------
+Jest: "global" coverage threshold for statements (85%) not met: 2.41%
+Jest: "global" coverage threshold for branches (65%) not met: 1.63%
+Jest: "global" coverage threshold for lines (90%) not met: 2.82%
+Jest: "global" coverage threshold for functions (89%) not met: 2.25%
+
+Test Suites: 2 passed, 2 total
+Tests:       18 passed, 18 total
+Snapshots:   0 total
+Time:        3.287 s
+Ran all test suites matching /sites\\markdown-editor|sites\\image-converter/i.

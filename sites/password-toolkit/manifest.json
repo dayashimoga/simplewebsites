@@ -1,0 +1,8 @@
+{
+  "name": "Password Toolkit",
+  "emoji": "🔐",
+  "description": "Secure, local-only password generator and strength checker. Create unbreakable passwords and evaluate your existing ones safely offline.",
+  "category": "Security",
+  "path": "/sites/password-toolkit/",
+  "enabled": true
+}

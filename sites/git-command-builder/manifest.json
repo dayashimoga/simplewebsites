@@ -1,0 +1,8 @@
+{
+  "name": "Git Command Builder",
+  "emoji": "🐙",
+  "description": "Visual builder for complex Git commands. Generates the exact CLI syntax you need without having to remember the flags.",
+  "category": "Developer Tools",
+  "path": "/sites/git-command-builder/",
+  "enabled": true
+}

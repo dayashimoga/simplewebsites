@@ -1,0 +1,888 @@
+PASS sites/pomodoro-timer/__tests__/app.test.js
+PASS sites/mandala-drawer/__tests__/app.test.js
+PASS sites/meme-generator/__tests__/app.test.js
+PASS sites/qr-code-generator/__tests__/app.test.js
+  ● Console
+
+    console.error
+      QR generation error: Error: Invalid data
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\qr-code-generator\__tests__\app.test.js:143:61)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 238 |[39m     showQrSuccess()[33m;[39m
+     [90m 239 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 240 |[39m     console[33m.[39merror([32m'QR generation error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 241 |[39m     showQrError([32m'Failed to generate QR profile. Please check your payload characters.'[39m)[33m;[39m
+     [90m 242 |[39m   }
+     [90m 243 |[39m }[0m
+
+      at error (sites/qr-code-generator/app.js:240:13)
+      at Object.<anonymous> (sites/qr-code-generator/__tests__/app.test.js:144:5)
+
+    console.error
+      Error: fail
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\qr-code-generator\__tests__\app.test.js:235:58)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 272 |[39m       showQrSuccess()[33m;[39m
+     [90m 273 |[39m     } [36mcatch[39m(e) {
+    [31m[1m>[22m[39m[90m 274 |[39m       console[33m.[39merror(e)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 275 |[39m       showQrError([32m'Failed to generate SVG.'[39m)[33m;[39m
+     [90m 276 |[39m     }
+     [90m 277 |[39m   } [36melse[39m {[0m
+
+      at error (sites/qr-code-generator/app.js:274:15)
+      at Object.<anonymous> (sites/qr-code-generator/__tests__/app.test.js:236:5)
+
+PASS sites/code-explainer/__tests__/app.test.js
+  ● Console
+
+    console.warn
+      Model llama3-70b-8192 failed (400: Model deprecated), trying next...
+
+    [0m [90m 140 |[39m       [90m// Only fall back on 400 (model unavailable) or 404; re-throw auth errors[39m
+     [90m 141 |[39m       [36mif[39m (status [33m===[39m [32m'401'[39m [33m||[39m status [33m===[39m [32m'403'[39m) [36mthrow[39m e[33m;[39m
+    [31m[1m>[22m[39m[90m 142 |[39m       console[33m.[39mwarn([32m`Model ${model} failed (${e.message}), trying next...`[39m)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 143 |[39m     }
+     [90m 144 |[39m   }
+     [90m 145 |[39m   [36mthrow[39m lastError [33m||[39m [36mnew[39m [33mError[39m([32m'All models failed'[39m)[33m;[39m[0m
+
+      at warn (sites/code-explainer/app.js:142:15)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:239:31)
+
+    console.warn
+      Model llama3-70b-8192 failed (503: Service unavailable), trying next...
+
+    [0m [90m 140 |[39m       [90m// Only fall back on 400 (model unavailable) or 404; re-throw auth errors[39m
+     [90m 141 |[39m       [36mif[39m (status [33m===[39m [32m'401'[39m [33m||[39m status [33m===[39m [32m'403'[39m) [36mthrow[39m e[33m;[39m
+    [31m[1m>[22m[39m[90m 142 |[39m       console[33m.[39mwarn([32m`Model ${model} failed (${e.message}), trying next...`[39m)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 143 |[39m     }
+     [90m 144 |[39m   }
+     [90m 145 |[39m   [36mthrow[39m lastError [33m||[39m [36mnew[39m [33mError[39m([32m'All models failed'[39m)[33m;[39m[0m
+
+      at warn (sites/code-explainer/app.js:142:15)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:272:5)
+
+    console.warn
+      Model mixtral-8x7b-32768 failed (503: Service unavailable), trying next...
+
+    [0m [90m 140 |[39m       [90m// Only fall back on 400 (model unavailable) or 404; re-throw auth errors[39m
+     [90m 141 |[39m       [36mif[39m (status [33m===[39m [32m'401'[39m [33m||[39m status [33m===[39m [32m'403'[39m) [36mthrow[39m e[33m;[39m
+    [31m[1m>[22m[39m[90m 142 |[39m       console[33m.[39mwarn([32m`Model ${model} failed (${e.message}), trying next...`[39m)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 143 |[39m     }
+     [90m 144 |[39m   }
+     [90m 145 |[39m   [36mthrow[39m lastError [33m||[39m [36mnew[39m [33mError[39m([32m'All models failed'[39m)[33m;[39m[0m
+
+      at warn (sites/code-explainer/app.js:142:15)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:272:5)
+
+    console.warn
+      Model gemma2-9b-it failed (503: Service unavailable), trying next...
+
+    [0m [90m 140 |[39m       [90m// Only fall back on 400 (model unavailable) or 404; re-throw auth errors[39m
+     [90m 141 |[39m       [36mif[39m (status [33m===[39m [32m'401'[39m [33m||[39m status [33m===[39m [32m'403'[39m) [36mthrow[39m e[33m;[39m
+    [31m[1m>[22m[39m[90m 142 |[39m       console[33m.[39mwarn([32m`Model ${model} failed (${e.message}), trying next...`[39m)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 143 |[39m     }
+     [90m 144 |[39m   }
+     [90m 145 |[39m   [36mthrow[39m lastError [33m||[39m [36mnew[39m [33mError[39m([32m'All models failed'[39m)[33m;[39m[0m
+
+      at warn (sites/code-explainer/app.js:142:15)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:272:5)
+
+    console.warn
+      Model llama3-70b-8192 failed (400: All models failed), trying next...
+
+    [0m [90m 140 |[39m       [90m// Only fall back on 400 (model unavailable) or 404; re-throw auth errors[39m
+     [90m 141 |[39m       [36mif[39m (status [33m===[39m [32m'401'[39m [33m||[39m status [33m===[39m [32m'403'[39m) [36mthrow[39m e[33m;[39m
+    [31m[1m>[22m[39m[90m 142 |[39m       console[33m.[39mwarn([32m`Model ${model} failed (${e.message}), trying next...`[39m)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 143 |[39m     }
+     [90m 144 |[39m   }
+     [90m 145 |[39m   [36mthrow[39m lastError [33m||[39m [36mnew[39m [33mError[39m([32m'All models failed'[39m)[33m;[39m[0m
+
+      at warn (sites/code-explainer/app.js:142:15)
+      at executeAI (sites/code-explainer/app.js:212:39)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:346:5)
+
+    console.warn
+      Model mixtral-8x7b-32768 failed (400: All models failed), trying next...
+
+    [0m [90m 140 |[39m       [90m// Only fall back on 400 (model unavailable) or 404; re-throw auth errors[39m
+     [90m 141 |[39m       [36mif[39m (status [33m===[39m [32m'401'[39m [33m||[39m status [33m===[39m [32m'403'[39m) [36mthrow[39m e[33m;[39m
+    [31m[1m>[22m[39m[90m 142 |[39m       console[33m.[39mwarn([32m`Model ${model} failed (${e.message}), trying next...`[39m)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 143 |[39m     }
+     [90m 144 |[39m   }
+     [90m 145 |[39m   [36mthrow[39m lastError [33m||[39m [36mnew[39m [33mError[39m([32m'All models failed'[39m)[33m;[39m[0m
+
+      at warn (sites/code-explainer/app.js:142:15)
+      at executeAI (sites/code-explainer/app.js:212:39)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:346:5)
+
+    console.warn
+      Model gemma2-9b-it failed (400: All models failed), trying next...
+
+    [0m [90m 140 |[39m       [90m// Only fall back on 400 (model unavailable) or 404; re-throw auth errors[39m
+     [90m 141 |[39m       [36mif[39m (status [33m===[39m [32m'401'[39m [33m||[39m status [33m===[39m [32m'403'[39m) [36mthrow[39m e[33m;[39m
+    [31m[1m>[22m[39m[90m 142 |[39m       console[33m.[39mwarn([32m`Model ${model} failed (${e.message}), trying next...`[39m)[33m;[39m
+     [90m     |[39m               [31m[1m^[22m[39m
+     [90m 143 |[39m     }
+     [90m 144 |[39m   }
+     [90m 145 |[39m   [36mthrow[39m lastError [33m||[39m [36mnew[39m [33mError[39m([32m'All models failed'[39m)[33m;[39m[0m
+
+      at warn (sites/code-explainer/app.js:142:15)
+      at executeAI (sites/code-explainer/app.js:212:39)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:346:5)
+
+    console.error
+      AI Error: Error: 400: All models failed
+          at tryGroqModel (J:\simplewebsites\simplewebsites\sites\code-explainer\app.js:119:11)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at executeWithFallback (J:\simplewebsites\simplewebsites\sites\code-explainer\app.js:135:22)
+          at executeAI (J:\simplewebsites\simplewebsites\sites\code-explainer\app.js:212:39)
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\code-explainer\__tests__\app.test.js:346:5)
+
+    [0m [90m 228 |[39m
+     [90m 229 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 230 |[39m     console[33m.[39merror([32m'AI Error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 231 |[39m     [36mif[39m (loading) loading[33m.[39mclassList[33m.[39madd([32m'hidden'[39m)[33m;[39m
+     [90m 232 |[39m
+     [90m 233 |[39m     [36mlet[39m userMsg [33m=[39m e[33m.[39mmessage[33m;[39m[0m
+
+      at error (sites/code-explainer/app.js:230:13)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:346:5)
+
+    console.error
+      AI Error: Error: 401: Invalid API Key
+          at tryGroqModel (J:\simplewebsites\simplewebsites\sites\code-explainer\app.js:119:11)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at executeWithFallback (J:\simplewebsites\simplewebsites\sites\code-explainer\app.js:135:22)
+          at executeAI (J:\simplewebsites\simplewebsites\sites\code-explainer\app.js:212:39)
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\code-explainer\__tests__\app.test.js:361:5)
+
+    [0m [90m 228 |[39m
+     [90m 229 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 230 |[39m     console[33m.[39merror([32m'AI Error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 231 |[39m     [36mif[39m (loading) loading[33m.[39mclassList[33m.[39madd([32m'hidden'[39m)[33m;[39m
+     [90m 232 |[39m
+     [90m 233 |[39m     [36mlet[39m userMsg [33m=[39m e[33m.[39mmessage[33m;[39m[0m
+
+      at error (sites/code-explainer/app.js:230:13)
+      at Object.<anonymous> (sites/code-explainer/__tests__/app.test.js:361:5)
+
+PASS sites/timezone-scheduler/__tests__/app.test.js
+PASS sites/awesome-free-tools/__tests__/app.test.js
+PASS sites/pdf-toolkit/__tests__/app.test.js
+  ● Console
+
+    console.error
+      PDF Merge error: Error: Fail
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\pdf-toolkit\__tests__\app.test.js:203:68)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 299 |[39m
+     [90m 300 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 301 |[39m     console[33m.[39merror([32m'PDF Merge error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 302 |[39m     [36mif[39m (status) status[33m.[39mtextContent [33m=[39m [32m`❌ Error: ${e.message}`[39m[33m;[39m
+     [90m 303 |[39m   }
+     [90m 304 |[39m }[0m
+
+      at error (sites/pdf-toolkit/app.js:301:13)
+      at Object.<anonymous> (sites/pdf-toolkit/__tests__/app.test.js:209:5)
+
+    console.error
+      PDF Split error: Error: Corrupt PDF
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\pdf-toolkit\__tests__\app.test.js:257:66)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 367 |[39m
+     [90m 368 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 369 |[39m     console[33m.[39merror([32m'PDF Split error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 370 |[39m     [36mif[39m (status) status[33m.[39mtextContent [33m=[39m [32m`❌ Error: ${e.message}`[39m[33m;[39m
+     [90m 371 |[39m   }
+     [90m 372 |[39m }[0m
+
+      at error (sites/pdf-toolkit/app.js:369:13)
+      at Object.<anonymous> (sites/pdf-toolkit/__tests__/app.test.js:261:5)
+
+PASS sites/typing-speed-race/__tests__/app.test.js
+PASS shared/__tests__/seo.test.js
+  ● Console
+
+    console.log
+      ✅ Built: site1
+
+      at Object.log [as buildSite] (shared/build.js:328:11)
+
+    console.log
+      ROOT: J:\simplewebsites\simplewebsites
+
+      at Object.log [as buildAll] (shared/build.js:332:11)
+
+    console.log
+      SITES_DIR: J:\simplewebsites\simplewebsites\sites
+
+      at Object.log [as buildAll] (shared/build.js:333:11)
+
+    console.log
+      GLOBAL_DIST: J:\simplewebsites\simplewebsites\dist
+
+      at Object.log [as buildAll] (shared/build.js:334:11)
+
+    console.log
+      Found 4 site directories in J:\simplewebsites\simplewebsites\sites
+
+      at log (shared/build.js:27:11)
+
+    console.log
+      Building 4 sites into J:\simplewebsites\simplewebsites\dist...
+
+      at Object.log [as buildAll] (shared/build.js:347:11)
+
+    console.log
+      ✅ Built: site1
+
+      at log (shared/build.js:328:11)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      ✅ Built: styles.css
+
+      at log (shared/build.js:328:11)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      ✅ Built: theme-toggle.js
+
+      at log (shared/build.js:328:11)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      ✅ Built: ads.txt
+
+      at log (shared/build.js:328:11)
+          at Array.forEach (<anonymous>)
+
+    console.log
+      Aggregating Cloudflare functions and _headers...
+
+      at Object.log [as buildAll] (shared/build.js:364:11)
+
+    console.log
+      
+      🎉 All 4 sites built successfully into global dist!
+
+      at Object.log [as buildAll] (shared/build.js:423:11)
+
+PASS sites/baby-face-generator/__tests__/app.test.js
+PASS sites/currency-unit-converter/__tests__/app.test.js
+PASS sites/json-yaml-formatter/__tests__/app.test.js
+PASS sites/magic-8-ball/__tests__/app.test.js
+PASS sites/text-diff-checker/__tests__/app.test.js
+PASS sites/svg-optimizer/__tests__/app.test.js
+PASS sites/temp-mail/__tests__/app.test.js
+  ● Console
+
+    console.warn
+      Proxy unavailable, trying direct API: Proxy unavailable
+
+    [0m [90m 59 |[39m     }
+     [90m 60 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 61 |[39m     console[33m.[39mwarn([32m'Proxy unavailable, trying direct API:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 62 |[39m   }
+     [90m 63 |[39m
+     [90m 64 |[39m   [90m// Strategy 2: Direct 1secmail API[39m[0m
+
+      at warn (sites/temp-mail/app.js:61:13)
+      at Object.<anonymous> (sites/temp-mail/__tests__/app.test.js:187:5)
+
+    console.warn
+      Proxy unavailable, trying direct API: Network error
+
+    [0m [90m 59 |[39m     }
+     [90m 60 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 61 |[39m     console[33m.[39mwarn([32m'Proxy unavailable, trying direct API:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 62 |[39m   }
+     [90m 63 |[39m
+     [90m 64 |[39m   [90m// Strategy 2: Direct 1secmail API[39m[0m
+
+      at warn (sites/temp-mail/app.js:61:13)
+      at Object.<anonymous> (sites/temp-mail/__tests__/app.test.js:194:5)
+
+    console.warn
+      Direct 1secmail failed: Network error
+
+    [0m [90m 76 |[39m     }
+     [90m 77 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 78 |[39m     console[33m.[39mwarn([32m'Direct 1secmail failed:'[39m[33m,[39m e[33m.[39mmessage)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 79 |[39m   }
+     [90m 80 |[39m
+     [90m 81 |[39m   [90m// Strategy 3: Client-generated email (guaranteed to work)[39m[0m
+
+      at warn (sites/temp-mail/app.js:78:13)
+      at Object.<anonymous> (sites/temp-mail/__tests__/app.test.js:194:5)
+
+    console.error
+      Fetch messages error: Error: Network error
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\temp-mail\__tests__\app.test.js:193:48)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 195 |[39m     retryCount [33m=[39m [35m0[39m[33m;[39m
+     [90m 196 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 197 |[39m     console[33m.[39merror([32m'Fetch messages error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 198 |[39m     retryCount[33m++[39m[33m;[39m
+     [90m 199 |[39m     [36mconst[39m status [33m=[39m document[33m.[39mgetElementById([32m'status-text'[39m)[33m;[39m
+     [90m 200 |[39m     [36mif[39m (retryCount [33m>=[39m [33mMAX_RETRIES[39m) {[0m
+
+      at error (sites/temp-mail/app.js:197:13)
+
+    console.error
+      Fetch messages error: Error: Proxy error
+          at fetchMessages (J:\simplewebsites\simplewebsites\sites\temp-mail\app.js:175:26)
+
+    [0m [90m 195 |[39m     retryCount [33m=[39m [35m0[39m[33m;[39m
+     [90m 196 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 197 |[39m     console[33m.[39merror([32m'Fetch messages error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 198 |[39m     retryCount[33m++[39m[33m;[39m
+     [90m 199 |[39m     [36mconst[39m status [33m=[39m document[33m.[39mgetElementById([32m'status-text'[39m)[33m;[39m
+     [90m 200 |[39m     [36mif[39m (retryCount [33m>=[39m [33mMAX_RETRIES[39m) {[0m
+
+      at error (sites/temp-mail/app.js:197:13)
+
+    console.error
+      Fetch messages error: Error: Proxy error
+          at fetchMessages (J:\simplewebsites\simplewebsites\sites\temp-mail\app.js:175:26)
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\temp-mail\__tests__\app.test.js:233:5)
+
+    [0m [90m 195 |[39m     retryCount [33m=[39m [35m0[39m[33m;[39m
+     [90m 196 |[39m   } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 197 |[39m     console[33m.[39merror([32m'Fetch messages error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 198 |[39m     retryCount[33m++[39m[33m;[39m
+     [90m 199 |[39m     [36mconst[39m status [33m=[39m document[33m.[39mgetElementById([32m'status-text'[39m)[33m;[39m
+     [90m 200 |[39m     [36mif[39m (retryCount [33m>=[39m [33mMAX_RETRIES[39m) {[0m
+
+      at error (sites/temp-mail/app.js:197:13)
+      at Object.<anonymous> (sites/temp-mail/__tests__/app.test.js:233:5)
+
+PASS sites/mood-board-generator/__tests__/app.test.js
+PASS sites/height-comparison/__tests__/app.test.js
+PASS sites/pet-breed-identifier/__tests__/app.test.js
+  ● Console
+
+    console.log
+      MobileNet model loaded successfully.
+
+      at log (sites/pet-breed-identifier/app.js:116:15)
+
+    console.log
+      MobileNet Predictions: [ { className: 'golden retriever', probability: 0.95 } ]
+
+      at log (sites/pet-breed-identifier/app.js:268:15)
+
+PASS sites/image-upscaler/__tests__/app.test.js
+PASS sites/rank-everything/__tests__/app.test.js
+  ● Console
+
+    console.log
+      CATCHING ERROR: TMDB API Key required
+
+      at log (sites/rank-everything/app.js:78:17)
+
+    console.log
+      CATCHING ERROR: RAWG API Key required
+
+      at log (sites/rank-everything/app.js:78:17)
+
+PASS sites/face-shape-detector/__tests__/app.test.js
+PASS sites/emoji-translator/__tests__/app.test.js
+PASS sites/markdown-editor/__tests__/app.test.js
+  ● Console
+
+    console.warn
+      Parsing error Error: parse error
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\markdown-editor\__tests__\app.test.js:70:62)
+          at J:\simplewebsites\simplewebsites\node_modules\jest-mock\build\index.js:397:39
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\node_modules\jest-mock\build\index.js:404:13)
+          at Object.mockConstructor [as parse] (J:\simplewebsites\simplewebsites\node_modules\jest-mock\build\index.js:103:19)
+          at parse (J:\simplewebsites\simplewebsites\sites\markdown-editor\app.js:90:30)
+          at Object.updatePreview (J:\simplewebsites\simplewebsites\sites\markdown-editor\__tests__\app.test.js:71:5)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12)
+
+    [0m [90m 93 |[39m     previewEl[33m.[39minnerHTML [33m=[39m cleanHtml[33m;[39m
+     [90m 94 |[39m   } [36mcatch[39m(e) {
+    [31m[1m>[22m[39m[90m 95 |[39m     console[33m.[39mwarn([32m'Parsing error'[39m[33m,[39m e)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 96 |[39m   }
+     [90m 97 |[39m }
+     [90m 98 |[39m[0m
+
+      at warn (sites/markdown-editor/app.js:95:13)
+      at Object.updatePreview (sites/markdown-editor/__tests__/app.test.js:71:5)
+
+PASS sites/regex-tester/__tests__/app.test.js
+PASS sites/text-to-handwriting/__tests__/app.test.js
+PASS sites/festival-countdown/__tests__/app.test.js
+PASS sites/mock-data-generator/__tests__/app.test.js
+PASS sites/glassmorphism-generator/__tests__/app.test.js
+PASS sites/bill-splitter/__tests__/app.test.js
+PASS shared/__tests__/ads.advanced.test.js
+PASS sites/video-compressor/__tests__/app.test.js
+  ● Console
+
+    console.error
+      FFmpeg init error: TypeError: A dynamic import callback was invoked without --experimental-vm-modules
+          at importModuleDynamicallyCallback (node:internal/modules/esm/utils:292:11)
+          at eval (eval at initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:66:26), <anonymous>:3:15)
+          at importFn (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:69:13)
+          at initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:138:5)
+          at Object.setVideoFile (J:\simplewebsites\simplewebsites\sites\video-compressor\__tests__\app.test.js:69:9)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12) {
+        code: 'ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG'
+      }
+
+    [0m [90m 104 |[39m         [36mreturn[39m ff[33m;[39m
+     [90m 105 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 106 |[39m         console[33m.[39merror([32m'FFmpeg init error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 107 |[39m         [36mif[39m (statusEl) statusEl[33m.[39mclassList[33m.[39madd([32m'hidden'[39m)[33m;[39m
+     [90m 108 |[39m         [36mthrow[39m [36mnew[39m [33mError[39m([32m'Could not load video processing engine. Please refresh and try again. ('[39m [33m+[39m e[33m.[39mmessage [33m+[39m [32m')'[39m)[33m;[39m
+     [90m 109 |[39m     }[0m
+
+      at error (sites/video-compressor/app.js:106:17)
+
+    console.warn
+      FFmpeg pre-load failed: Could not load video processing engine. Please refresh and try again. (A dynamic import callback was invoked without --experimental-vm-modules)
+
+    [0m [90m 136 |[39m
+     [90m 137 |[39m     [90m// Pre-load FFmpeg in background[39m
+    [31m[1m>[22m[39m[90m 138 |[39m     initFFmpeg()[33m.[39m[36mcatch[39m(err [33m=>[39m console[33m.[39mwarn([32m'FFmpeg pre-load failed:'[39m[33m,[39m err[33m.[39mmessage))[33m;[39m
+     [90m     |[39m                                       [31m[1m^[22m[39m
+     [90m 139 |[39m }
+     [90m 140 |[39m
+     [90m 141 |[39m [36mfunction[39m setTrimFromVideo() {[0m
+
+      at warn (sites/video-compressor/app.js:138:39)
+
+    console.error
+      FFmpeg init error: TypeError: A dynamic import callback was invoked without --experimental-vm-modules
+          at importModuleDynamicallyCallback (node:internal/modules/esm/utils:292:11)
+          at eval (eval at initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:66:26), <anonymous>:3:15)
+          at importFn (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:69:13)
+          at Object.initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\__tests__\app.test.js:143:22)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12) {
+        code: 'ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG'
+      }
+
+    [0m [90m 104 |[39m         [36mreturn[39m ff[33m;[39m
+     [90m 105 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 106 |[39m         console[33m.[39merror([32m'FFmpeg init error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 107 |[39m         [36mif[39m (statusEl) statusEl[33m.[39mclassList[33m.[39madd([32m'hidden'[39m)[33m;[39m
+     [90m 108 |[39m         [36mthrow[39m [36mnew[39m [33mError[39m([32m'Could not load video processing engine. Please refresh and try again. ('[39m [33m+[39m e[33m.[39mmessage [33m+[39m [32m')'[39m)[33m;[39m
+     [90m 109 |[39m     }[0m
+
+      at error (sites/video-compressor/app.js:106:17)
+      at Object.<anonymous> (sites/video-compressor/__tests__/app.test.js:143:9)
+
+    console.error
+      FFmpeg init error: TypeError: A dynamic import callback was invoked without --experimental-vm-modules
+          at importModuleDynamicallyCallback (node:internal/modules/esm/utils:292:11)
+          at eval (eval at initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:66:26), <anonymous>:3:15)
+          at importFn (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:69:13)
+          at initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:138:5)
+          at Object.setVideoFile (J:\simplewebsites\simplewebsites\sites\video-compressor\__tests__\app.test.js:150:9)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12) {
+        code: 'ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG'
+      }
+
+    [0m [90m 104 |[39m         [36mreturn[39m ff[33m;[39m
+     [90m 105 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 106 |[39m         console[33m.[39merror([32m'FFmpeg init error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 107 |[39m         [36mif[39m (statusEl) statusEl[33m.[39mclassList[33m.[39madd([32m'hidden'[39m)[33m;[39m
+     [90m 108 |[39m         [36mthrow[39m [36mnew[39m [33mError[39m([32m'Could not load video processing engine. Please refresh and try again. ('[39m [33m+[39m e[33m.[39mmessage [33m+[39m [32m')'[39m)[33m;[39m
+     [90m 109 |[39m     }[0m
+
+      at error (sites/video-compressor/app.js:106:17)
+
+    console.error
+      FFmpeg init error: TypeError: A dynamic import callback was invoked without --experimental-vm-modules
+          at importModuleDynamicallyCallback (node:internal/modules/esm/utils:292:11)
+          at eval (eval at initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:66:26), <anonymous>:3:15)
+          at importFn (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:69:13)
+          at initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:205:26)
+          at Object.executeCompression (J:\simplewebsites\simplewebsites\sites\video-compressor\__tests__\app.test.js:153:15)
+          at Promise.then.completed (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:298:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\utils.js:231:10)
+          at _callCircusTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:316:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:252:3)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:126:9)
+          at _runTestsForDescribeBlock (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:121:9)
+          at run (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\run.js:71:3)
+          at runAndTransformResultsToJestFormat (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapterInit.js:122:21)
+          at jestAdapter (J:\simplewebsites\simplewebsites\node_modules\jest-circus\build\legacy-code-todo-rewrite\jestAdapter.js:79:19)
+          at runTestInternal (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:367:16)
+          at runTest (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\runTest.js:444:34)
+          at Object.worker (J:\simplewebsites\simplewebsites\node_modules\jest-runner\build\testWorker.js:106:12) {
+        code: 'ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG'
+      }
+
+    [0m [90m 104 |[39m         [36mreturn[39m ff[33m;[39m
+     [90m 105 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 106 |[39m         console[33m.[39merror([32m'FFmpeg init error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 107 |[39m         [36mif[39m (statusEl) statusEl[33m.[39mclassList[33m.[39madd([32m'hidden'[39m)[33m;[39m
+     [90m 108 |[39m         [36mthrow[39m [36mnew[39m [33mError[39m([32m'Could not load video processing engine. Please refresh and try again. ('[39m [33m+[39m e[33m.[39mmessage [33m+[39m [32m')'[39m)[33m;[39m
+     [90m 109 |[39m     }[0m
+
+      at error (sites/video-compressor/app.js:106:17)
+      at executeCompression (sites/video-compressor/app.js:205:20)
+      at Object.<anonymous> (sites/video-compressor/__tests__/app.test.js:153:9)
+
+    console.warn
+      FFmpeg pre-load failed: Could not load video processing engine. Please refresh and try again. (A dynamic import callback was invoked without --experimental-vm-modules)
+
+    [0m [90m 136 |[39m
+     [90m 137 |[39m     [90m// Pre-load FFmpeg in background[39m
+    [31m[1m>[22m[39m[90m 138 |[39m     initFFmpeg()[33m.[39m[36mcatch[39m(err [33m=>[39m console[33m.[39mwarn([32m'FFmpeg pre-load failed:'[39m[33m,[39m err[33m.[39mmessage))[33m;[39m
+     [90m     |[39m                                       [31m[1m^[22m[39m
+     [90m 139 |[39m }
+     [90m 140 |[39m
+     [90m 141 |[39m [36mfunction[39m setTrimFromVideo() {[0m
+
+      at warn (sites/video-compressor/app.js:138:39)
+
+    console.error
+      Compression error: Error: Could not load video processing engine. Please refresh and try again. (A dynamic import callback was invoked without --experimental-vm-modules)
+          at initFFmpeg (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:108:15)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at executeCompression (J:\simplewebsites\simplewebsites\sites\video-compressor\app.js:205:20)
+          at Object.<anonymous> (J:\simplewebsites\simplewebsites\sites\video-compressor\__tests__\app.test.js:153:9)
+
+    [0m [90m 275 |[39m
+     [90m 276 |[39m     } [36mcatch[39m (e) {
+    [31m[1m>[22m[39m[90m 277 |[39m         console[33m.[39merror([32m'Compression error:'[39m[33m,[39m e)[33m;[39m
+     [90m     |[39m                 [31m[1m^[22m[39m
+     [90m 278 |[39m         showError([32m'Processing failed: '[39m [33m+[39m e[33m.[39mmessage)[33m;[39m
+     [90m 279 |[39m         [36mif[39m (btn) btn[33m.[39mdisabled [33m=[39m [36mfalse[39m[33m;[39m
+     [90m 280 |[39m         [36mif[39m (barWrap) barWrap[33m.[39mclassList[33m.[39madd([32m'hidden'[39m)[33m;[39m[0m
+
+      at error (sites/video-compressor/app.js:277:17)
+      at Object.<anonymous> (sites/video-compressor/__tests__/app.test.js:153:9)
+
+PASS shared/__tests__/theme-toggle.test.js
+PASS sites/invoice-generator/__tests__/app.test.js
+PASS sites/audio-trimmer/__tests__/app.test.js
+PASS sites/voice-to-text-counter/__tests__/app.test.js
+PASS shared/__tests__/ads.test.js
+PASS sites/terraform-snippet-generator/__tests__/app.test.js
+PASS sites/sleep-calculator/__tests__/app.test.js
+PASS sites/loan-visualizer/__tests__/app.test.js
+PASS sites/cloud-service-comparison/__tests__/app.test.js
+PASS sites/aws-cost-estimator/__tests__/app.test.js
+PASS sites/cicd-visualizer/__tests__/app.test.js
+PASS sites/picker-wheel/__tests__/app.test.js
+PASS sites/css-shadow-gradient/__tests__/app.test.js
+PASS sites/password-toolkit/__tests__/app.test.js
+PASS sites/resume-ats-checker/__tests__/app.test.js
+PASS sites/admin-dashboard/__tests__/app.test.js
+PASS sites/image-converter/__tests__/app.test.js
+PASS sites/startup-idea-generator/__tests__/app.test.js
+PASS shared/__tests__/analytics.test.js
+PASS sites/uuid-generator/__tests__/app.test.js
+PASS shared/__tests__/build.test.js
+  ● Console
+
+    console.log
+      ROOT: J:\simplewebsites\simplewebsites
+
+      at log (shared/build.js:332:11)
+
+    console.log
+      SITES_DIR: J:\simplewebsites\simplewebsites\sites
+
+      at log (shared/build.js:333:11)
+
+    console.log
+      GLOBAL_DIST: J:\simplewebsites\simplewebsites\dist
+
+      at log (shared/build.js:334:11)
+
+    console.log
+      Found 1 site directories in J:\simplewebsites\simplewebsites\sites
+
+      at log (shared/build.js:27:11)
+
+    console.log
+      Building 1 sites into J:\simplewebsites\simplewebsites\dist...
+
+      at log (shared/build.js:347:11)
+
+PASS sites/soundboard-synth/__tests__/app.test.js
+PASS shared/__tests__/seo.advanced.test.js
+PASS sites/noise-meter/__tests__/app.test.js
+PASS sites/seo-meta-generator/__tests__/app.test.js
+PASS sites/git-command-builder/__tests__/app.test.js
+PASS sites/color-palette-extractor/__tests__/app.test.js
+-------------------------------------------|---------|----------|---------|---------|-------------------------------------------------------------------------------------------------------------
+File                                       | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                           
+-------------------------------------------|---------|----------|---------|---------|-------------------------------------------------------------------------------------------------------------
+All files                                  |   87.04 |    66.37 |   89.53 |   91.19 |                                                                                                             
+ shared                                    |   92.25 |    79.27 |     100 |   92.93 |                                                                                                             
+  ads.js                                   |     100 |     92.3 |     100 |     100 | 36,86                                                                                                       
+  analytics.js                             |     100 |    91.66 |     100 |     100 | 34                                                                                                          
+  build.js                                 |    88.2 |    67.34 |     100 |   88.95 | 21-22,34,41,48,75-78,115-117,124-125,131,234,244,272,337-338,428                                            
+  seo.js                                   |     100 |    93.33 |     100 |     100 | 30,89-90,213                                                                                                
+  theme-toggle.js                          |   93.75 |    73.07 |     100 |   96.66 | 68                                                                                                          
+ shared/functions                          |       0 |        0 |       0 |       0 |                                                                                                             
+  _middleware.js                           |       0 |        0 |       0 |       0 | 2-54                                                                                                        
+ sites/admin-dashboard                     |   80.59 |    56.25 |   77.77 |    83.6 |                                                                                                             
+  app.js                                   |   80.59 |    56.25 |   77.77 |    83.6 | 2-12,62                                                                                                     
+ sites/admin-dashboard/functions/api/admin |       0 |        0 |       0 |       0 |                                                                                                             
+  status.js                                |       0 |        0 |       0 |       0 | 2-17                                                                                                        
+  toggle.js                                |       0 |        0 |       0 |       0 | 2-14                                                                                                        
+ sites/audio-trimmer                       |   82.85 |    51.57 |   61.53 |   89.65 |                                                                                                             
+  app.js                                   |   82.85 |    51.57 |   61.53 |   89.65 | 33,113-120,125-137,194-196                                                                                  
+ sites/awesome-free-tools                  |     100 |    77.77 |     100 |     100 |                                                                                                             
+  app.js                                   |     100 |    77.77 |     100 |     100 | 3479-3484                                                                                                   
+ sites/aws-cost-estimator                  |    94.2 |    56.75 |     100 |     100 |                                                                                                             
+  app.js                                   |    94.2 |    56.75 |     100 |     100 | 12-42,76-110                                                                                                
+ sites/baby-face-generator                 |   76.17 |    52.27 |      80 |   77.54 |                                                                                                             
+  app.js                                   |   76.17 |    52.27 |      80 |   77.54 | 20-27,66-106,171,270-271,379-385,407-417                                                                    
+ sites/bill-splitter                       |   93.39 |    87.91 |     100 |     100 |                                                                                                             
+  app.js                                   |   93.39 |    87.91 |     100 |     100 | 64,95,112,119-136,156,172,180-189,208                                                                       
+ sites/cicd-visualizer                     |   96.38 |    83.72 |      95 |     100 |                                                                                                             
+  app.js                                   |   96.38 |    83.72 |      95 |     100 | 30-36,44-57,69,78,116                                                                                       
+ sites/cloud-service-comparison            |   92.85 |    64.28 |     100 |     100 |                                                                                                             
+  app.js                                   |   92.85 |    64.28 |     100 |     100 | 29-38,41-54                                                                                                 
+ sites/code-explainer                      |   96.94 |    66.31 |   88.23 |     100 |                                                                                                             
+  app.js                                   |   96.94 |    66.31 |   88.23 |     100 | 118-123,145-151,156-169,185,189-231,237-266                                                                 
+ sites/color-palette-extractor             |   88.73 |    66.07 |   95.83 |     100 |                                                                                                             
+  app.js                                   |   88.73 |    66.07 |   95.83 |     100 | 18,39-119,128,136-141                                                                                       
+ sites/css-shadow-gradient                 |   93.96 |     62.5 |    87.5 |      97 |                                                                                                             
+  app.js                                   |   93.96 |     62.5 |    87.5 |      97 | 148-150                                                                                                     
+ sites/currency-unit-converter             |   93.85 |    72.05 |     100 |   98.87 |                                                                                                             
+  app.js                                   |   93.85 |    72.05 |     100 |   98.87 | 152                                                                                                         
+ sites/emoji-translator                    |   94.54 |    85.41 |     100 |     100 |                                                                                                             
+  app.js                                   |   94.54 |    85.41 |     100 |     100 | 113,122,125-134,139-148,158                                                                                 
+ sites/face-shape-detector                 |   86.59 |       60 |     100 |     100 |                                                                                                             
+  app.js                                   |   86.59 |       60 |     100 |     100 | 36-91,99-116                                                                                                
+ sites/festival-countdown                  |   91.91 |    87.27 |   90.47 |   96.29 |                                                                                                             
+  app.js                                   |   91.91 |    87.27 |   90.47 |   96.29 | 208-209,222                                                                                                 
+ sites/git-command-builder                 |   93.84 |    65.71 |     100 |     100 |                                                                                                             
+  app.js                                   |   93.84 |    65.71 |     100 |     100 | 35-36,59-110,119-150,157-184                                                                                
+ sites/glassmorphism-generator             |   97.46 |    59.25 |   81.81 |     100 |                                                                                                             
+  app.js                                   |   97.46 |    59.25 |   81.81 |     100 | 27,62-120,124,140-153                                                                                       
+ sites/height-comparison                   |   91.35 |    76.08 |     100 |     100 |                                                                                                             
+  app.js                                   |   91.35 |    76.08 |     100 |     100 | 43,52-84,103-118,130                                                                                        
+ sites/image-converter                     |   96.73 |       68 |   85.71 |     100 |                                                                                                             
+  app.js                                   |   96.73 |       68 |   85.71 |     100 | 14-41,66-100,123-147                                                                                        
+ sites/image-upscaler                      |   80.83 |    57.56 |    85.1 |   87.47 |                                                                                                             
+  app.js                                   |   80.83 |    57.56 |    85.1 |   87.47 | 263,322-323,347-348,369-370,377-378,405-406,423-428,440-450,508,559-567,678-683,716-726,800,802,851-857,860 
+ sites/invoice-generator                   |   97.26 |    59.52 |     100 |     100 |                                                                                                             
+  app.js                                   |   97.26 |    59.52 |     100 |     100 | 34,36-90,116-135                                                                                            
+ sites/json-yaml-formatter                 |   79.88 |    64.84 |   78.57 |   84.61 |                                                                                                             
+  app.js                                   |   79.88 |    64.84 |   78.57 |   84.61 | 84-89,112-113,190-194,232,242-249                                                                           
+ sites/loan-visualizer                     |   94.39 |    85.33 |     100 |     100 |                                                                                                             
+  app.js                                   |   94.39 |    85.33 |     100 |     100 | 74,110,127,147,161,170-181,196-200                                                                          
+ sites/magic-8-ball                        |   83.05 |    59.37 |   81.81 |   85.18 |                                                                                                             
+  app.js                                   |   83.05 |    59.37 |   81.81 |   85.18 | 112-121                                                                                                     
+ sites/mandala-drawer                      |   92.72 |     64.4 |      90 |   97.94 |                                                                                                             
+  app.js                                   |   92.72 |     64.4 |      90 |   97.94 | 64,198,272                                                                                                  
+ sites/markdown-editor                     |   94.11 |    61.11 |   91.66 |   97.46 |                                                                                                             
+  app.js                                   |   94.11 |    61.11 |   91.66 |   97.46 | 153-154                                                                                                     
+ sites/meme-generator                      |   87.09 |    52.17 |      90 |   93.97 |                                                                                                             
+  app.js                                   |   87.09 |    52.17 |      90 |   93.97 | 17-19,84-85                                                                                                 
+ sites/mock-data-generator                 |   96.11 |    71.42 |     100 |     100 |                                                                                                             
+  app.js                                   |   96.11 |    71.42 |     100 |     100 | 48-53,136-137,157-216                                                                                       
+ sites/mood-board-generator                |   91.54 |    60.52 |     100 |     100 |                                                                                                             
+  app.js                                   |   91.54 |    60.52 |     100 |     100 | 15,39-65,71-97                                                                                              
+ sites/noise-meter                         |   96.42 |    67.85 |   94.11 |   98.87 |                                                                                                             
+  app.js                                   |   96.42 |    67.85 |   94.11 |   98.87 | 122                                                                                                         
+ sites/password-toolkit                    |   92.13 |    80.76 |      90 |   97.81 |                                                                                                             
+  app.js                                   |   92.13 |    80.76 |      90 |   97.81 | 162,164,166                                                                                                 
+ sites/pdf-toolkit                         |   71.25 |    55.72 |   81.81 |      69 |                                                                                                             
+  app.js                                   |   71.25 |    55.72 |   81.81 |      69 | 106-127,135-206,336,388,391                                                                                 
+ sites/pet-breed-identifier                |   88.37 |    71.73 |     100 |    94.4 |                                                                                                             
+  app.js                                   |   88.37 |    71.73 |     100 |    94.4 | 118,206,270,277-278,281-287                                                                                 
+ sites/picker-wheel                        |   92.13 |    61.44 |   95.65 |   98.01 |                                                                                                             
+  app.js                                   |   92.13 |    61.44 |   95.65 |   98.01 | 102,136,295                                                                                                 
+ sites/pomodoro-timer                      |   92.63 |    58.49 |     100 |   96.66 |                                                                                                             
+  app.js                                   |   92.63 |    58.49 |     100 |   96.66 | 84,144-150                                                                                                  
+ sites/qr-code-generator                   |   93.71 |       65 |     100 |   97.07 |                                                                                                             
+  app.js                                   |   93.71 |       65 |     100 |   97.07 | 22-24,180,291                                                                                               
+ sites/rank-everything                     |   89.82 |    74.64 |   88.63 |   93.51 |                                                                                                             
+  app.js                                   |   89.82 |    74.64 |   88.63 |   93.51 | 28,179,216,238,371-379,384-385                                                                              
+ sites/rank-everything/functions/api       |       0 |        0 |       0 |       0 |                                                                                                             
+  lists.js                                 |       0 |        0 |       0 |       0 | 5-74                                                                                                        
+ sites/regex-tester                        |   84.81 |    69.38 |   83.33 |   87.67 |                                                                                                             
+  app.js                                   |   84.81 |    69.38 |   83.33 |   87.67 | 10-14,95-97,118                                                                                             
+ sites/resume-ats-checker                  |   98.11 |    93.58 |     100 |     100 |                                                                                                             
+  app.js                                   |   98.11 |    93.58 |     100 |     100 | 36,63,83,111                                                                                                
+ sites/seo-meta-generator                  |    97.5 |    73.33 |   66.66 |     100 |                                                                                                             
+  app.js                                   |    97.5 |    73.33 |   66.66 |     100 | 19-21,54,69-73                                                                                              
+ sites/sleep-calculator                    |   93.33 |    74.24 |     100 |     100 |                                                                                                             
+  app.js                                   |   93.33 |    74.24 |     100 |     100 | 19,24,115,123-143,157-159,172-176                                                                           
+ sites/soundboard-synth                    |   89.01 |    72.72 |   84.21 |   93.58 |                                                                                                             
+  app.js                                   |   89.01 |    72.72 |   84.21 |   93.58 | 153-159                                                                                                     
+ sites/startup-idea-generator              |   93.82 |    68.96 |     100 |     100 |                                                                                                             
+  app.js                                   |   93.82 |    68.96 |     100 |     100 | 84-137,159-175,179-184                                                                                      
+ sites/svg-optimizer                       |   97.61 |    69.04 |    90.9 |     100 |                                                                                                             
+  app.js                                   |   97.61 |    69.04 |    90.9 |     100 | 48-67,87,92-148                                                                                             
+ sites/temp-mail                           |   85.78 |    64.46 |    82.6 |   91.55 |                                                                                                             
+  app.js                                   |   85.78 |    64.46 |    82.6 |   91.55 | 129-134,155-156,202-207,269                                                                                 
+ sites/terraform-snippet-generator         |   77.58 |    67.44 |      70 |   89.13 |                                                                                                             
+  app.js                                   |   77.58 |    67.44 |      70 |   89.13 | 15-17,23-29                                                                                                 
+ sites/text-diff-checker                   |    98.8 |     79.1 |     100 |     100 |                                                                                                             
+  app.js                                   |    98.8 |     79.1 |     100 |     100 | 47,62-68,86,111,114-139                                                                                     
+ sites/text-to-handwriting                 |   88.65 |    63.79 |   71.42 |   92.22 |                                                                                                             
+  app.js                                   |   88.65 |    63.79 |   71.42 |   92.22 | 10-11,18-19,123-125                                                                                         
+ sites/timezone-scheduler                  |   91.86 |    68.42 |     100 |   98.59 |                                                                                                             
+  app.js                                   |   91.86 |    68.42 |     100 |   98.59 | 94                                                                                                          
+ sites/typing-speed-race                   |   92.44 |    79.78 |      85 |   99.16 |                                                                                                             
+  app.js                                   |   92.44 |    79.78 |      85 |   99.16 | 43                                                                                                          
+ sites/uuid-generator                      |   90.47 |     67.5 |   83.33 |   98.21 |                                                                                                             
+  app.js                                   |   90.47 |     67.5 |   83.33 |   98.21 | 12                                                                                                          
+ sites/video-compressor                    |   53.77 |    39.39 |   70.37 |   51.76 |                                                                                                             
+  app.js                                   |   53.77 |    39.39 |   70.37 |   51.76 | 73-104,118,134,142-149,179-187,207-269,315,317                                                              
+ sites/voice-to-text-counter               |    95.8 |    70.93 |   96.55 |   98.87 |                                                                                                             
+  app.js                                   |    95.8 |    70.93 |   96.55 |   98.87 | 136                                                                                                         
+-------------------------------------------|---------|----------|---------|---------|-------------------------------------------------------------------------------------------------------------
+
+Test Suites: 60 passed, 60 total
+Tests:       759 passed, 759 total
+Snapshots:   0 total
+Time:        5.641 s
+Ran all test suites.

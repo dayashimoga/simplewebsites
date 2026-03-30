@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trivia Quiz Game — Test Your Knowledge</title>
+  <meta name="description" content="Free online trivia quiz game with multiple categories. Test your knowledge in Science, History, Geography, Pop Culture, and Tech. Track streaks and high scores!">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero"><h1>🧠 <span class="text-gradient">Trivia Quiz</span></h1><p>Test your knowledge across 5 categories. How long can you keep your streak?</p></section>
+
+    <div id="setup-screen" class="card">
+      <h3 class="mb-4">Choose a Category</h3>
+      <div class="category-grid" id="category-grid">
+        <button class="cat-btn" onclick="startQuiz('science')">🔬 Science</button>
+        <button class="cat-btn" onclick="startQuiz('history')">📜 History</button>
+        <button class="cat-btn" onclick="startQuiz('geography')">🌍 Geography</button>
+        <button class="cat-btn" onclick="startQuiz('popculture')">🎬 Pop Culture</button>
+        <button class="cat-btn" onclick="startQuiz('tech')">💻 Tech</button>
+        <button class="cat-btn cat-btn-all" onclick="startQuiz('all')">🎲 Random Mix</button>
+      </div>
+    </div>
+
+    <div id="quiz-screen" class="card" style="display:none">
+      <div class="quiz-header">
+        <span class="badge" id="q-category">Science</span>
+        <span class="badge badge-accent" id="q-counter">1 / 10</span>
+        <span class="badge badge-streak" id="q-streak">🔥 0</span>
+      </div>
+      <div class="timer-bar"><div class="timer-fill" id="timer-fill"></div></div>
+      <h2 class="question-text" id="question-text"></h2>
+      <div class="answers-grid" id="answers-grid"></div>
+      <div class="quiz-feedback hidden" id="quiz-feedback"></div>
+    </div>
+
+    <div id="result-screen" class="card" style="display:none">
+      <div class="result-icon" id="result-icon">🏆</div>
+      <h2 id="result-title">Quiz Complete!</h2>
+      <div class="result-stats" id="result-stats"></div>
+      <div class="flex gap-4 justify-center mt-6">
+        <button class="btn btn-primary" onclick="goHome()">Play Again</button>
+      </div>
+      <div class="mt-6">
+        <h4 class="mb-3">🏅 High Scores</h4>
+        <div id="high-scores"></div>
+      </div>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Trivia Quiz Game.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

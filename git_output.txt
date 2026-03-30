@@ -1,0 +1,31 @@
+FAIL sites/git-command-builder/__tests__/app.test.js
+  git-command-builder
+    √ init renders options (17 ms)
+    √ renderOptions handles empty fields (5 ms)
+    √ updateCommand generates correct strings (4 ms)
+    √ task generator functions return appropriate defaults (4 ms)
+    × copyCommand copies to clipboard (6 ms)
+
+  ● git-command-builder › copyCommand copies to clipboard
+
+    expect(jest.fn()).toHaveBeenCalledWith(...expected)
+
+    Expected: "Copied to clipboard!"
+
+    Number of calls: 0
+
+    [0m [90m 82 |[39m     
+     [90m 83 |[39m     expect(navigator[33m.[39mclipboard[33m.[39mwriteText)[33m.[39mtoHaveBeenCalledWith([32m'test-cmd'[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 84 |[39m     expect(window[33m.[39malert)[33m.[39mtoHaveBeenCalledWith([32m'Copied to clipboard!'[39m)[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 85 |[39m   })[33m;[39m
+     [90m 86 |[39m })[33m;[39m
+     [90m 87 |[39m[0m
+
+      at Object.toHaveBeenCalledWith (sites/git-command-builder/__tests__/app.test.js:84:26)
+
+Test Suites: 1 failed, 1 total
+Tests:       1 failed, 4 passed, 5 total
+Snapshots:   0 total
+Time:        0.759 s, estimated 1 s
+Ran all test suites matching /sites\\git-command-builder/i.

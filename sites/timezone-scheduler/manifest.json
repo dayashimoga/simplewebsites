@@ -1,0 +1,8 @@
+{
+  "name": "Timezone Scheduler",
+  "emoji": "🌍",
+  "description": "Visual timezone overlap calculator. Find the perfect meeting time across multiple global time zones instantly.",
+  "category": "Productivity",
+  "path": "/sites/timezone-scheduler/",
+  "enabled": true
+}

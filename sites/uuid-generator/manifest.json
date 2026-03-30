@@ -1,0 +1,8 @@
+{
+  "name": "UUID V4 Generator",
+  "emoji": "🔑",
+  "description": "Generate thousands of cryptographically secure UUID version 4 tokens instantly. Options for uppercase, hyphens, and bulk generation.",
+  "category": "Developer Tools",
+  "path": "/sites/uuid-generator/",
+  "enabled": true
+}

@@ -20,11 +20,23 @@
             <div class="stat"><div class="stat-value" id="timer">60</div><div class="stat-label">Seconds</div></div>
             <div class="stat"><div class="stat-value" id="errors">0</div><div class="stat-label">Errors</div></div>
         </div>
-        <div class="race-settings card mb-4 flex gap-4 justify-center items-center">
-            <label class="label" style="margin-bottom:0">Duration:</label>
-            <button class="btn btn-secondary time-btn active" onclick="setDuration(30)">30s</button>
-            <button class="btn btn-secondary time-btn" onclick="setDuration(60)">60s</button>
-            <button class="btn btn-secondary time-btn" onclick="setDuration(120)">120s</button>
+        <div class="race-settings card mb-4">
+            <div class="flex gap-3 justify-center mb-3">
+                <button class="btn diff-btn active" onclick="setDifficulty('beginner')" style="background:#22c55e;border-color:#22c55e;color:#fff">🐢 Beginner</button>
+                <button class="btn diff-btn" onclick="setDifficulty('intermediate')">🎯 Intermediate</button>
+                <button class="btn diff-btn" onclick="setDifficulty('advanced')">🔥 Advanced</button>
+            </div>
+            <p id="diff-description" style="text-align:center;color:var(--color-text-secondary);font-size:.85rem;margin-bottom:12px">Short & simple sentences. Perfect for learning!</p>
+            <div class="flex gap-4 justify-center items-center">
+                <label class="label" style="margin-bottom:0">Duration:</label>
+                <button class="btn btn-secondary time-btn" onclick="setDuration(30)">30s</button>
+                <button class="btn btn-secondary time-btn" onclick="setDuration(45)">45s</button>
+                <button class="btn btn-secondary time-btn active" onclick="setDuration(60)">60s</button>
+                <button class="btn btn-secondary time-btn" onclick="setDuration(120)">120s</button>
+            </div>
+        </div>
+        <div id="beginner-helper" class="card mb-4" style="background:rgba(34,197,94,.08);border-color:#22c55e">
+            <p style="text-align:center;font-size:.9rem">💡 <strong>Tip:</strong> Keep your eyes on the text, not the keyboard. Place your index fingers on <kbd>F</kbd> and <kbd>J</kbd> keys (they have bumps!).</p>
         </div>
         <div class="card typing-area mb-8">
             <div class="text-display" id="text-display"></div>

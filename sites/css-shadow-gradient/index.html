@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CSS Shadow & Gradient Generator</title>
+  <meta name="description" content="Visually create complex CSS box-shadows and beautiful gradients. Generate cross-browser compatible CSS code instantly.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-6">
+      <h1>🎨 <span class="text-gradient">CSS Style Generator</span></h1>
+      <p>Build beautiful gradients and shadows interactively</p>
+    </section>
+
+    <div class="layout-grid">
+      <!-- Controls -->
+      <div class="controls-panel card bg-surface p-4">
+        
+        <!-- Tabs -->
+        <div class="d-flex justify-center gap-2 mb-5 tabs">
+          <button class="btn btn-primary flex-1 active" id="tab-shadow" onclick="switchTab('shadow')">Box Shadow</button>
+          <button class="btn btn-secondary flex-1" id="tab-gradient" onclick="switchTab('gradient')">Background Gradient</button>
+        </div>
+
+        <!-- Shadow Controls -->
+        <div id="controls-shadow">
+          <div class="form-group mb-3">
+            <label class="form-label d-flex justify-between text-sm font-bold"><span>Horizontal Offset</span> <span id="sh-x-val">0px</span></label>
+            <input type="range" id="sh-x" class="w-full" min="-50" max="50" value="0" oninput="updateStyles()">
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label d-flex justify-between text-sm font-bold"><span>Vertical Offset</span> <span id="sh-y-val">10px</span></label>
+            <input type="range" id="sh-y" class="w-full" min="-50" max="50" value="10" oninput="updateStyles()">
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label d-flex justify-between text-sm font-bold"><span>Blur Radius</span> <span id="sh-b-val">20px</span></label>
+            <input type="range" id="sh-b" class="w-full" min="0" max="100" value="20" oninput="updateStyles()">
+          </div>
+          <div class="form-group mb-3">
+            <label class="form-label d-flex justify-between text-sm font-bold"><span>Spread Radius</span> <span id="sh-s-val">0px</span></label>
+            <input type="range" id="sh-s" class="w-full" min="-50" max="50" value="0" oninput="updateStyles()">
+          </div>
+          
+          <div class="grid col-2 gap-4 mt-4">
+            <div class="form-group">
+              <label class="form-label text-sm font-bold">Shadow Color</label>
+              <input type="color" id="sh-color" class="input w-full p-1 h-12" value="#000000" oninput="updateStyles()">
+            </div>
+            <div class="form-group">
+              <label class="form-label d-flex justify-between text-sm font-bold"><span>Opacity</span> <span id="sh-o-val">0.3</span></label>
+              <input type="range" id="sh-o" class="w-full mt-2" min="0" max="100" value="30" oninput="updateStyles()">
+            </div>
+          </div>
+          <label class="d-flex align-center gap-2 cursor-pointer text-sm font-bold mt-3">
+            <input type="checkbox" id="sh-inset" onchange="updateStyles()"> Inset Shadow
+          </label>
+        </div>
+
+        <!-- Gradient Controls -->
+        <div id="controls-gradient" class="hidden">
+          <div class="form-group mb-4">
+            <label class="form-label font-bold text-sm">Gradient Type</label>
+            <select id="gr-type" class="input w-full p-2" onchange="updateStyles()">
+              <option value="linear">Linear Gradient</option>
+              <option value="radial">Radial Gradient</option>
+            </select>
+          </div>
+          
+          <div class="form-group mb-4" id="gr-angle-container">
+            <label class="form-label d-flex justify-between text-sm font-bold"><span>Angle</span> <span id="gr-angle-val">135°</span></label>
+            <input type="range" id="gr-angle" class="w-full" min="0" max="360" value="135" oninput="updateStyles()">
+          </div>
+          
+          <h4 class="text-sm font-bold mb-2">Color Stops</h4>
+          <div class="grid col-2 gap-4 mb-3">
+            <div class="form-group">
+              <label class="text-xs text-dim mb-1 d-block">Color 1</label>
+              <input type="color" id="gr-c1" class="input w-full p-1 h-12" value="#6c5ce7" oninput="updateStyles()">
+            </div>
+            <div class="form-group">
+              <label class="d-flex justify-between text-xs text-dim mb-1">Position <span id="gr-p1-val">0%</span></label>
+              <input type="range" id="gr-p1" class="w-full mt-1" min="0" max="100" value="0" oninput="updateStyles()">
+            </div>
+          </div>
+          <div class="grid col-2 gap-4">
+            <div class="form-group">
+              <label class="text-xs text-dim mb-1 d-block">Color 2</label>
+              <input type="color" id="gr-c2" class="input w-full p-1 h-12" value="#00cec9" oninput="updateStyles()">
+            </div>
+            <div class="form-group">
+              <label class="d-flex justify-between text-xs text-dim mb-1">Position <span id="gr-p2-val">100%</span></label>
+              <input type="range" id="gr-p2" class="w-full mt-1" min="0" max="100" value="100" oninput="updateStyles()">
+            </div>
+          </div>
+          
+          <button class="btn btn-secondary w-full mt-4 text-sm" onclick="randomGradient()">🎲 Random Gradient</button>
+        </div>
+
+      </div>
+
+      <!-- Preview -->
+      <div class="preview-panel card d-flex flex-column" id="preview-container">
+        <h3 class="mb-3">Preview</h3>
+        <div class="flex-1 d-flex align-center justify-center p-6 bg-preview rounded border border-border overflow-hidden">
+          <div id="preview-box" class="preview-box"></div>
+        </div>
+        
+        <h3 class="mt-6 mb-2">Generated CSS</h3>
+        <div class="relative">
+          <textarea id="css-output" class="input w-full p-4 font-mono text-sm h-32 resize-none bg-surface" readonly></textarea>
+          <button class="btn btn-sm btn-primary absolute" style="top: 8px; right: 8px;" onclick="copyCSS()">📋 Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 CSS Generator.</p>
+  </footer>
+  
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

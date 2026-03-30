@@ -3482,5 +3482,5 @@ if (typeof document !== 'undefined') {
 
 // Export for SEO booster
 if (typeof module !== 'undefined') {
-    module.exports = { TOOLS_DATA };
+    module.exports = { TOOLS_DATA, init, escapeHtml };
 }

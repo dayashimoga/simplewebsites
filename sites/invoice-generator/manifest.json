@@ -1,0 +1,8 @@
+{
+  "name": "Invoice Generator",
+  "emoji": "🧾",
+  "description": "Create professional invoices instantly. Customize line items, calculate taxes, and download as PDF completely free without watermarks.",
+  "category": "Tools",
+  "path": "/sites/invoice-generator/",
+  "enabled": true
+}

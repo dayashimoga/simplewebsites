@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rhythm Tap Game — Tap to the Beat</title>
+  <meta name="description" content="Fun rhythm tapping game! Hit falling notes on the beat. Multiple difficulty tracks and score tracking.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-sm">
+    <section class="hero"><h1>🎵 <span class="text-gradient">Rhythm Tap</span></h1><p>Tap the notes as they reach the hit zone. Time your taps to the beat!</p></section>
+    <div id="menu-screen" class="card text-center">
+      <h3 class="mb-4">Select Difficulty</h3>
+      <div class="flex flex-col gap-3">
+        <button class="btn btn-primary" onclick="startGame('slow')">🐢 Slow (80 BPM)</button>
+        <button class="btn btn-primary" onclick="startGame('medium')">🎵 Medium (120 BPM)</button>
+        <button class="btn btn-primary" onclick="startGame('fast')">🔥 Fast (160 BPM)</button>
+      </div>
+      <div class="mt-6"><h4 class="mb-3">🏆 High Scores</h4><div id="high-scores"></div></div>
+    </div>
+    <div id="game-screen" style="display:none">
+      <div class="game-hud">
+        <span class="hud-item" id="hud-score">Score: 0</span>
+        <span class="hud-item" id="hud-combo">Combo: 0x</span>
+        <span class="hud-item" id="hud-time">Notes: 0</span>
+      </div>
+      <div class="lanes-container" id="lanes-container">
+        <div class="lane" data-lane="0"></div>
+        <div class="lane" data-lane="1"></div>
+        <div class="lane" data-lane="2"></div>
+        <div class="lane" data-lane="3"></div>
+        <div class="hit-zone"></div>
+      </div>
+      <div class="tap-buttons">
+        <button class="tap-btn" onmousedown="tapLane(0)" ontouchstart="tapLane(0)">◀</button>
+        <button class="tap-btn" onmousedown="tapLane(1)" ontouchstart="tapLane(1)">▼</button>
+        <button class="tap-btn" onmousedown="tapLane(2)" ontouchstart="tapLane(2)">▲</button>
+        <button class="tap-btn" onmousedown="tapLane(3)" ontouchstart="tapLane(3)">▶</button>
+      </div>
+      <div class="hit-feedback hidden" id="hit-feedback"></div>
+    </div>
+    <div id="result-screen" class="card text-center" style="display:none">
+      <div style="font-size:3rem">🎶</div>
+      <h2 id="result-title">Song Complete!</h2>
+      <div class="result-stats" id="result-stats"></div>
+      <button class="btn btn-primary mt-4" onclick="goMenu()">Play Again</button>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Rhythm Tap Game.</p></footer>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -61,12 +61,31 @@ function formatSiteName(name) {
 }
 
 /**
+ * Get site manifest data
+ */
+function getManifest(siteName) {
+  const mPath = path.join(SITES_DIR, siteName, 'manifest.json');
+  if (fs.existsSync(mPath)) {
+    try {
+      const data = JSON.parse(fs.readFileSync(mPath, 'utf8'));
+      if (!data.title) data.title = formatSiteName(siteName);
+      if (!data.emoji) data.emoji = '🧰';
+      return data;
+    } catch (e) {
+      console.warn(`Failed to parse manifest for ${siteName}`);
+    }
+  }
+  return { title: formatSiteName(siteName), emoji: '🧰' };
+}
+
+/**
  * Generate the shared navigation bar HTML
  */
-function generateNavBar(siteName) {
+function generateNavBar(siteName, manifest) {
+  const title = manifest ? manifest.title : formatSiteName(siteName);
   return `<nav class="site-nav" aria-label="Site navigation">
   <a href="/" aria-label="Back to all tools">← All Tools</a>
-  <span class="nav-title">${formatSiteName(siteName)}</span>
+  <span class="nav-title">${title}</span>
   <button onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';localStorage.setItem('theme',document.documentElement.dataset.theme)" style="background:none;border:1px solid var(--color-border);border-radius:var(--radius-full);padding:4px 10px;cursor:pointer;font-size:1rem;color:var(--color-text)" aria-label="Toggle theme" title="Toggle dark/light mode">🌙</button>
 </nav>`;
 }
@@ -74,7 +93,7 @@ function generateNavBar(siteName) {
 /**
  * Inject nav bar, preconnect, and contact footer into HTML
  */
-function processHtml(html, siteName) {
+function processHtml(html, siteName, manifest) {
   let processed = html;
 
   // Inject preconnect hints after <head> opening tags
@@ -85,8 +104,7 @@ function processHtml(html, siteName) {
   }
 
   // Inject emoji favicon
-  const emojiMap = { 'picker-wheel': '🎡', 'festival-countdown': '🎆', 'bill-splitter': '💰', 'emoji-translator': '😀', 'sleep-calculator': '😴', 'startup-idea-generator': '💡', 'loan-visualizer': '🏦', 'height-comparison': '📏', 'color-palette-extractor': '🎨', 'typing-speed-race': '⌨️', 'noise-meter': '🔊', 'voice-to-text-counter': '🎙️', 'mood-board-generator': '🎭', 'aws-cost-estimator': '☁️', 'terraform-snippet-generator': '🔧', 'cicd-visualizer': '🔄', 'cloud-service-comparison': '⚡', 'resume-ats-checker': '📄', 'face-shape-detector': '👤', 'baby-face-generator': '👶', 'pet-breed-identifier': '🐾', 'awesome-free-tools': '💎' };
-  const emoji = emojiMap[siteName] || '🛠️';
+  const emoji = manifest ? manifest.emoji : '🛠️';
   if (!processed.includes('rel="icon"')) {
     processed = processed.replace(/<\/head>/i, `    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>${emoji}</text></svg>">\n</head>`);
   }
@@ -174,10 +192,11 @@ function processHtml(html, siteName) {
 
   // Schema.org basic WebApplication fallback
   if (!processed.includes('application/ld+json')) {
+    const title = manifest ? manifest.title : formatSiteName(siteName);
     const schema = {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": formatSiteName(siteName),
+      "name": title,
       "url": `${BASE_URL}/${siteName}/`,
       "applicationCategory": "UtilityApplication",
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -186,7 +205,7 @@ function processHtml(html, siteName) {
   }
 
   // Inject nav bar after <body> tag
-  const navHtml = generateNavBar(siteName);
+  const navHtml = generateNavBar(siteName, manifest);
   processed = processed.replace(/<body([^>]*)>/i, `<body$1>\n${navHtml}`);
 
   // Add contact email and privacy/terms links to footer if configured
@@ -197,6 +216,11 @@ function processHtml(html, siteName) {
     footerLinks += `<a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>`;
     processed = processed.replace(/<\/footer>/i, `<br>${footerLinks}\n</footer>`);
   }
+
+  // Fix relative shared paths to flat dist paths
+  processed = processed.replace(/(?:\.\.\/)+shared\/theme-toggle\.js/g, 'shared-theme-toggle.js');
+  processed = processed.replace(/(?:\.\.\/)+shared\/shared-styles\.css/g, 'shared-styles.css');
+  processed = processed.replace(/(?:\.\.\/)+shared\/styles\.css/g, 'shared-styles.css');
 
   return processed;
 }
@@ -223,16 +247,22 @@ function buildSite(siteName) {
     }
   }
 
+  const manifestData = getManifest(siteName);
+
   // Process HTML files (inject nav, preconnect, contact, AdSense)
   const indexPath = path.join(distDir, 'index.html');
   if (fs.existsSync(indexPath)) {
     let html = fs.readFileSync(indexPath, 'utf-8');
-    html = processHtml(html, siteName);
+    html = processHtml(html, siteName, manifestData);
     fs.writeFileSync(indexPath, html);
   }
 
-  // Copy shared styles
+  // Copy shared styles and theme toggle to each site dist
   copyFileSync(path.join(SHARED_DIR, 'styles.css'), path.join(distDir, 'shared-styles.css'));
+  const themeToggleSrc = path.join(SHARED_DIR, 'theme-toggle.js');
+  if (fs.existsSync(themeToggleSrc)) {
+    copyFileSync(themeToggleSrc, path.join(distDir, 'shared-theme-toggle.js'));
+  }
 
   // Copy ads.txt to each site dist
   const adsTxtSrc = path.join(SHARED_DIR, 'ads.txt');
@@ -332,6 +362,11 @@ function buildAll() {
 
   // Collect functions and _headers from all sites to global dist root
   console.log('Aggregating Cloudflare functions and _headers...');
+  const sharedFuncDir = path.join(SHARED_DIR, 'functions');
+  if (fs.existsSync(sharedFuncDir)) {
+    copyDir(sharedFuncDir, path.join(GLOBAL_DIST, 'functions'));
+  }
+
   sites.forEach(siteName => {
     const siteFuncDir = path.join(SITES_DIR, siteName, 'functions');
     if (fs.existsSync(siteFuncDir)) {
@@ -346,6 +381,13 @@ function buildAll() {
       fs.appendFileSync(globalHeaders, `\n# --- ${siteName} ---\n${content}\n`);
     }
   });
+
+  // Generate sites_manifest.json
+  const aggregatedManifest = sites.map(s => {
+    const m = getManifest(s);
+    return { id: s, title: m.title, emoji: m.emoji };
+  });
+  fs.writeFileSync(path.join(GLOBAL_DIST, 'sites_manifest.json'), JSON.stringify(aggregatedManifest, null, 2));
 
   // Generate a simple Index/Hub page for stacky.pages.dev root
   const hubHtml = `<!DOCTYPE html>
@@ -364,9 +406,12 @@ function buildAll() {
 </head>
 <body>
   <div class="container">
-    <section class="hero"><h1>📚 <span class="text-gradient">Stacky</span></h1><p>22+ Premium small tools. Open source, fast, and free.</p></section>
+    <section class="hero"><h1>📚 <span class="text-gradient">Stacky</span></h1><p>${sites.length}+ Premium small tools. Open source, fast, and free.</p></section>
     <div class="hub-grid">
-      ${sites.map(s => `<a href="${s}/" class="hub-card"><h4>${formatSiteName(s)}</h4></a>`).join('\n      ')}
+      ${sites.map(s => {
+        const m = getManifest(s);
+        return `<a href="${s}/" class="hub-card"><h4>${m.emoji} ${m.title}</h4></a>`;
+      }).join('\n      ')}
     </div>
   </div>
   ${CONTACT_EMAIL ? `<footer class="footer"><p>&copy; ${new Date().getFullYear()} Stacky. All tools are free and open source.</p><a href="mailto:${CONTACT_EMAIL}">📧 Contact Us</a></footer>` : '<footer class="footer"><p>&copy; ' + new Date().getFullYear() + ' Stacky. All tools are free and open source.</p></footer>'}
@@ -383,4 +428,4 @@ if (require.main === module) {
   buildAll();
 }
 
-module.exports = { buildSite, buildAll, getAllSites, copyFileSync, copyDir, formatSiteName, generateNavBar, processHtml };
+module.exports = { buildSite, buildAll, getAllSites, copyFileSync, copyDir, formatSiteName, generateNavBar, processHtml, getManifest };
