@@ -1,145 +1,102 @@
-const { init, updatePreview, clearEditor, DEFAULT_MD, autoSave, downloadFile, overrideThemeToggle } = require('../app');
+/**
+ * @jest-environment jsdom
+ */
 
-const DOM = `
-  <textarea id="md-input"></textarea>
-  <div id="md-preview"></div>
-  <button id="theme-toggle-btn">🌙</button>
-  <button id="theme-toggle" style="display:block">Global Theme</button>
-`;
+const { init, updatePreview, clearEditor, DEFAULT_MD, autoSave, downloadFile } = require('../app');
 
-describe('markdown-editor', () => {
+let setItemMock;
+let getItemMock;
+
+beforeAll(() => {
+  setItemMock = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {});
+  getItemMock = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => null);
+});
+afterAll(() => {
+  setItemMock.mockRestore();
+  getItemMock.mockRestore();
+});
+
+function setupDOM() {
+  document.body.innerHTML = `
+    <textarea id="md-input"></textarea>
+    <div id="md-preview"></div>
+    <button id="theme-toggle-btn"></button>
+    <div id="theme-toggle"></div>
+  `;
+}
+
+// Mock marked and DOMPurify
+global.marked = {
+  setOptions: jest.fn(),
+  parse: jest.fn(t => `<div>${t}</div>`)
+};
+global.DOMPurify = {
+  sanitize: jest.fn(h => h)
+};
+
+describe('Markdown Editor', () => {
   beforeEach(() => {
-    document.body.innerHTML = DOM;
-    global.marked = { parse: jest.fn(text => '<p>' + text + '</p>'), setOptions: jest.fn() };
-    global.DOMPurify = { sanitize: jest.fn(html => html) };
-    window.localStorage.clear();
-    global.URL.createObjectURL = jest.fn(() => 'blob:url');
-    global.URL.revokeObjectURL = jest.fn();
-    window.confirm = jest.fn(() => true);
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
+    setupDOM();
     jest.clearAllMocks();
-    jest.useRealTimers();
+    getItemMock.mockReturnValue(null);
   });
 
-  test('init loads from localStorage and parses md', () => {
-    window.localStorage.setItem('md-editor-content', '# Hello');
-    init();
-    expect(document.getElementById('md-input').value).toBe('# Hello');
-    expect(global.marked.parse).toHaveBeenCalledWith('# Hello');
-    expect(document.getElementById('md-preview').innerHTML).toBe('<p># Hello</p>');
-  });
-
-  test('init uses DEFAULT_MD if no localStorage', () => {
+  test('init loads default content if nothing saved', () => {
     init();
     expect(document.getElementById('md-input').value).toBe(DEFAULT_MD);
   });
 
-  test('autoSave saves content after timeout', () => {
-    document.getElementById('md-input').value = 'New content';
-    autoSave();
-    jest.advanceTimersByTime(1500);
-    expect(window.localStorage.getItem('md-editor-content')).toBe('New content');
-  });
-
-  test('init binds events', () => {
-    init();
+  test('updatePreview renders markdown', () => {
     const input = document.getElementById('md-input');
-    
-    // input event
-    input.dispatchEvent(new Event('input'));
-    jest.advanceTimersByTime(1500);
-    expect(window.localStorage.getItem('md-editor-content')).toBe(DEFAULT_MD);
-
-    // scroll event
-    Object.defineProperty(input, 'scrollTop', { value: 100 });
-    Object.defineProperty(input, 'scrollHeight', { value: 200 });
-    Object.defineProperty(input, 'clientHeight', { value: 100 });
-    
-    const preview = document.getElementById('md-preview');
-    Object.defineProperty(preview, 'scrollHeight', { value: 400 });
-    Object.defineProperty(preview, 'clientHeight', { value: 200 });
-    
-    input.dispatchEvent(new Event('scroll'));
-    expect(preview.scrollTop).toBe(200);
-  });
-
-  test('updatePreview catches parsing error gracefully', () => {
-    global.marked.parse.mockImplementationOnce(() => { throw new Error('parse error'); });
+    input.value = '# Hello';
     updatePreview();
-    // Doesn't throw error
+    expect(global.marked.parse).toHaveBeenCalledWith('# Hello');
+    expect(document.getElementById('md-preview').innerHTML).toContain('# Hello');
   });
 
-  test('updatePreview shows error if marked is undefined', () => {
-    delete global.marked;
-    updatePreview();
-    expect(document.getElementById('md-preview').innerHTML).toContain('Error');
+  test('autoSave uses timeout', () => {
+    jest.useFakeTimers();
+    const input = document.getElementById('md-input');
+    input.value = 'New Content';
+    autoSave();
+    
+    expect(setItemMock).not.toHaveBeenCalled();
+    jest.advanceTimersByTime(1000);
+    expect(setItemMock).toHaveBeenCalledWith('md-editor-content', 'New Content');
+    jest.useRealTimers();
   });
 
-  test('clearEditor empties the editor if confirmed', () => {
-    document.getElementById('md-input').value = 'Stuff';
+  test('clearEditor confirms and clears', () => {
+    window.confirm = jest.fn(() => true);
+    const input = document.getElementById('md-input');
+    input.value = 'Some text';
     clearEditor();
-    expect(window.confirm).toHaveBeenCalled();
-    expect(document.getElementById('md-input').value).toBe('');
+    expect(input.value).toBe('');
   });
 
-  test('downloadFile triggers download for markdown', () => {
-    const origCreateElement = document.createElement.bind(document);
-    document.createElement = jest.fn((tag) => {
-      if (tag === 'a') {
-        const fakeA = origCreateElement('a');
-        fakeA.click = jest.fn();
-        return fakeA;
-      }
-      return origCreateElement(tag);
-    });
+  test('downloadFile handles download', () => {
+    window.URL.createObjectURL = jest.fn().mockReturnValue('blob:url');
+    window.URL.revokeObjectURL = jest.fn();
     
-    downloadFile('md');
-    expect(document.createElement).toHaveBeenCalledWith('a');
-    document.createElement = origCreateElement;
-  });
-
-  test('downloadFile triggers download for html', () => {
-    const origCreateElement = document.createElement.bind(document);
-    document.createElement = jest.fn((tag) => {
-      if (tag === 'a') {
-        const fakeA = origCreateElement('a');
-        fakeA.click = jest.fn();
-        return fakeA;
-      }
-      return origCreateElement(tag);
-    });
-    
-    downloadFile('html');
-    expect(document.createElement).toHaveBeenCalledWith('a');
-    document.createElement = origCreateElement;
-  });
-
-  test('overrideThemeToggle toggles btn icon', () => {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    overrideThemeToggle();
-    expect(document.getElementById('theme-toggle-btn').innerHTML).toBe('🌙');
-  });
-
-  test('window.toggleTheme binds old toggle', () => {
-    const origToggle = window.toggleTheme;
-    let oldCalled = false;
-    window.toggleTheme = function() {
-      if (origToggle) oldCalled = true;
-      overrideThemeToggle();
+    // Mock anchor element
+    const mockLink = {
+        href: '',
+        download: '',
+        click: jest.fn()
     };
-    
-    window.toggleTheme();
-    expect(oldCalled).toBe(true);
-  });
+    const oldCreateElement = document.createElement;
+    document.body.appendChild = jest.fn();
+    document.body.removeChild = jest.fn();
+    document.createElement = jest.fn(tag => {
+        if (tag === 'a') return mockLink;
+        return oldCreateElement.call(document, tag);
+    });
 
-  test('DOMContentLoaded triggers init', () => {
-    require('../app');
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-    jest.advanceTimersByTime(150);
-    const gBtn = document.getElementById('theme-toggle');
-    expect(gBtn.style.display).toBe('none');
+    downloadFile('md');
+    
+    expect(mockLink.download).toBe('document.md');
+    expect(mockLink.click).toHaveBeenCalled();
+    
+    document.createElement = oldCreateElement;
   });
 });

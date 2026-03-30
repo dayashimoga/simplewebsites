@@ -182,5 +182,6 @@ if (typeof document !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { initGrid, renderGrid, applyTool, setPixel, getMirrorIndex, floodFill, setTool, clearGrid, exportPNG, selectPaletteColor, renderPalette,
     PALETTE_COLORS, getGridData: () => gridData, setGridData: d => { gridData = d; }, getGridSize: () => gridSize, setGridSize: s => { gridSize = s; },
-    getCurrentColor: () => currentColor, setCurrentColor: c => { currentColor = c; }, getCurrentTool: () => currentTool };
+    getCurrentColor: () => currentColor, setCurrentColor: c => { currentColor = c; }, getCurrentTool: () => currentTool, setCurrentTool: t => { currentTool = t; },
+    setMirrorMode: m => { mirrorMode = m; } };
 }

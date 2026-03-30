@@ -10,6 +10,16 @@ let cropState = { active: false, startX: 0, startY: 0, endX: 0, endY: 0, draggin
 let mergeImages = [];
 let activeTab = 'resize';
 
+function createCanvas(w, h) {
+  if (typeof document !== 'undefined') {
+    const c = document.createElement('canvas');
+    c.width = w || 1;
+    c.height = h || 1;
+    return c;
+  }
+  return { width: w, height: h, getContext: () => ({ drawImage: () => {}, fillRect: () => {} , scale: () => {}, translate: () => {}, rotate: () => {} }) };
+}
+
 // ─────────────────────────────────────────────
 // Pure Logic Functions
 // ─────────────────────────────────────────────
@@ -249,19 +259,7 @@ function mergeImageLayout(images, layout = 'horizontal', cols = 2) {
   return out;
 }
 
-/**
- * Create a canvas element (browser or test environment)
- */
-function createCanvas(w, h) {
-  if (typeof document !== 'undefined') {
-    const c = document.createElement('canvas');
-    c.width = w || 1;
-    c.height = h || 1;
-    return c;
-  }
-  // Node/jest environment — return mock
-  return { width: w, height: h, getContext: () => ({}) };
-}
+
 
 // ─────────────────────────────────────────────
 // DOM Functions
@@ -846,16 +844,7 @@ if (typeof module !== 'undefined' && module.exports) {
     applyColors, resetColorSliders, applySplit, applyMerge, applyUpscale, applyCustomUpscale,
     applyRemoveBg, applySolidBg, clearToTransparentBg, applyImageBg,
     initMergeFlow, handleMergeUpload, renderMergeList, removeMergeImage, switchTab,
-    parsePageRange: (str, total) => {
-      // re-export for tests
-      if (!str) return Array.from({ length: total }, (_, i) => i);
-      return str.split(',').flatMap(p => {
-        const m = p.trim().match(/^(\d+)-(\d+)$/);
-        if (m) return Array.from({ length: parseInt(m[2]) - parseInt(m[1]) + 1 }, (_, i) => parseInt(m[1]) + i - 1);
-        const n = parseInt(p.trim());
-        return isNaN(n) ? [] : [n - 1];
-      }).filter((v, i, a) => v >= 0 && v < total && a.indexOf(v) === i).sort((a, b) => a - b);
-    },
+    getState: () => ({ originalImage, currentCanvas, mergeImages, activeTab }),
     setCurrentCanvas: (c) => { currentCanvas = c; },
     setOriginalImage: (img) => { originalImage = img; },
     setMergeImages: (imgs) => { mergeImages = imgs; },

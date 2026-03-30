@@ -53,3 +53,7 @@ export async function onRequest(context) {
 
   return next();
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { onRequest };
+}

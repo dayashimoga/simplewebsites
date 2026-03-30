@@ -17,3 +17,7 @@ export async function onRequestPost({request,env}) {
     return new Response(e.message, { status: 500 });
   }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { onRequestPost };
+}

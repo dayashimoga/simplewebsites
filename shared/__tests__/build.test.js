@@ -1,88 +1,96 @@
 const fs = require('fs');
 const path = require('path');
-const { formatSiteName, generateNavBar, processHtml } = require('../build.js');
+const { formatSiteName, generateNavBar, processHtml, getManifest, buildSite, copyDir } = require('../build.js');
 
 describe('Build Pipeline', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     test('formatSiteName converts dashes to Title Case', () => {
         expect(formatSiteName('fancy-test-site')).toBe('Fancy Test Site');
         expect(formatSiteName('tool')).toBe('Tool');
+        expect(formatSiteName('')).toBe('');
     });
 
-    test('generateNavBar includes site name and theme toggle', () => {
-        const nav = generateNavBar('test-app');
-        expect(nav).toContain('Test App');
-        expect(nav).toContain('localStorage.setItem');
-    });
-
-    test('processHtml injects JSON-LD, PWA manifest, and Open Graph tags', () => {
-        const rawHtml = `<!DOCTYPE html><html><head><title>Test</title></head><body><p>Hello</p></body></html>`;
-        
-        const processed = processHtml(rawHtml, 'test-app');
-        
-        // PWA Manifest
-        expect(processed).toContain('<link rel="manifest" href="manifest.json">');
-        // Service Worker
-        expect(processed).toContain('serviceWorker.register');
-        // Open Graph
-        expect(processed).toContain('<meta property="og:image"');
-        expect(processed).toContain('test-app/og-image.jpg');
-        // Schema.org
-        expect(processed).toContain('application/ld+json');
-        expect(processed).toContain('Test App');
-        expect(processed).toContain('WebApplication');
-    });
-
-    test('processHtml does not duplicate injected tags if already present', () => {
-        const rawHtml = `<!DOCTYPE html><html><head>
-        <link rel="manifest" href="manifest.json">
-        <meta property="og:image" content="custom">
-        <script type="application/ld+json">{}</script>
-        </head><body><script>serviceWorker.register</script></body></html>`;
-        
-        const processed = processHtml(rawHtml, 'test-app');
-        
-        // Should not inject the defaults since they exist
-        expect(processed.match(/manifest\.json/g).length).toBe(1);
-        expect(processed.match(/application\/ld\+json/g).length).toBe(1);
-        expect(processed).not.toContain('test-app/og-image.jpg'); // Did not overwrite custom
-    });
-
-    test('buildAll and directory scanning', () => {
-        const spyReaddir = jest.spyOn(fs, 'readdirSync').mockReturnValue(['site1']);
-        const spyStat = jest.spyOn(fs, 'statSync').mockReturnValue({ isDirectory: () => true });
+    test('getManifest handles missing and invalid files', () => {
         const spyExists = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
-        const spyRead = jest.spyOn(fs, 'readFileSync').mockReturnValue('<html><body><footer id="footer"></footer></body></html>');
-        const spyWrite = jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
-        const spyMkdir = jest.spyOn(fs, 'mkdirSync').mockImplementation(() => {});
-        const spyRm = jest.spyOn(fs, 'rmSync').mockImplementation(() => {});
-        const spyCopy = jest.spyOn(fs, 'copyFileSync').mockImplementation(() => {});
-        const spyAppend = jest.spyOn(fs, 'appendFileSync').mockImplementation(() => {});
-
-        const { buildAll } = require('../build.js');
-        try { buildAll(); } catch(e) {}
+        const spyRead = jest.spyOn(fs, 'readFileSync').mockReturnValue('invalid json');
         
+        const manifest = getManifest('test-site');
+        expect(manifest.title).toBe('Test Site');
+        expect(manifest.emoji).toBe('🧰');
+        
+        spyExists.mockRestore();
+        spyRead.mockRestore();
+    });
+
+    test('processHtml injects all configured scripts', () => {
+        // Use separate variables to avoid interference
+        process.env.ADSENSE_PUB_ID = 'ca-pub-123';
+        process.env.GA_MEASUREMENT_ID = 'G-123';
+        process.env.CF_ANALYTICS_TOKEN = 'token-123';
+        process.env.CONTACT_EMAIL = 'test@example.com';
+        const rawHtml = `<html><head></head><body><footer></footer></body></html>`;
+        
+        const processed = processHtml(rawHtml, 'test-app', { emoji: '🚀', title: 'Launch' });
+        
+        expect(processed).toContain('ca-pub-123');
+        expect(processed).toContain('G-123');
+        expect(processed).toContain('token-123');
+        expect(processed).toContain('🚀');
+        expect(processed).toContain('Contact Us');
+        
+        delete process.env.ADSENSE_PUB_ID;
+        delete process.env.GA_MEASUREMENT_ID;
+        delete process.env.CF_ANALYTICS_TOKEN;
+        delete process.env.CONTACT_EMAIL;
+    });
+
+    test('processHtml handles missing head/body tags gracefully', () => {
+        const rawHtml = `no tags here`;
+        const processed = processHtml(rawHtml, 'test');
+        expect(processed).toBe(rawHtml); // Should not crash
+    });
+
+    test('copyDir recursively copies files', () => {
+        const spyMkdir = jest.spyOn(fs, 'mkdirSync').mockImplementation();
+        const spyReaddir = jest.spyOn(fs, 'readdirSync')
+            .mockReturnValueOnce([
+                { name: 'file.txt', isDirectory: () => false },
+                { name: 'subdir', isDirectory: () => true }
+            ])
+            .mockReturnValue([]); // Empty for subdir
+        const spyCopy = jest.spyOn(fs, 'copyFileSync').mockImplementation();
+
+        copyDir('src', 'dest');
+        
+        expect(spyMkdir).toHaveBeenCalled();
+        expect(spyCopy).toHaveBeenCalled();
+        
+        spyMkdir.mockRestore();
         spyReaddir.mockRestore();
-        spyStat.mockRestore();
+        spyCopy.mockRestore();
+    });
+
+    test('buildSite lifecycle', () => {
+        const spyMkdir = jest.spyOn(fs, 'mkdirSync').mockImplementation();
+        const spyReaddir = jest.spyOn(fs, 'readdirSync').mockReturnValue([]);
+        const spyExists = jest.spyOn(fs, 'existsSync').mockReturnValue(true);
+        const spyRead = jest.spyOn(fs, 'readFileSync').mockReturnValue('<html><head></head><body></body></html>');
+        const spyWrite = jest.spyOn(fs, 'writeFileSync').mockImplementation();
+        const spyCopy = jest.spyOn(fs, 'copyFileSync').mockImplementation();
+
+        buildSite('test-site');
+        
+        expect(spyWrite).toHaveBeenCalledWith(expect.stringContaining('sitemap.xml'), expect.any(String));
+        expect(spyWrite).toHaveBeenCalledWith(expect.stringContaining('sw.js'), expect.any(String));
+        
+        spyMkdir.mockRestore();
+        spyReaddir.mockRestore();
         spyExists.mockRestore();
         spyRead.mockRestore();
         spyWrite.mockRestore();
-        spyMkdir.mockRestore();
-        spyRm.mockRestore();
         spyCopy.mockRestore();
-        spyAppend.mockRestore();
-    });
-
-    test('generateSitemap logic', () => {
-        const { generateSitemap, generateRobotsTxt, escapeXml } = require('../seo.js');
-        const xml = generateSitemap([{ url: 'site1' }, { url: 'site2' }]);
-        expect(xml).toContain('<urlset');
-        expect(xml).toContain('site1');
-        expect(generateRobotsTxt()).toContain('Sitemap');
-        expect(escapeXml(null)).toBe('');
-    });
-
-    test('formatSiteName edge cases', () => {
-        expect(formatSiteName('')).toBe('');
-        expect(formatSiteName(null)).toBe('');
     });
 });

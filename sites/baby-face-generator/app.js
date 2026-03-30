@@ -356,7 +356,9 @@ function generateBaby() {
     tick++;
   }, 600);
 
-  // 2.5 second delay for "AI" generation feel
+  // Optional delay override for testing
+  const finalDelay = typeof window !== 'undefined' && window._BABY_GEN_DELAY !== undefined ? window._BABY_GEN_DELAY : 2500;
+  
   setTimeout(() => {
     clearInterval(scanInterval);
     if (c1) c1.classList.remove('scanning');
@@ -372,7 +374,7 @@ function generateBaby() {
     document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' });
 
     if (btn) { btn.disabled = false; btn.innerHTML = '👶 Generate Sibling'; }
-  }, 2500);
+  }, finalDelay);
 }
 
 function downloadResult() {

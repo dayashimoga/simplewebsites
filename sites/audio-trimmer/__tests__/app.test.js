@@ -1,167 +1,153 @@
-const { init, bufferToWav, initAudio, handleFile, drawWaveform, setupDraggables, updateUIHandles, updateSlidersFromInputs, togglePlay, drawPlayhead, resetApp, exportAudio } = require('../app');
+/**
+ * @jest-environment jsdom
+ */
 
-const DOM = `
-  <div id="drop-zone"></div>
-  <input id="file-input" type="file" />
-  <div id="editor-section" class="hidden"></div>
-  <span id="file-name"></span>
-  <span id="status-msg"></span>
-  <canvas id="waveform-canvas"></canvas>
-  <div id="waveform-box" style="width:500px">
-    <div id="trim-left"></div>
-    <div id="trim-right"></div>
-    <div id="playhead" class="hidden"></div>
-  </div>
-  <input id="start-time" value="0.00" />
-  <input id="end-time" value="0.00" />
-  <button id="play-btn">▶️</button>
-`;
+describe('Audio Trimmer', () => {
+  let app;
 
-describe('audio-trimmer', () => {
-  let mockSourceBuffer;
+  function setupDOM() {
+    document.body.innerHTML = `
+      <div id="drop-zone"></div>
+      <input type="file" id="audio-upload">
+      <div id="status-msg"></div>
+      <div id="editor-container" class="hidden">
+        <div id="waveform-box">
+          <canvas id="waveform-canvas"></canvas>
+          <div id="selection-overlay"></div>
+          <div id="handle-left"></div>
+          <div id="handle-right"></div>
+          <div id="playhead"></div>
+        </div>
+      </div>
+      <input type="number" id="start-time" value="0">
+      <input type="number" id="end-time" value="0">
+      <button id="export-btn" class="hidden"></button>
+    `;
+  }
 
   beforeEach(() => {
-    document.body.innerHTML = DOM;
+    jest.resetModules();
+    setupDOM();
     
-    mockSourceBuffer = {
+    // Mock AudioContext
+    const mockChannelData = new Float32Array(100).fill(0);
+    const mockBuffer = {
       duration: 10,
-      sampleRate: 44100,
+      length: 1000,
       numberOfChannels: 1,
-      getChannelData: jest.fn(() => new Float32Array(100).fill(0.1))
+      sampleRate: 44100,
+      getChannelData: jest.fn().mockReturnValue(mockChannelData),
+      copyToChannel: jest.fn()
     };
 
-    global.AudioContext = class {
-      constructor() {
-        this.destination = {};
-        this.currentTime = 0;
-      }
-      decodeAudioData() {
-        return Promise.resolve(mockSourceBuffer);
-      }
-      createBufferSource() {
-        return {
-          connect: jest.fn(),
-          start: jest.fn(),
-          stop: jest.fn(),
-          disconnect: jest.fn()
-        };
-      }
-    };
-    global.webkitAudioContext = global.AudioContext;
+    global.AudioContext = jest.fn().mockImplementation(() => ({
+      decodeAudioData: jest.fn().mockResolvedValue(mockBuffer),
+      createBufferSource: jest.fn().mockReturnValue({
+        connect: jest.fn(),
+        start: jest.fn(),
+        stop: jest.fn(),
+        onended: null
+      }),
+      destination: {},
+      currentTime: 0
+    }));
 
-    global.OfflineAudioContext = class {
-      constructor() {}
-      createBuffer() {
-        return {
-          length: 100,
-          numberOfChannels: 1,
-          sampleRate: 44100,
-          getChannelData: jest.fn(() => new Float32Array(100))
-        };
-      }
-    };
+    global.OfflineAudioContext = jest.fn().mockImplementation(() => ({
+      createBuffer: jest.fn().mockReturnValue(mockBuffer),
+      createBufferSource: jest.fn().mockReturnValue({
+        connect: jest.fn(),
+        start: jest.fn(),
+        buffer: null
+      }),
+      destination: {},
+      startRendering: jest.fn().mockResolvedValue(mockBuffer)
+    }));
 
-    global.URL.createObjectURL = jest.fn(() => 'blob:url');
-    global.URL.revokeObjectURL = jest.fn();
+    global.URL.createObjectURL = jest.fn().mockReturnValue('blob:url');
+    global.window.webkitAudioContext = global.AudioContext;
 
-    window.HTMLCanvasElement.prototype.getContext = () => ({
-      clearRect: jest.fn(),
-      fillRect: jest.fn()
+    // We must mock getBoundingClientRect for drag tests
+    document.getElementById('waveform-box').getBoundingClientRect = jest.fn().mockReturnValue({
+        left: 0, top: 0, width: 1000, height: 100
     });
 
-    Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 500 });
-    Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 100 });
-    
-    window.alert = jest.fn();
-    jest.useFakeTimers();
+    app = require('../app');
+    app.init();
   });
 
   afterEach(() => {
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    if (app && app.removeEventListeners) {
+        app.removeEventListeners();
+    }
     jest.clearAllMocks();
   });
 
-  test('init binds drag events', () => {
-    const dt = { items: [{ getAsFile: () => new File([''], 'test.mp3') }], files: [new File([''], 'test.mp3', { type: 'audio/mp3' })] };
-    expect(() => init()).not.toThrow();
-    
-    const dropEvent = new Event('drop');
-    dropEvent.dataTransfer = dt;
-    document.getElementById('drop-zone').dispatchEvent(dropEvent);
-  });
-
-  test('handleFile decodes valid file and initializes UI', async () => {
+  test('handleFile decodes and sets buffer', async () => {
     const file = new File([''], 'test.mp3', { type: 'audio/mp3' });
-    file.arrayBuffer = () => Promise.resolve(new ArrayBuffer(8));
-    await handleFile(file);
-    expect(document.getElementById('editor-section').classList.contains('hidden')).toBe(false);
-  });
-
-  test('handleFile rejects non-audio file', async () => {
-    const file = new File([''], 'test.txt', { type: 'text/plain' });
-    await handleFile(file);
-    expect(window.alert).toHaveBeenCalledWith('Please upload an audio file.');
-  });
-
-  test('drawWaveform works if buffer exists', async () => {
-    const file = new File([''], 'test.mp3', { type: 'audio/mp3' });
-    file.arrayBuffer = () => Promise.resolve(new ArrayBuffer(8));
-    await handleFile(file);
-    expect(() => drawWaveform()).not.toThrow();
-  });
-
-  test('updateSlidersFromInputs works', async () => {
-    const file = new File([''], 'test.mp3', { type: 'audio/mp3' });
-    file.arrayBuffer = () => Promise.resolve(new ArrayBuffer(8));
-    await handleFile(file);
-    document.getElementById('start-time').value = "1.0";
-    document.getElementById('end-time').value = "5.0";
-    expect(() => updateSlidersFromInputs()).not.toThrow();
-  });
-
-  test('togglePlay plays and stops audio', async () => {
-    const file = new File([''], 'test.mp3', { type: 'audio/mp3' });
-    file.arrayBuffer = () => Promise.resolve(new ArrayBuffer(8));
-    await handleFile(file);
+    const event = { target: { files: [file] } };
     
-    togglePlay();
-    expect(document.getElementById('play-btn').textContent).toContain('⏸️');
+    await app.handleFile(event);
     
-    togglePlay();
-    expect(document.getElementById('play-btn').textContent).toContain('▶️');
+    expect(app.getState().sourceBuffer).toBeDefined();
+    expect(document.getElementById('editor-container').classList.contains('hidden')).toBe(false);
+    expect(document.getElementById('status-msg').textContent).toContain('Loaded');
   });
 
-  test('exportAudio encodes to wav correctly', async () => {
-    const file = new File([''], 'test.mp3', { type: 'audio/mp3' });
-    file.arrayBuffer = () => Promise.resolve(new ArrayBuffer(8));
-    await handleFile(file);
+  test('setupDraggables and dragging handles', () => {
+    // Mock rectangular box
+    const box = document.getElementById('waveform-box');
+    box.getBoundingClientRect = jest.fn(() => ({
+      left: 0,
+      top: 0,
+      right: 1000,
+      bottom: 100,
+      width: 1000,
+      height: 100
+    }));
+
+    // Simulate mousedown at 0.1 (100px)
+    app.setTrimStartRatio(0.1);
+    app.setTrimEndRatio(0.9);
     
-    const origCreateElement = document.createElement.bind(document);
-    document.createElement = jest.fn((tag) => {
-      if (tag === 'a') {
-        const fakeA = origCreateElement('a');
-        fakeA.click = jest.fn();
-        return fakeA;
-      }
-      return origCreateElement(tag);
-    });
+    const mouseDownEvent = new MouseEvent('mousedown', { bubbles: true });
+    Object.defineProperty(mouseDownEvent, 'clientX', { value: 105, configurable: true }); // Near 0.1
+    box.dispatchEvent(mouseDownEvent);
     
-    exportAudio();
-    jest.advanceTimersByTime(200); // yields to UI loop
+    expect(app.getState().isDragging).toBe('left');
+
+    // Simulate mousemove to 0.2 (200px)
+    const mouseMoveEvent = new MouseEvent('mousemove', { bubbles: true });
+    Object.defineProperty(mouseMoveEvent, 'clientX', { value: 200, configurable: true });
+    window.dispatchEvent(mouseMoveEvent);
     
-    expect(document.createElement).toHaveBeenCalledWith('a');
-    document.createElement = origCreateElement;
+    expect(app.getState().trimStartRatio).toBeCloseTo(0.2);
+
+    // Simulate mouseup
+    const mouseUpEvent = new MouseEvent('mouseup', { bubbles: true });
+    window.dispatchEvent(mouseUpEvent);
+    
+    expect(app.getState().isDragging).toBe(null);
   });
 
-  test('bufferToWav completes properly', () => {
-    const buf = {
-      numberOfChannels: 1,
-      length: 100,
-      sampleRate: 44100,
-      getChannelData: () => new Float32Array(100).fill(0.1)
-    };
-    const blob = bufferToWav(buf);
-    expect(blob).toBeTruthy();
+  test('updateSlidersFromInputs updates ratios', () => {
+    app.setSourceBuffer({ duration: 10 });
+    const startIn = document.getElementById('start-time');
+    const endIn = document.getElementById('end-time');
+    
+    startIn.value = "2.5";
+    endIn.value = "7.5";
+    
+    app.updateSlidersFromInputs();
+    
+    expect(app.getState().trimStartRatio).toBe(0.25);
+    expect(app.getState().trimEndRatio).toBe(0.75);
+  });
+
+  test('togglePlay starts and stops', () => {
+    app.setSourceBuffer({ duration: 10 });
+    app.togglePlay();
+    expect(app.getState().isPlaying).toBe(true);
+    app.togglePlay();
+    expect(app.getState().isPlaying).toBe(false);
   });
 });

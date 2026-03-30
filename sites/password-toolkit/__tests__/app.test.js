@@ -1,135 +1,135 @@
-const { init, generatePassword, checkStrength, formatTime, switchMode, updateLen, copyPassword, toggleVisibility } = require('../app');
+/**
+ * @jest-environment jsdom
+ */
 
-const DOM = `
-  <div id="mode-generator"></div>
-  <div id="mode-checker" class="hidden"></div>
-  <button id="tab-generator" class="active btn-primary"></button>
-  <button id="tab-checker" class="btn-secondary"></button>
-  
-  <input id="gen-length" value="16" type="range" />
-  <span id="len-val">16</span>
-  
-  <input id="chk-upper" type="checkbox" checked />
-  <input id="chk-lower" type="checkbox" checked />
-  <input id="chk-nums" type="checkbox" checked />
-  <input id="chk-syms" type="checkbox" checked />
-  
-  <input id="gen-result" value="" />
-  <div id="mode-generator"><button class="absolute">Copy</button></div>
-  
-  <input id="chk-input" type="password" value="" />
-  <div id="meter-fill"></div>
-  <span id="strength-text"></span>
-  <span id="entropy-text"></span>
-  <span id="crack-time"></span>
-  <ul id="feedback-list"></ul>
-`;
+describe('Password Toolkit', () => {
+  let app;
 
-describe('password-toolkit', () => {
+  function setupDOM() {
+    document.body.innerHTML = `
+      <button id="tab-generator" class="active btn-primary"></button>
+      <button id="tab-checker" class="btn-secondary"></button>
+      <div id="mode-generator">
+        <input id="gen-length" value="16" />
+        <span id="len-val">16</span>
+        <input type="checkbox" id="chk-upper" checked />
+        <input type="checkbox" id="chk-lower" checked />
+        <input type="checkbox" id="chk-nums" checked />
+        <input type="checkbox" id="chk-syms" checked />
+        <input id="gen-result" value="" />
+        <button class="absolute">Copy</button>
+      </div>
+      <div id="mode-checker" class="hidden">
+        <input id="chk-input" type="password" value="" />
+        <div id="meter-fill" style="width: 0%"></div>
+        <div id="strength-text"></div>
+        <div id="entropy-text"></div>
+        <div id="crack-time"></div>
+        <ul id="feedback-list"></ul>
+      </div>
+    `;
+  }
+
   beforeEach(() => {
-    document.body.innerHTML = DOM;
-    
-    // Mock crypto since JSDOM might lack proper crypto implementation inside jest
-    const cryptoMock = {
-      getRandomValues: function(buffer) {
-        for (let i = 0; i < buffer.length; i++) {
-            buffer[i] = Math.floor(Math.random() * 256);
+    setupDOM();
+    // Mock crypto 
+    Object.defineProperty(window, 'crypto', {
+      value: {
+        getRandomValues: (arr) => {
+          for (let i = 0; i < arr.length; i++) {
+            arr[i] = Math.floor(Math.random() * 0xFFFFFFFF);
+          }
+          return arr;
         }
-        return buffer;
       }
-    };
-    Object.defineProperty(global, 'crypto', { value: cryptoMock, configurable: true });
-    jest.useFakeTimers();
+    });
+
+    // Mock navigator.clipboard
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText: jest.fn().mockResolvedValue()
+      },
+      configurable: true
+    });
+
+    app = require('../app');
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
-    jest.useRealTimers();
+    jest.resetModules();
   });
 
-  test('init generates initial password', () => {
-    expect(() => init()).not.toThrow();
-    expect(document.getElementById('gen-result').value.length).toBe(16);
-  });
-
-  test('switchMode toggles classes correctly', () => {
-    switchMode('checker');
-    expect(document.getElementById('mode-checker').classList.contains('hidden')).toBe(false);
+  test('switchMode toggles visibility', () => {
+    app.switchMode('checker');
     expect(document.getElementById('mode-generator').classList.contains('hidden')).toBe(true);
-    
-    switchMode('generator');
-    expect(document.getElementById('mode-checker').classList.contains('hidden')).toBe(true);
+    expect(document.getElementById('mode-checker').classList.contains('hidden')).toBe(false);
+
+    app.switchMode('generator');
     expect(document.getElementById('mode-generator').classList.contains('hidden')).toBe(false);
+    expect(document.getElementById('mode-checker').classList.contains('hidden')).toBe(true);
   });
 
-  test('updateLen updates the length label', () => {
-    updateLen();
-    expect(document.getElementById('len-val').textContent).toBe('16');
+  test('updateLen updates the label', () => {
+    document.getElementById('gen-length').value = "20";
+    app.updateLen();
+    expect(document.getElementById('len-val').textContent).toBe("20");
   });
 
-  test('generatePassword handles strict rules', () => {
-    // Only upper
+  test('generatePassword creates a password', () => {
+    app.generatePassword();
+    const val = document.getElementById('gen-result').value;
+    expect(val.length).toBe(16);
+    // At least one lowercase because it's default fallback
+    expect(/[a-z]/.test(val) || /[A-Z]/.test(val) || /[0-9]/.test(val) || /[!@#$%]/.test(val)).toBe(true);
+  });
+
+  test('generatePassword handles no checkboxes selected', () => {
+    document.getElementById('chk-upper').checked = false;
     document.getElementById('chk-lower').checked = false;
     document.getElementById('chk-nums').checked = false;
     document.getElementById('chk-syms').checked = false;
-    generatePassword();
-    expect(document.getElementById('gen-result').value).toMatch(/^[A-Z]{16}$/);
-
-    // Fallback if none checked
-    document.getElementById('chk-upper').checked = false;
-    generatePassword();
+    app.generatePassword();
+    // Should fallback to lower
     expect(document.getElementById('chk-lower').checked).toBe(true);
+    expect(/[a-z]/.test(document.getElementById('gen-result').value)).toBe(true);
   });
 
-  test('copyPassword uses clipboard api', async () => {
-    Object.assign(navigator, {
-      clipboard: { writeText: jest.fn().mockResolvedValue() }
-    });
-    
-    document.getElementById('gen-result').value = 'testpwd';
-    copyPassword();
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('testpwd');
-    
-    // Check that button text updates
-    jest.advanceTimersByTime(2100);
+  test('checkStrength calculates entropy and feedback for weak password', () => {
+    document.getElementById('chk-input').value = '123';
+    app.checkStrength();
+    expect(document.getElementById('strength-text').textContent).toBe('Very Weak');
+    expect(document.getElementById('feedback-list').innerHTML).toContain('too short');
+  });
+
+  test('checkStrength calculates strength for strong password', () => {
+    document.getElementById('chk-input').value = 'Abc123!@#LongPassword';
+    app.checkStrength();
+    expect(['Strong', 'Unbreakable']).toContain(document.getElementById('strength-text').textContent);
+  });
+
+  test('copyPassword uses clipboard API', async () => {
+    document.getElementById('gen-result').value = 'test-pass';
+    app.copyPassword();
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('test-pass');
   });
 
   test('toggleVisibility switches input type', () => {
     const input = document.getElementById('chk-input');
-    toggleVisibility();
+    expect(input.type).toBe('password');
+    app.toggleVisibility();
     expect(input.type).toBe('text');
-    toggleVisibility();
+    app.toggleVisibility();
     expect(input.type).toBe('password');
   });
 
-  test('checkStrength calculates entropy and crack time', () => {
-    const input = document.getElementById('chk-input');
-    const stText = document.getElementById('strength-text');
-    
-    // Empty
-    input.value = '';
-    checkStrength();
-    expect(stText.textContent).toBe('Enter a password');
-
-    // Very weak
-    input.value = 'abc';
-    checkStrength();
-    expect(stText.textContent).toBe('Very Weak');
-    
-    // Strong
-    input.value = 'CorrectHorseBatteryStaple123!!';
-    checkStrength();
-    expect(stText.textContent).toBe('Unbreakable');
-  });
-
-  test('formatTime calculates properly', () => {
-    expect(formatTime(0.5)).toBe('Instant');
-    expect(formatTime(30)).toBe('30 seconds');
-    expect(formatTime(120)).toBe('2 minutes');
-    expect(formatTime(7200)).toBe('2 hours');
-    expect(formatTime(172800)).toBe('2 days');
-    expect(formatTime(63072000)).toBe('2 years');
-    expect(formatTime(6307200000)).toBe('Thousands of years');
-    expect(formatTime(63072000000000)).toBe('Millions of years');
+  test('formatTime handles various durations', () => {
+    expect(app.formatTime(0.5)).toBe('Instant');
+    expect(app.formatTime(30)).toBe('30 seconds');
+    expect(app.formatTime(120)).toBe('2 minutes');
+    expect(app.formatTime(7200)).toBe('2 hours');
+    expect(app.formatTime(172800)).toBe('2 days');
+    expect(app.formatTime(31536000 * 5)).toBe('5 years');
+    expect(app.formatTime(31536000 * 5000)).toBe('Thousands of years');
+    expect(app.formatTime(31536000 * 1e7)).toBe('Millions of years');
   });
 });

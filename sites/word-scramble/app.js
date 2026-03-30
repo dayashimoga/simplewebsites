@@ -1,7 +1,7 @@
 /**
  * Word Scramble — Core Logic
  */
-const WORDS = {
+let WORDS = {
   easy: [
     { word: 'apple', hint: 'A common fruit' }, { word: 'house', hint: 'Where you live' }, { word: 'water', hint: 'You drink it' },
     { word: 'music', hint: 'You listen to it' }, { word: 'happy', hint: 'A positive emotion' }, { word: 'light', hint: 'Opposite of dark' },
@@ -177,6 +177,7 @@ if (typeof document !== 'undefined') {
 
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { WORDS, scrambleWord, setDifficulty, nextWord, checkGuess, showHint, skipWord, showFeedback, updateStats, saveScore, renderHighScores, TIME_LIMIT,
-    getState: () => ({ difficulty, currentWord, score, streak, hintUsed, timeLeft }),
-    setCurrentWord: w => { currentWord = w; }, setScore: s => { score = s; }, setStreak: s => { streak = s; } };
+    getState: () => ({ difficulty, currentWord, score, streak, hintUsed, timeLeft, isPlaying: !!timerInterval }),
+    setScore: s => { score = s; }, setStreak: s => { streak = s; }, setTimeLeft: t => { timeLeft = t; },
+    setWords: w => { WORDS = w; }, setIsPlaying: p => { if(!p && timerInterval) { clearInterval(timerInterval); timerInterval = null; } } };
 }

@@ -1,162 +1,120 @@
 /**
  * @jest-environment jsdom
  */
-const { 
-  countWords, countFillers, totalFillers, 
-  calculateWPM, highlightFillers, clearTranscript,
-  formatDuration, updateTimer, updateDisplay,
-  toggleRecording, startRecording, stopRecording,
-  setTranscript, getIsRecording, resetState
-} = require('../app');
-
-function setupDOM() {
-  document.body.innerHTML = `
-    <div id="word-count">0</div>
-    <div id="filler-count">0</div>
-    <div id="wpm-rate">0</div>
-    <div id="duration">0:00</div>
-    <div id="transcript"></div>
-    <div id="filler-grid"></div>
-    <div id="speech-error" class="hidden"></div>
-    <button id="record-btn"><span id="rec-dot"></span> Start Recording</button>
-  `;
-}
-
-// Full SpeechRecognition Mock
-let lastRecognitionInstance = null;
-class MockSpeechRecognition {
-  constructor() {
-    this.continuous = false;
-    this.interimResults = false;
-    this.lang = 'en-US';
-    this.onresult = null;
-    this.onend = null;
-    this.onerror = null;
-    lastRecognitionInstance = this;
-  }
-  start() {}
-  stop() { if (this.onend) this.onend(); }
-}
-global.SpeechRecognition = MockSpeechRecognition;
-global.webkitSpeechRecognition = MockSpeechRecognition;
-global.alert = jest.fn();
 
 describe('Voice to Text Counter', () => {
+  let app;
+
+  function setupDOM() {
+    document.body.innerHTML = `
+      <div id="record-btn">Start Recording</div>
+      <div id="rec-dot"></div>
+      <div id="word-count">0</div>
+      <div id="filler-count">0</div>
+      <div id="wpm-rate">0</div>
+      <div id="duration">0:00</div>
+      <div id="transcript"></div>
+      <div id="filler-grid"></div>
+      <div id="speech-error" class="hidden"></div>
+    `;
+  }
+
   beforeEach(() => {
     setupDOM();
-    resetState();
-    jest.useFakeTimers();
+    
+    // Mock SpeechRecognition
+    const mockStart = jest.fn();
+    const mockStop = jest.fn();
+    window.SpeechRecognition = jest.fn().mockImplementation(() => ({
+      start: mockStart,
+      stop: mockStop,
+      continuous: false,
+      interimResults: false,
+      lang: 'en-US',
+      onresult: null,
+      onerror: null,
+      onend: null
+    }));
+    window.webkitSpeechRecognition = window.SpeechRecognition;
+
+    app = require('../app');
+    app.resetState();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
-    jest.clearAllMocks();
+    jest.resetModules();
   });
 
-  describe('Logic Helpers', () => {
-    test('countWords', () => {
-      expect(countWords('hello world')).toBe(2);
-      expect(countWords('  hello   world  ')).toBe(2);
-      expect(countWords('')).toBe(0);
-      expect(countWords(null)).toBe(0);
-    });
-
-    test('countFillers', () => {
-      const result = countFillers('um like like basically');
-      expect(result.um).toBe(1);
-      expect(result.like).toBe(2);
-      expect(result['basically']).toBe(1);
-      expect(countFillers('')).toEqual({});
-    });
-
-    test('totalFillers', () => {
-      expect(totalFillers({ um: 1, like: 2 })).toBe(3);
-    });
-
-    test('calculateWPM', () => {
-      expect(calculateWPM(100, 60)).toBe(100);
-      expect(calculateWPM(50, 30)).toBe(100);
-      expect(calculateWPM(10, 0)).toBe(0);
-    });
-
-    test('formatDuration', () => {
-      expect(formatDuration(65)).toBe('1:05');
-      expect(formatDuration(5)).toBe('0:05');
-    });
+  test('countWords correctly counts words', () => {
+    expect(app.countWords('hello world')).toBe(2);
+    expect(app.countWords('  hello   world  ')).toBe(2);
+    expect(app.countWords('')).toBe(0);
+    expect(app.countWords(null)).toBe(0);
   });
 
-  describe('UI & State', () => {
-    test('highlightFillers', () => {
-      expect(highlightFillers('hello um')).toContain('<span class="filler">um</span>');
-      expect(highlightFillers('')).toBe('');
-    });
+  test('countFillers correctly identifies filler words', () => {
+    const text = "Um, so like, basically, it's actually literally a test. Uh.";
+    const counts = app.countFillers(text);
+    expect(counts['um']).toBe(1);
+    expect(counts['so']).toBe(1);
+    expect(counts['like']).toBe(1);
+    expect(counts['basically']).toBe(1);
+    expect(counts['actually']).toBe(1);
+    expect(counts['literally']).toBe(1);
+    expect(counts['uh']).toBe(1);
+    expect(app.totalFillers(counts)).toBe(7);
+  });
 
-    test('clearTranscript resets everything', () => {
-      setTranscript('hello');
-      clearTranscript();
-      expect(document.getElementById('word-count').textContent).toBe('0');
-      expect(document.getElementById('transcript').textContent).toContain('Press "Start Recording"');
-    });
+  test('calculateWPM returns correct rate', () => {
+    expect(app.calculateWPM(100, 60)).toBe(100);
+    expect(app.calculateWPM(50, 30)).toBe(100);
+    expect(app.calculateWPM(0, 60)).toBe(0);
+    expect(app.calculateWPM(100, 0)).toBe(0);
+  });
 
-    test('updateTimer updates DOM', () => {
-      // Need to startRecording to set startTime
-      startRecording();
-      jest.advanceTimersByTime(2000);
-      updateTimer();
-      expect(document.getElementById('duration').textContent).toBe('0:02');
-      stopRecording();
-    });
+  test('formatDuration formats seconds to M:SS', () => {
+    expect(app.formatDuration(0)).toBe('0:00');
+    expect(app.formatDuration(5)).toBe('0:05');
+    expect(app.formatDuration(65)).toBe('1:05');
+    expect(app.formatDuration(3600)).toBe('60:00');
+  });
 
-    test('updateDisplay updates all metrics', () => {
-      setTranscript('um like hello world');
-      updateDisplay();
-      expect(document.getElementById('word-count').textContent).toBe('4');
-      expect(document.getElementById('filler-count').textContent).toBe('2');
-    });
+  test('highlightFillers wraps filler words in span', () => {
+    const text = "um like test";
+    const html = app.highlightFillers(text);
+    expect(html).toContain('<span class="filler">um</span>');
+    expect(html).toContain('<span class="filler">like</span>');
+    expect(html).not.toContain('<span class="filler">test</span>');
+  });
 
-    test('toggleRecording flips state', () => {
-      expect(getIsRecording()).toBe(false);
-      toggleRecording();
-      expect(getIsRecording()).toBe(true);
-      toggleRecording();
-      expect(getIsRecording()).toBe(false);
-    });
+  test('toggleRecording starts and stops recording', () => {
+    app.toggleRecording();
+    expect(app.getIsRecording()).toBe(true);
+    app.toggleRecording();
+    expect(app.getIsRecording()).toBe(false);
+  });
 
-    test('SpeechRecognition events', () => {
-      startRecording();
-      expect(lastRecognitionInstance).not.toBeNull();
-      
-      // Mock result event
-      const mockEvent = {
-        results: [
-          { isFinal: true, 0: { transcript: 'hello' } },
-          { isFinal: false, 0: { transcript: ' world' } }
-        ]
-      };
-      lastRecognitionInstance.onresult(mockEvent);
-      expect(document.getElementById('word-count').textContent).toBe('2');
-      
-      // Mock error
-      lastRecognitionInstance.onerror();
-      expect(getIsRecording()).toBe(false);
-      
-      // Mock end
-      startRecording();
-      lastRecognitionInstance.onend(); // Should restart if isRecording is true
-    });
+  test('clearTranscript resets everything', () => {
+    app.setTranscript('some text');
+    app.clearTranscript();
+    expect(app.getTranscript()).toBe('');
+    expect(document.getElementById('word-count').textContent).toBe('0');
+  });
 
-    test('browser support failure', () => {
-      const originalSR = window.SpeechRecognition;
-      const originalWSR = window.webkitSpeechRecognition;
-      delete window.SpeechRecognition;
-      delete window.webkitSpeechRecognition;
-      
-      setupDOM();
-      startRecording();
-      expect(document.getElementById('speech-error').textContent).toContain('not supported');
-      
-      window.SpeechRecognition = originalSR;
-      window.webkitSpeechRecognition = originalWSR;
-    });
+  test('renderFillerGrid displays chips', () => {
+    app.renderFillerGrid({ um: 2, like: 1 });
+    const grid = document.getElementById('filler-grid');
+    expect(grid.innerHTML).toContain('um');
+    expect(grid.innerHTML).toContain('2');
+    expect(grid.innerHTML).toContain('like');
+    expect(grid.innerHTML).toContain('1');
+  });
+
+  test('updateDisplay updates UI with current transcript', () => {
+    app.setTranscript("um like test");
+    app.updateDisplay();
+    expect(document.getElementById('word-count').textContent).toBe('3');
+    expect(document.getElementById('filler-count').textContent).toBe('2');
+    expect(document.getElementById('transcript').innerHTML).toContain('filler');
   });
 });

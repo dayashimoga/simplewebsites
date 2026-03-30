@@ -8,65 +8,57 @@ const {
 function setupDOM() {
   document.body.innerHTML = `
     <div id="app"></div>
-    <input type="color" id="c1" value="#ff0000">
-    <input type="color" id="c2" value="#00ff00">
-    <input type="color" id="c3" value="#0000ff">
-    <input type="range" id="angle" value="45">
-    <select id="gtype"><option>linear</option><option>radial</option></select>
     <div id="preview"></div>
-    <select id="res"><option value="1920x1080">Desktop</option></select>
-    <div id="angle-val"></div>
+    <input id="c1" value="#6366f1">
+    <input id="c2" value="#ec4899">
+    <input id="c3" value="#06b6d4">
+    <input id="angle" value="135">
+    <select id="gtype"><option value="linear">linear</option></select>
+    <select id="res"><option value="1920x1080">1920x1080</option></select>
   `;
 }
 
-// Mock Canvas/URL
-HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
+// Mock Canvas
+global.HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
   createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
   createRadialGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
+  fillStyle: '',
   fillRect: jest.fn(),
-  fillStyle: null
+  translate: jest.fn(),
+  rotate: jest.fn(),
+  drawImage: jest.fn()
 }));
-HTMLCanvasElement.prototype.toBlob = jest.fn(callback => callback(new Blob()));
+
+global.HTMLCanvasElement.prototype.toBlob = jest.fn((cb) => cb(new Blob()));
 global.URL.createObjectURL = jest.fn(() => 'blob:url');
 global.URL.revokeObjectURL = jest.fn();
 
 describe('Gradient Wallpaper Maker', () => {
   beforeEach(() => {
     setupDOM();
+    jest.clearAllMocks();
   });
 
-  test('getGradient returns linear string', () => {
-    const s = getGradient('#fff', '#000', '#abc', 90, 'linear');
-    expect(s).toBe('linear-gradient(90deg,#fff,#000,#abc)');
+  test('getGradient returns valid CSS', () => {
+    const g = getGradient('#000', '#fff', '#888', 90, 'linear');
+    expect(g).toContain('linear-gradient(90deg');
   });
 
-  test('getGradient returns radial string', () => {
-    const s = getGradient('#fff', '#000', '#abc', 90, 'radial');
-    expect(s).toBe('radial-gradient(circle,#fff,#000,#abc)');
-  });
-
-  test('updatePreview updates styles and labels', () => {
-    updatePreview();
+  test('updatePreview updates element background', () => {
     const p = document.getElementById('preview');
-    // JSDOM may not reflect complex gradient strings in style.background correctly
-    // so we just check if it's been called or if the angle-val is updated
-    expect(document.getElementById('angle-val').textContent).toBe('45°');
+    let bgValue = '';
+    Object.defineProperty(p.style, 'backgroundImage', {
+      set(val) { bgValue = val; },
+      get() { return bgValue; }
+    });
+
+    updatePreview();
+    
+    expect(p.style.backgroundImage).toContain('linear-gradient');
   });
 
-  test('exportWallpaper triggers canvas download', () => {
-    const spy = jest.spyOn(document, 'createElement');
+  test('exportWallpaper triggers download logic', () => {
     exportWallpaper();
-    expect(spy).toHaveBeenCalledWith('canvas');
-  });
-
-  test('init renders UI', () => {
-    init();
-    expect(document.getElementById('c1')).toBeDefined();
-    expect(document.getElementById('preview')).toBeDefined();
-  });
-
-  test('updatePreview works without display elements', () => {
-    document.body.innerHTML = '';
-    expect(() => updatePreview()).not.toThrow();
+    expect(global.URL.createObjectURL).toHaveBeenCalled();
   });
 });

@@ -382,7 +382,7 @@ async function syncListsFromCloudflare() {
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
         checkApiKeys();
-        loadCategory('crypto'); // initial load
+        loadCategory('crypto'); 
     });
 }
 
@@ -391,6 +391,8 @@ if (typeof module !== 'undefined' && module.exports) {
         saveApiKeys, fetchCrypto, fetchMovies, fetchGames, loadCategory, renderList, checkApiKeys,
         loadListsFromStorage, saveListsToStorage, createList, rateItem, deleteList,
         exportList, importList, toggleCreateList, submitNewList, renderCommunityLists,
-        handleExportList, STORAGE_KEY, syncListsFromCloudflare, fetchTopUsers, renderUsers
+        handleExportList, STORAGE_KEY, syncListsFromCloudflare, fetchTopUsers, renderUsers,
+        getState: () => ({ apiKeys, currentCategory }),
+        setApiKeys: k => { apiKeys = k; }, setCurrentCategory: c => { currentCategory = c; }
     };
 }

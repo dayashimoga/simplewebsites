@@ -1,72 +1,80 @@
 /**
  * @jest-environment jsdom
  */
-const { 
-  nextWord, checkGuess, showHint, skipWord, 
-  getState, setCurrentWord, setScore, setStreak, WORDS
-} = require('../app');
+let App;
 
 function setupDOM() {
   document.body.innerHTML = `
     <div id="scrambled-word"></div>
-    <div id="hint-text" class="hidden"></div>
+    <div id="hint-text"></div>
     <input id="guess-input">
-    <div id="timer-fill"></div>
-    <div id="score-badge">0</div>
-    <div id="streak-badge">0</div>
     <div id="feedback"></div>
+    <div id="score">0</div>
+    <div id="streak">0</div>
+    <div id="timer">60s</div>
     <div id="high-scores"></div>
+    <div id="difficulty-badge">Easy</div>
   `;
 }
 
-const mockStorage = {
-  getItem: jest.fn(),
-  setItem: jest.fn()
-};
-global.localStorage = mockStorage;
+let setItemMock;
+let getItemMock;
 
-describe('Word Scramble', () => {
+describe('Word Scramble Game', () => {
+  beforeAll(() => {
+    setItemMock = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {});
+    getItemMock = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => '[]');
+  });
+
+  afterAll(() => {
+    setItemMock.mockRestore();
+    getItemMock.mockRestore();
+  });
+
   beforeEach(() => {
     setupDOM();
-    jest.useFakeTimers();
-    setScore(0);
-    setStreak(0);
-    setCurrentWord({ word: 'APPLE', hint: 'Red fruit' });
+    jest.resetModules();
+    App = require('../app');
+    App.setScore(0);
+    App.setStreak(0);
+    App.setTimeLeft(60);
+    App.setWords({ easy: [{ word: 'hello', hint: 'Greeting' }] });
+    setItemMock.mockClear();
+    getItemMock.mockClear();
+    jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
+  test('scrambleWord returns shuffled string', () => {
+    const spy = jest.spyOn(Math, 'random').mockReturnValue(0.1);
+    const word = 'hello';
+    const scrambled = App.scrambleWord(word);
+    expect(scrambled.length).toBe(word.length);
+    expect(scrambled).not.toBe(word);
+    spy.mockRestore();
   });
 
-  test('nextWord sets a word and scrambles it', () => {
-    nextWord();
-    const state = getState();
-    expect(state.currentWord).not.toBeNull();
-    expect(document.getElementById('scrambled-word').textContent.length).toBeGreaterThan(0);
+  test('checkGuess handles correct answer', () => {
+    App.nextWord(); 
+    const input = document.getElementById('guess-input');
+    if (input) input.value = 'hello';
+    App.checkGuess();
+    const state = App.getState();
+    expect(state.score).toBe(10);
+    expect(state.streak).toBe(1);
   });
 
-  test('checkGuess handles correct guess', () => {
-    document.getElementById('guess-input').value = 'apple';
-    checkGuess();
-    expect(getState().score).toBeGreaterThan(0);
-    expect(getState().streak).toBe(1);
+  test('showHint penalizes score', () => {
+    App.nextWord();
+    App.showHint();
+    expect(App.getState().hintUsed).toBe(true);
+    expect(document.getElementById('hint-text').textContent).toBe('💡 Hint: Greeting');
   });
 
-  test('checkGuess handles incorrect guess', () => {
-    setStreak(5);
-    document.getElementById('guess-input').value = 'wrong';
-    checkGuess();
-    expect(getState().streak).toBe(0);
-  });
-
-  test('skipWord resets streak and moves to next', () => {
-    setStreak(10);
-    skipWord();
-    expect(getState().streak).toBe(0);
-  });
-
-  test('showHint reveals hint', () => {
-    showHint();
-    expect(document.getElementById('hint-text').textContent).toContain('Red fruit');
+  test('saveScore and renderHighScores', () => {
+    getItemMock.mockReturnValue('[]');
+    App.setScore(50);
+    App.setStreak(5);
+    App.saveScore();
+    expect(setItemMock).toHaveBeenCalled();
   });
 });

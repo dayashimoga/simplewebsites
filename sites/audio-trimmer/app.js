@@ -1,302 +1,286 @@
-/**
- * Audio Trimmer Logic (Decode to WAV)
- */
-
-let audioCtx;
-let sourceBuffer = null;
-let currentFile = null;
-
-let isPlaying = false;
-let sourceNode = null;
-let startTimeOffset = 0;
-let playbackStartTime = 0;
-
-let trimStartRatio = 0.25;
-let trimEndRatio = 0.75;
-
-let isDragging = null; // 'left' or 'right'
+let audioCtx, sourceNode, sourceBuffer, startTime = 0, isPlaying = false;
+let trimStartRatio = 0, trimEndRatio = 1, playheadPosition = 0;
+let animationId;
+let isDragging = null;
 
 function init() {
+  const fileInput = document.getElementById('audio-upload');
   const dropZone = document.getElementById('drop-zone');
-  const fileInput = document.getElementById('file-input');
-  
-  if (dropZone && fileInput) {
-    dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-    });
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length) handleFile(e.target.files[0]);
-    });
+
+  if (fileInput) {
+    fileInput.removeEventListener('change', handleFile);
+    fileInput.addEventListener('change', handleFile);
   }
-  
+  if (dropZone) {
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('drag-over'); handleFile({ target: { files: e.dataTransfer.files } }); });
+  }
+
   setupDraggables();
+  updateUIHandles();
 }
 
-function initAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
-}
+async function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-async function handleFile(file) {
-  if (!file || !file.type.startsWith('audio/')) {
-    if (!file.name.match(/\.(mp3|wav|ogg|aac)$/i)) {
-      alert('Please upload an audio file.');
-      return;
-    }
-  }
-  
-  initAudio();
-  currentFile = file;
-  document.getElementById('file-name').textContent = file.name;
-  
-  const statusMsg = document.getElementById('status-msg');
-  if (statusMsg) statusMsg.textContent = 'Decoding audio... this may take a moment.';
-  
-  document.getElementById('drop-zone')?.classList.add('hidden');
-  document.getElementById('editor-section')?.classList.remove('hidden');
-  
+  const status = document.getElementById('status-msg');
+  if (status) status.textContent = 'Loading and decoding...';
+
   try {
     const arrayBuffer = await file.arrayBuffer();
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     sourceBuffer = await audioCtx.decodeAudioData(arrayBuffer);
     
-    document.getElementById('start-time').value = (sourceBuffer.duration * 0.25).toFixed(2);
-    document.getElementById('end-time').value = (sourceBuffer.duration * 0.75).toFixed(2);
+    trimStartRatio = 0.1; // Default crop
+    trimEndRatio = 0.9;
     
     drawWaveform();
     updateUIHandles();
-    if (statusMsg) statusMsg.textContent = 'Audio ready.';
-  } catch (e) {
-    alert('Error decoding audio. File might be corrupted or unsupported.');
-    resetApp();
+    if (status) status.textContent = `Loaded: ${file.name} (${sourceBuffer.duration.toFixed(1)}s)`;
+    const editor = document.getElementById('editor-container');
+    if (editor) editor.classList.remove('hidden');
+    const exportBtn = document.getElementById('export-btn');
+    if (exportBtn) exportBtn.classList.remove('hidden');
+  } catch (err) {
+    console.error(err);
+    if (status) status.textContent = 'Error loading audio.';
   }
 }
 
 function drawWaveform() {
-  if (!sourceBuffer) return;
   const canvas = document.getElementById('waveform-canvas');
-  if (!canvas) return;
+  if (!canvas || !sourceBuffer) return;
   const ctx = canvas.getContext('2d');
-  
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
-  
+  const dpr = window.devicePixelRatio || 1;
+  const container = canvas.parentElement;
+  if (!container) return;
+  const rect = container.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 100 * dpr;
+  ctx.scale(dpr, dpr);
+
+  const width = rect.width;
+  const height = 100;
   const data = sourceBuffer.getChannelData(0);
-  const step = Math.ceil(data.length / canvas.width);
-  const amp = canvas.height / 2;
-  
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#6c5ce7'; // var(--color-primary) roughly
-  
-  for (let i = 0; i < canvas.width; i++) {
-    let min = 1.0;
-    let max = -1.0;
+  const step = Math.ceil(data.length / width);
+  const amp = height / 2;
+
+  ctx.clearRect(0, 0, width, height);
+  ctx.beginPath();
+  ctx.moveTo(0, amp);
+  for (let i = 0; i < width; i++) {
+    let min = 1.0, max = -1.0;
     for (let j = 0; j < step; j++) {
-      const datum = data[(i * step) + j];
+      const datum = data[i * step + j];
       if (datum < min) min = datum;
       if (datum > max) max = datum;
     }
-    ctx.fillRect(i, (1 + min) * amp, 1, Math.max(1, (max - min) * amp));
+    ctx.lineTo(i, (1 + min) * amp);
+    ctx.lineTo(i, (1 + max) * amp);
   }
+  ctx.strokeStyle = '#6366f1';
+  ctx.stroke();
 }
+
+function handleMouseDown(e) {
+  const box = document.getElementById('waveform-box');
+  if (!box) return;
+  const rect = box.getBoundingClientRect();
+  const ratio = (e.clientX - rect.left) / rect.width;
+  if (Math.abs(ratio - trimStartRatio) < 0.05) isDragging = 'left';
+  else if (Math.abs(ratio - trimEndRatio) < 0.05) isDragging = 'right';
+}
+
+function handleMouseMove(e) {
+  if (!isDragging) return;
+  const box = document.getElementById('waveform-box');
+  if (!box) return;
+  const rect = box.getBoundingClientRect();
+  const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  if (isDragging === 'left') {
+    trimStartRatio = Math.min(ratio, trimEndRatio - 0.01);
+  } else {
+    trimEndRatio = Math.max(ratio, trimStartRatio + 0.01);
+  }
+  updateUIHandles();
+}
+
+function handleMouseUp() { isDragging = null; }
 
 function setupDraggables() {
   const box = document.getElementById('waveform-box');
   if (!box) return;
-  
-  box.addEventListener('mousedown', (e) => {
-    const rect = box.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const ratio = x / rect.width;
-    
-    if (Math.abs(ratio - trimStartRatio) < 0.05) {
-      isDragging = 'left';
-    } else if (Math.abs(ratio - trimEndRatio) < 0.05) {
-      isDragging = 'right';
-    }
-  });
-  
-  window.addEventListener('mousemove', (e) => {
-    if (!isDragging || !sourceBuffer) return;
-    const rect = box.getBoundingClientRect();
-    let ratio = (e.clientX - rect.left) / rect.width;
-    ratio = Math.max(0, Math.min(1, ratio));
-    
-    if (isDragging === 'left') {
-      trimStartRatio = Math.min(ratio, trimEndRatio - 0.01);
-      document.getElementById('start-time').value = (trimStartRatio * sourceBuffer.duration).toFixed(2);
-    } else {
-      trimEndRatio = Math.max(ratio, trimStartRatio + 0.01);
-      document.getElementById('end-time').value = (trimEndRatio * sourceBuffer.duration).toFixed(2);
-    }
-    updateUIHandles();
-  });
-  
-  window.addEventListener('mouseup', () => { isDragging = null; });
+  box.removeEventListener('mousedown', handleMouseDown);
+  box.addEventListener('mousedown', handleMouseDown);
+  window.removeEventListener('mousemove', handleMouseMove);
+  window.addEventListener('mousemove', handleMouseMove);
+  window.removeEventListener('mouseup', handleMouseUp);
+  window.addEventListener('mouseup', handleMouseUp);
 }
 
 function updateUIHandles() {
-  if (!sourceBuffer) return;
-  const left = document.getElementById('trim-left');
-  const right = document.getElementById('trim-right');
-  
-  if (left) Object.assign(left.style, { left: 0, width: `${trimStartRatio * 100}%` });
-  if (right) Object.assign(right.style, { left: `${trimEndRatio * 100}%`, right: 0, width: `${(1-trimEndRatio) * 100}%` });
+  const left = document.getElementById('handle-left');
+  const right = document.getElementById('handle-right');
+  const startIn = document.getElementById('start-time');
+  const endIn = document.getElementById('end-time');
+  const overlay = document.getElementById('selection-overlay');
+
+  if (left) left.style.left = (trimStartRatio * 100) + '%';
+  if (right) right.style.left = (trimEndRatio * 100) + '%';
+  if (overlay) {
+    overlay.style.left = (trimStartRatio * 100) + '%';
+    overlay.style.width = ((trimEndRatio - trimStartRatio) * 100) + '%';
+  }
+
+  if (sourceBuffer) {
+    const dur = sourceBuffer.duration;
+    if (startIn) startIn.value = (trimStartRatio * dur).toFixed(2);
+    if (endIn) endIn.value = (trimEndRatio * dur).toFixed(2);
+  }
 }
 
 function updateSlidersFromInputs() {
   if (!sourceBuffer) return;
-  const s = parseFloat(document.getElementById('start-time').value);
-  const e = parseFloat(document.getElementById('end-time').value);
-  
-  if (s >= 0 && s < e && e <= sourceBuffer.duration) {
-    trimStartRatio = s / sourceBuffer.duration;
-    trimEndRatio = e / sourceBuffer.duration;
-    updateUIHandles();
-  }
+  const dur = sourceBuffer.duration;
+  const startEl = document.getElementById('start-time');
+  const endEl = document.getElementById('end-time');
+  const startVal = startEl ? parseFloat(startEl.value) : 0;
+  const endVal = endEl ? parseFloat(endEl.value) : dur;
+  if (!isNaN(startVal)) trimStartRatio = Math.max(0, Math.min(trimEndRatio - 0.01, startVal / dur));
+  if (!isNaN(endVal)) trimEndRatio = Math.min(1, Math.max(trimStartRatio + 0.01, endVal / dur));
+  updateUIHandles();
 }
 
 function togglePlay() {
-  if (!sourceBuffer) return;
-  
-  const playBtn = document.getElementById('play-btn');
   if (isPlaying) {
-    sourceNode.stop();
-    sourceNode.disconnect();
-    isPlaying = false;
-    if (playBtn) playBtn.textContent = '▶️';
-    document.getElementById('playhead')?.classList.add('hidden');
+    stopPlayback();
   } else {
-    sourceNode = audioCtx.createBufferSource();
-    sourceNode.buffer = sourceBuffer;
-    sourceNode.connect(audioCtx.destination);
-    
-    const startTimeInSecs = trimStartRatio * sourceBuffer.duration;
-    const durationInSecs = (trimEndRatio - trimStartRatio) * sourceBuffer.duration;
-    
-    sourceNode.start(0, startTimeInSecs, durationInSecs);
-    isPlaying = true;
-    if (playBtn) playBtn.textContent = '⏸️';
-    
-    startTimeOffset = startTimeInSecs;
-    playbackStartTime = audioCtx.currentTime;
-    
-    const playhead = document.getElementById('playhead');
-    if (playhead) playhead.classList.remove('hidden');
-    drawPlayhead(durationInSecs);
-    
-    sourceNode.onended = () => {
-      isPlaying = false;
-      if (playBtn) playBtn.textContent = '▶️';
-      if (playhead) playhead.classList.add('hidden');
-    };
+    startPlayback();
   }
 }
 
-function drawPlayhead(maxDuration) {
-  if (!isPlaying) return;
+function startPlayback() {
+  if (!sourceBuffer || isPlaying) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   
-  const elapsed = audioCtx.currentTime - playbackStartTime;
-  if (elapsed >= maxDuration) return;
+  const dur = sourceBuffer.duration;
+  const startOffset = trimStartRatio * dur;
+  const endOffset = trimEndRatio * dur;
+
+  sourceNode = audioCtx.createBufferSource();
+  sourceNode.buffer = sourceBuffer;
+  sourceNode.connect(audioCtx.destination);
+  sourceNode.onended = () => { isPlaying = false; cancelAnimationFrame(animationId); };
   
-  const currentTotalTime = startTimeOffset + elapsed;
-  const ratio = currentTotalTime / sourceBuffer.duration;
-  
-  const playhead = document.getElementById('playhead');
-  if (playhead) playhead.style.left = `${ratio * 100}%`;
-  
-  requestAnimationFrame(() => drawPlayhead(maxDuration));
+  startTime = audioCtx.currentTime;
+  sourceNode.start(0, startOffset, endOffset - startOffset);
+  isPlaying = true;
+  requestAnimationFrame(drawPlayhead);
+}
+
+function stopPlayback() {
+  if (sourceNode) {
+    try { sourceNode.stop(); } catch(e) {}
+    sourceNode = null;
+  }
+  isPlaying = false;
+  cancelAnimationFrame(animationId);
+}
+
+function drawPlayhead() {
+  if (!isPlaying || !sourceBuffer) return;
+  const dur = sourceBuffer.duration;
+  const current = (audioCtx.currentTime - startTime) + (trimStartRatio * dur);
+  const ratio = current / dur;
+  const ph = document.getElementById('playhead');
+  if (ph) ph.style.left = (ratio * 100) + '%';
+  if (ratio >= trimEndRatio) {
+    stopPlayback();
+    return;
+  }
+  animationId = requestAnimationFrame(drawPlayhead);
 }
 
 function resetApp() {
-  if (isPlaying && sourceNode) sourceNode.stop();
-  currentFile = null;
+  stopPlayback();
   sourceBuffer = null;
-  isPlaying = false;
-  
-  document.getElementById('drop-zone')?.classList.remove('hidden');
-  document.getElementById('editor-section')?.classList.add('hidden');
-  document.getElementById('file-input').value = '';
+  trimStartRatio = 0;
+  trimEndRatio = 1;
+  const editor = document.getElementById('editor-container');
+  if (editor) editor.classList.add('hidden');
+  const exportBtn = document.getElementById('export-btn');
+  if (exportBtn) exportBtn.classList.add('hidden');
+  const status = document.getElementById('status-msg');
+  if (status) status.textContent = 'Ready.';
 }
 
-// Float32Array to valid WAV encoding
 function exportAudio() {
   if (!sourceBuffer) return;
+  const startSmp = Math.floor(trimStartRatio * sourceBuffer.length);
+  const endSmp = Math.floor(trimEndRatio * sourceBuffer.length);
+  const length = endSmp - startSmp;
+
+  const offlineCtx = new OfflineAudioContext(sourceBuffer.numberOfChannels, length, sourceBuffer.sampleRate);
+  const buffer = offlineCtx.createBuffer(sourceBuffer.numberOfChannels, length, sourceBuffer.sampleRate);
   
-  const statusMsg = document.getElementById('status-msg');
-  if (statusMsg) statusMsg.textContent = 'Encoding WAV file...';
-  
-  setTimeout(() => {
-    const sampleRate = sourceBuffer.sampleRate;
-    const startSample = Math.floor(trimStartRatio * sourceBuffer.duration * sampleRate);
-    const endSample = Math.floor(trimEndRatio * sourceBuffer.duration * sampleRate);
-    const frameCount = endSample - startSample;
-    const numChannels = sourceBuffer.numberOfChannels;
-    
-    const offlineCtx = new OfflineAudioContext(numChannels, frameCount, sampleRate);
-    const buffer = offlineCtx.createBuffer(numChannels, frameCount, sampleRate);
-    
-    for (let channel = 0; channel < numChannels; channel++) {
-      const channelData = sourceBuffer.getChannelData(channel);
-      const newChannelData = buffer.getChannelData(channel);
-      for (let i = 0; i < frameCount; i++) {
-        newChannelData[i] = channelData[startSample + i];
-      }
-    }
-    
-    const wavBlob = bufferToWav(buffer);
-    
-    const url = URL.createObjectURL(wavBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `trimmed-${currentFile.name.split('.')[0]}.wav`;
-    link.click();
-    
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    if (statusMsg) statusMsg.textContent = 'Done!';
-  }, 100); // UI frame yield
+  for (let i = 0; i < sourceBuffer.numberOfChannels; i++) {
+    const chanData = sourceBuffer.getChannelData(i);
+    const subData = chanData.subarray(startSmp, endSmp);
+    buffer.copyToChannel(subData, i);
+  }
+
+  const src = offlineCtx.createBufferSource();
+  src.buffer = buffer;
+  src.connect(offlineCtx.destination);
+  src.start();
+
+  offlineCtx.startRendering().then(renderedBuffer => {
+    const blob = bufferToWav(renderedBuffer);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'trimmed-audio.wav';
+    a.click();
+  });
 }
 
-function bufferToWav(buffer) {
-  const numOfChan = buffer.numberOfChannels;
-  const length = buffer.length * numOfChan * 2 + 44;
-  const bufferArray = new ArrayBuffer(length);
-  const view = new DataView(bufferArray);
+function bufferToWav(abuffer) {
+  const numOfChan = abuffer.numberOfChannels;
+  const length = abuffer.length * numOfChan * 2 + 44;
+  const buffer = new ArrayBuffer(length);
+  const view = new DataView(buffer);
   const channels = [];
+  let i;
+  let sample;
   let offset = 0;
   let pos = 0;
 
   function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
   function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
 
-  setUint32(0x46464952); // "RIFF"
-  setUint32(length - 8); // file length - 8
-  setUint32(0x45564157); // "WAVE"
-
-  setUint32(0x20746d66); // "fmt " chunk
-  setUint32(16); // length = 16
-  setUint16(1); // PCM (uncompressed)
+  setUint32(0x46464952);                         // "RIFF"
+  setUint32(length - 8);                         // file length - 8
+  setUint32(0x45564157);                         // "WAVE"
+  setUint32(0x20746d66);                         // "fmt "
+  setUint32(16);                                 // length of "fmt " chunk
+  setUint16(1);                                  // PCM format (1)
   setUint16(numOfChan);
-  setUint32(buffer.sampleRate);
-  setUint32(buffer.sampleRate * 2 * numOfChan); // avg. bytes/sec
-  setUint16(numOfChan * 2); // block-align
-  setUint16(16); // 16-bit
+  setUint32(abuffer.sampleRate);
+  setUint32(abuffer.sampleRate * 2 * numOfChan); // byte rate
+  setUint16(numOfChan * 2);                      // block align
+  setUint16(16);                                 // bits per sample
+  setUint32(0x61746164);                         // "data" - chunk
+  setUint32(length - pos - 4);                   // chunk length
 
-  setUint32(0x61746164); // "data" - chunk
-  setUint32(length - pos - 4); // chunk length
-
-  for (let i = 0; i < buffer.numberOfChannels; i++) {
-    channels.push(buffer.getChannelData(i));
+  for (i = 0; i < abuffer.numberOfChannels; i++) {
+    channels.push(abuffer.getChannelData(i));
   }
 
   while (pos < length) {
-    for (let i = 0; i < numOfChan; i++) {
-      let sample = Math.max(-1, Math.min(1, channels[i][offset]));
+    for (i = 0; i < numOfChan; i++) {
+      sample = Math.max(-1, Math.min(1, channels[i][offset]));
       sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
       view.setInt16(pos, sample, true);
       pos += 2;
@@ -304,7 +288,7 @@ function bufferToWav(buffer) {
     offset++;
   }
 
-  return new Blob([bufferArray], { type: 'audio/wav' });
+  return new Blob([buffer], { type: 'audio/wav' });
 }
 
 if (typeof window !== 'undefined') {
@@ -319,5 +303,19 @@ if (typeof document !== 'undefined') {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { init, bufferToWav, initAudio, handleFile, drawWaveform, setupDraggables, updateUIHandles, updateSlidersFromInputs, togglePlay, drawPlayhead, resetApp, exportAudio };
+  module.exports = { 
+    init, bufferToWav, handleFile, drawWaveform, setupDraggables, updateUIHandles, 
+    updateSlidersFromInputs, togglePlay, drawPlayhead, resetApp, exportAudio,
+    getState: () => ({ trimStartRatio, trimEndRatio, isPlaying, isDragging, sourceBuffer }),
+    setTrimStartRatio: (r) => { trimStartRatio = r; },
+    setTrimEndRatio: (r) => { trimEndRatio = r; },
+    setSourceBuffer: (b) => { sourceBuffer = b; },
+    setIsDragging: (d) => { isDragging = d; },
+    removeEventListeners: () => {
+      const box = document.getElementById('waveform-box');
+      if (box) box.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    }
+  };
 }

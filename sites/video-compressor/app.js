@@ -301,20 +301,25 @@ function resetCompressor() {
 }
 
 if (typeof document !== 'undefined') {
-    document.addEventListener('DOMContentLoaded', setupDragDrop);
+    document.addEventListener('DOMContentLoaded', () => {
+        setupDragDrop();
+    });
 }
 
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         qualityToCRF, formatSize, calcSavings, isVideoFile,
-        handleUpload, setVideoFile, setQuality, executeCompression,
-        downloadVideo, resetCompressor, showError, initFFmpeg,
+        initFFmpeg, handleUpload, setVideoFile, setTrimFromVideo, setQuality,
+        executeCompression, downloadVideo, resetCompressor,
+        getState: () => ({ videoFile, quality, outputBlob, isFFmpegLoaded: !!ffmpegInstance }),
+        setVideoFileInternal: f => { videoFile = f; },
+        setQualityInternal: q => { quality = q; },
+        setOutputBlobInternal: b => { outputBlob = b; },
         // For testing
         resetFFmpeg: () => { ffmpegInstance = null; },
         getFFmpeg: () => ffmpegInstance,
         getVideoFile: () => videoFile,
         getQuality: () => quality,
-        getOutputBlob: () => outputBlob,
-        setOutputBlob: (b) => { outputBlob = b; }
+        getOutputBlob: () => outputBlob
     };
 }

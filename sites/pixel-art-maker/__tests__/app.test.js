@@ -1,89 +1,112 @@
 /**
  * @jest-environment jsdom
  */
-const { 
-  initGrid, renderGrid, applyTool, setTool, clearGrid, exportPNG, selectPaletteColor, renderPalette,
-  PALETTE_COLORS, getGridData, setGridData, getGridSize, setGridSize, getCurrentColor, setCurrentColor, getCurrentTool
+
+const {
+  initGrid, renderGrid, applyTool, setPixel, getMirrorIndex, floodFill, setTool, clearGrid, exportPNG, selectPaletteColor, renderPalette,
+  getGridData, setGridData, getGridSize, setGridSize, getCurrentColor, setCurrentColor, getCurrentTool, setCurrentTool, setMirrorMode
 } = require('../app');
 
 function setupDOM() {
   document.body.innerHTML = `
-    <select id="grid-size"><option value="16">16x16</option></select>
+    <select id="grid-size">
+        <option value="16">16x16</option>
+        <option value="32">32x32</option>
+    </select>
     <div id="grid-container"></div>
     <div id="palette"></div>
-    <input type="color" id="color-picker" value="#ffffff">
-    <div id="toolbar">
-      <button class="tool-btn" data-tool="draw"></button>
-      <button class="tool-btn" data-tool="erase"></button>
-      <button class="tool-btn" data-tool="fill"></button>
-      <button class="tool-btn" data-tool="pick"></button>
-    </div>
-    <input type="checkbox" id="mirror-mode">
+    <input type="color" id="color-picker" />
+    <input type="checkbox" id="mirror-mode" />
+    <button id="tool-draw" class="tool-btn"></button>
+    <button id="tool-erase" class="tool-btn"></button>
+    <button id="tool-fill" class="tool-btn"></button>
+    <button id="tool-pick" class="tool-btn"></button>
   `;
 }
-
-// Mock Canvas/Blob/URL
-HTMLCanvasElement.prototype.getContext = jest.fn(() => ({
-  fillRect: jest.fn(),
-  fillStyle: null
-}));
-HTMLCanvasElement.prototype.toBlob = jest.fn(callback => callback(new Blob()));
-global.URL.createObjectURL = jest.fn(() => 'blob:url');
-global.URL.revokeObjectURL = jest.fn();
 
 describe('Pixel Art Maker', () => {
   beforeEach(() => {
     setupDOM();
-    initGrid();
-  });
-
-  test('initGrid sets grid size from DOM', () => {
-    const select = document.getElementById('grid-size');
-    select.innerHTML = '<option value="8">8x8</option>';
-    select.value = '8';
-    initGrid();
-    expect(getGridData().length).toBe(64);
-  });
-
-  test('renderGrid creates pixel elements', () => {
     setGridSize(16);
-    renderGrid();
-    expect(document.querySelectorAll('.pixel').length).toBe(256);
+    setCurrentColor('#6366f1');
+    setCurrentTool('draw');
+    setGridData(Array(16 * 16).fill(''));
+    global.URL.createObjectURL = jest.fn().mockReturnValue('blob:url');
+    global.URL.revokeObjectURL = jest.fn();
   });
 
-  test('applyTool with draw tool', () => {
+  test('initGrid initializes grid data', () => {
+    initGrid();
+    expect(getGridData().length).toBe(256);
+    expect(document.getElementById('grid-container').children.length).toBe(256);
+  });
+
+  test('applyTool draws a pixel', () => {
+    initGrid();
+    setCurrentTool('draw');
     setCurrentColor('#ff0000');
-    setTool('draw');
     applyTool(10);
     expect(getGridData()[10]).toBe('#ff0000');
-    const el = document.querySelector('[data-index="10"]');
-    if (el) expect(el.style.backgroundColor).toBe('rgb(255, 0, 0)');
+    expect(document.getElementById('grid-container').children[10].style.backgroundColor).toBe('rgb(255, 0, 0)');
   });
 
-  test('applyTool with mirror mode', () => {
+  test('applyTool erases a pixel', () => {
+    initGrid();
+    setPixel(10, '#ff0000');
+    setCurrentTool('erase');
+    applyTool(10);
+    expect(getGridData()[10]).toBe('');
+  });
+
+  test('mirror mode works', () => {
+    initGrid();
     document.getElementById('mirror-mode').checked = true;
-    setGridSize(16);
+    setCurrentTool('draw');
     setCurrentColor('#ff0000');
-    setTool('draw');
-    applyTool(0); // Top left
+    // Index 0 in a 16x16 grid is row 0, col 0. Mirror is row 0, col 15 -> index 15.
+    applyTool(0);
     expect(getGridData()[0]).toBe('#ff0000');
-    expect(getGridData()[15]).toBe('#ff0000'); // Top right mirror
+    expect(getGridData()[15]).toBe('#ff0000');
   });
 
-  test('clearGrid resets all data', () => {
-    setGridData(['#ffffff']);
+  test('floodFill works', () => {
+    setGridSize(4);
+    initGrid();
+    // Fill a 2x2 area
+    floodFill(0, '', '#ff0000');
+    expect(getGridData()[0]).toBe('#ff0000');
+    expect(getGridData()[1]).toBe('#ff0000');
+    expect(getGridData()[4]).toBe('#ff0000');
+    expect(getGridData()[5]).toBe('#ff0000');
+  });
+
+  test('setTool updates active class', () => {
+    setTool('erase');
+    expect(getCurrentTool()).toBe('erase');
+    expect(document.getElementById('tool-erase').classList.contains('active')).toBe(true);
+    expect(document.getElementById('tool-draw').classList.contains('active')).toBe(false);
+  });
+
+  test('clearGrid empties the grid', () => {
+    initGrid();
+    setPixel(0, '#ff0000');
     clearGrid();
-    expect(getGridData().every(d => d === '')).toBe(true);
+    expect(getGridData()[0]).toBe('');
   });
 
-  test('exportPNG triggers canvas logic', () => {
-    const spy = jest.spyOn(document, 'createElement');
+  test('selectPaletteColor updates currentColor', () => {
+    selectPaletteColor('#22c55e');
+    expect(getCurrentColor()).toBe('#22c55e');
+    expect(document.getElementById('color-picker').value).toBe('#22c55e');
+  });
+
+  test('exportPNG triggers download', () => {
+    const linkClickSpy = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    // Mock toBlob
+    HTMLCanvasElement.prototype.toBlob = jest.fn(callback => callback(new Blob()));
+    
     exportPNG();
-    expect(spy).toHaveBeenCalledWith('canvas');
-  });
-
-  test('initGrid handles missing DOM safely', () => {
-    document.body.innerHTML = '';
-    expect(() => initGrid()).not.toThrow();
+    expect(linkClickSpy).toHaveBeenCalled();
+    linkClickSpy.mockRestore();
   });
 });

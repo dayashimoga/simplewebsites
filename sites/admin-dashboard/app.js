@@ -1,48 +1,62 @@
-document.addEventListener('DOMContentLoaded', () => {
-    let authKey = localStorage.getItem('admin_passkey');
+let authKey = typeof localStorage !== 'undefined' ? localStorage.getItem('admin_passkey') : null;
+let sites = [];
+let filteredSites = [];
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
     if (authKey) {
         showDashboard();
     }
 
-    document.getElementById('auth-form').addEventListener('submit', (e) => {
-        e.preventDefault();
-        authKey = document.getElementById('passkey-input').value;
-        if (authKey.trim()) {
+    const form = document.getElementById('auth-form');
+    if (form) {
+      form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const input = document.getElementById('passkey-input');
+          if (input && input.value.trim()) {
+            authKey = input.value;
             localStorage.setItem('admin_passkey', authKey);
             showDashboard();
-        }
-    });
-});
+          }
+      });
+    }
+  });
+}
 
 function logout() {
-    localStorage.removeItem('admin_passkey');
-    document.getElementById('passkey-input').value = '';
-    document.getElementById('main-content').style.display = 'none';
-    document.getElementById('auth-modal').style.display = 'flex';
-    document.getElementById('sites-grid').innerHTML = '';
+    authKey = null;
+    if (typeof window !== 'undefined' && window.localStorage) window.localStorage.removeItem('admin_passkey');
+    if (typeof document !== 'undefined') {
+      const input = document.getElementById('passkey-input');
+      if (input) input.value = '';
+      const main = document.getElementById('main-content');
+      if (main) main.style.display = 'none';
+      const auth = document.getElementById('auth-screen');
+      if (auth) auth.style.display = 'block';
+    }
 }
 
 async function showDashboard() {
-    document.getElementById('auth-error').classList.add('hidden');
-    document.getElementById('auth-modal').style.display = 'none';
-    document.getElementById('main-content').style.display = 'block';
-    document.getElementById('loading').style.display = 'block';
-
-    const authKey = localStorage.getItem('admin_passkey');
-
+    if (typeof document !== 'undefined') {
+      const auth = document.getElementById('auth-screen');
+      if (auth) auth.style.display = 'none';
+      const main = document.getElementById('main-content');
+      if (main) main.style.display = 'block';
+      const loading = document.getElementById('loading');
+      if (loading) loading.style.display = 'block';
+    }
+    
     try {
         // Fetch known sites
         const manifestRes = await fetch('/sites_manifest.json');
         if (!manifestRes.ok) throw new Error('Missing sites_manifest.json');
-        const sitesList = await manifestRes.json();
+        sites = await manifestRes.json();
         
-        // Exclude admin-dashboard itself to prevent locking out naturally
-        const filteredSites = sitesList.filter(s => s.id !== 'admin-dashboard');
-
-        document.getElementById('site-count').textContent = filteredSites.length;
+        // Exclude admin-dashboard itself
+        sites = sites.filter(s => s.id !== 'admin-dashboard');
 
         // Fetch KV status
-        const ids = filteredSites.map(s => s.id);
+        const ids = sites.map(s => s.id);
         const statusRes = await fetch('/api/admin/status', {
             method: 'POST',
             headers: {
@@ -55,40 +69,41 @@ async function showDashboard() {
         if (!statusRes.ok) {
             if (statusRes.status === 401) {
                 logout();
-                document.getElementById('auth-error').textContent = 'Invalid Passkey';
-                document.getElementById('auth-error').classList.remove('hidden');
                 return;
             }
             throw new Error(`Status ${statusRes.status}`);
         }
 
         const statusData = await statusRes.json();
-        if (statusData.error) throw new Error(statusData.error);
-        
-        renderGrid(filteredSites, statusData.statuses);
+        renderGrid(sites, statusData.statuses || {});
     } catch (err) {
-        alert('Failed to load dashboard: ' + err.message);
-        logout();
+        console.error('Failed to load dashboard:', err);
+        if (typeof alert !== 'undefined') alert('Error: ' + err.message);
+    } finally {
+        if (typeof document !== 'undefined') {
+            const loading = document.getElementById('loading');
+            if (loading) loading.style.display = 'none';
+        }
     }
 }
 
-function renderGrid(sites, statuses) {
+function renderGrid(sitesList, statuses) {
+    if (typeof document === 'undefined') return;
     const grid = document.getElementById('sites-grid');
+    if (!grid) return;
     grid.innerHTML = '';
-    document.getElementById('loading').style.display = 'none';
 
-    sites.forEach(site => {
+    sitesList.forEach(site => {
         const status = statuses[site.id] || 'enabled';
-        const isEnabled = status === 'enabled' || status === 'true'; // KV can return strings
+        const isEnabled = status === 'enabled' || status === 'true';
         
         const card = document.createElement('div');
         card.className = `site-card glass ${isEnabled ? '' : 'disabled'}`;
         card.innerHTML = `
             <div class="site-info">
-                <span class="site-emoji">${site.emoji}</span>
+                <span class="site-emoji">${site.emoji || '🛠️'}</span>
                 <div class="flex flex-col">
-                    <span class="site-title">${site.title}</span>
-                    <a href="/${site.id}/" target="_blank" class="text-xs text-blue-400 hover:underline">/${site.id}</a>
+                    <span class="site-title">${site.title || site.id}</span>
                 </div>
             </div>
             <button class="toggle-btn ${isEnabled ? 'enabled' : 'disabled'}" onclick="toggleSite('${site.id}', ${isEnabled})">
@@ -100,9 +115,7 @@ function renderGrid(sites, statuses) {
 }
 
 async function toggleSite(siteId, currentlyEnabled) {
-    const authKey = localStorage.getItem('admin_passkey');
     const newState = currentlyEnabled ? 'disabled' : 'enabled';
-    
     try {
         const res = await fetch('/api/admin/toggle', {
             method: 'POST',
@@ -114,16 +127,16 @@ async function toggleSite(siteId, currentlyEnabled) {
         });
         
         if (!res.ok) throw new Error(`Toggle failed: HTTP ${res.status}`);
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        
-        // Refresh grid
         await showDashboard();
     } catch (err) {
-        alert(err.message);
+        if (typeof alert !== 'undefined') alert(err.message);
     }
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { logout, showDashboard, renderGrid, toggleSite };
+    module.exports = { logout, showDashboard, renderGrid, toggleSite,
+        getState: () => ({ authKey, sites, filteredSites }),
+        setAuthKey: k => { authKey = k; }, 
+        getAuthKey: () => authKey,
+        setSites: s => { sites = s; } };
 }

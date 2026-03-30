@@ -74,3 +74,7 @@ export async function onRequestPost(context) {
         return new Response(JSON.stringify({ error: err.message }), { status: 500 });
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { onRequestGet, onRequestPost };
+}

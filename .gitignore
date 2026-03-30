@@ -44,6 +44,7 @@ print*.js
 batch-create*.js
 gen-*.js
 audit_coverage.js
+analyze_coverage.js
 
 # Specialized Artifacts (Gemini/Antigravity)
 .gemini/

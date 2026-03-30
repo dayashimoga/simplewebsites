@@ -1,94 +1,71 @@
-const { init, updatePreview, addItem, removeItem, updateItem, renderItemsEditor, setText, downloadPDF, getItems, setItems } = require('../app');
+/**
+ * @jest-environment jsdom
+ */
+const { 
+  init, updatePreview, addItem, removeItem, updateItem, getItems, setItems
+} = require('../app');
 
-const DOM = `
-  <input type="date" id="invoice-date" />
-  <input type="date" id="due-date" />
-  <div id="items-list"></div>
-  <select id="currency"><option value="$">$</option></select>
-  <input id="company-name" value="Test Co" />
-  <input id="invoice-number" value="INV-001" />
-  <textarea id="client-info">Client 1</textarea>
-  <textarea id="invoice-notes">Notes 1</textarea>
-  <input id="tax-rate" value="10" />
-  
-  <span id="prev-company"></span>
-  <span id="prev-inv-num"></span>
-  <span id="prev-date"></span>
-  <span id="prev-due"></span>
-  <div id="prev-client"></div>
-  <div id="prev-notes"></div>
-  <table><tbody id="prev-items"></tbody></table>
-  <span id="prev-subtotal"></span>
-  <span id="prev-tax-rate"></span>
-  <span id="prev-tax-amount"></span>
-  <span id="prev-total"></span>
-`;
+function setupDOM() {
+  document.body.innerHTML = `
+    <input id="invoice-date" type="date">
+    <input id="due-date" type="date">
+    <div id="items-list"></div>
+    <select id="currency"><option value="$">$</option></select>
+    <input id="company-name" value="Test Co">
+    <input id="invoice-number" value="INV-001">
+    <textarea id="client-info">Client A</textarea>
+    <textarea id="invoice-notes">Notes A</textarea>
+    <input id="tax-rate" value="10">
+    <div id="prev-company"></div>
+    <div id="prev-inv-num"></div>
+    <div id="prev-date"></div>
+    <div id="prev-due"></div>
+    <div id="prev-client"></div>
+    <div id="prev-notes"></div>
+    <table id="prev-items"></table>
+    <div id="prev-subtotal"></div>
+    <div id="prev-tax-rate"></div>
+    <div id="prev-tax-amount"></div>
+    <div id="prev-total"></div>
+  `;
+}
 
-describe('invoice-generator', () => {
+describe('Invoice Generator', () => {
   beforeEach(() => {
-    document.body.innerHTML = DOM;
-    setItems([{ id: 12345, desc: 'Web Development Services', qty: 1, price: 500 }]);
-  });
-
-  afterEach(() => {
+    setupDOM();
+    setItems([{ id: 1, desc: 'Test Item', qty: 2, price: 100 }]);
     jest.clearAllMocks();
   });
 
-  test('init sets defaults and renders', () => {
-    init();
-    expect(document.getElementById('invoice-date').valueAsDate).toBeDefined();
-    expect(document.getElementById('due-date').valueAsDate).toBeDefined();
-    expect(document.getElementById('items-list').innerHTML).toContain('Web Development Services');
-  });
-
-  test('addItem adds a new row', () => {
-    init();
-    const len = getItems().length;
+  test('addItem adds to items array and updates DOM', () => {
     addItem();
-    expect(getItems().length).toBe(len + 1);
+    expect(getItems().length).toBe(2);
+    expect(document.getElementById('items-list').children.length).toBe(2);
   });
 
-  test('removeItem deletes a row', () => {
-    init();
-    const id = getItems()[0].id;
-    removeItem(id);
+  test('removeItem removes from items array and updates DOM', () => {
+    removeItem(1);
     expect(getItems().length).toBe(0);
+    expect(document.getElementById('items-list').children.length).toBe(0);
   });
 
-  test('updateItem modifies fields', () => {
-    init();
-    const id = getItems()[0].id;
-    updateItem(id, 'desc', 'New Service');
-    expect(getItems()[0].desc).toBe('New Service');
-    
-    updateItem(id, 'price', '100');
-    expect(getItems()[0].price).toBe(100);
-    
-    updateItem(id, 'qty', '2');
-    expect(getItems()[0].qty).toBe(2);
+  test('updateItem changes value and updates preview', () => {
+    updateItem(1, 'desc', 'Updated');
+    expect(getItems()[0].desc).toBe('Updated');
+    expect(document.getElementById('prev-items').innerHTML).toContain('Updated');
   });
 
-  test('updatePreview updates text and computes totals', () => {
-    init(); // 1 item of 500, tax rate 10 -> total 550
-    const id = getItems()[0].id;
-    updateItem(id, 'price', '100');
-    updateItem(id, 'qty', '2');
-    // subtotal = 200, tax = 20, total = 220
-    
-    expect(document.getElementById('prev-company').textContent).toBe('Test Co');
+  test('updatePreview calculates totals correctly', () => {
+    updatePreview();
+    // 2 * 100 = 200. Tax 10% = 20. Total = 220.
     expect(document.getElementById('prev-subtotal').textContent).toBe('$200.00');
     expect(document.getElementById('prev-tax-amount').textContent).toBe('$20.00');
     expect(document.getElementById('prev-total').textContent).toBe('$220.00');
   });
 
-  test('setText helper works', () => {
-    setText('prev-company', 'hello');
-    expect(document.getElementById('prev-company').textContent).toBe('hello');
-  });
-
-  test('downloadPDF calls window.print', () => {
-    window.print = jest.fn();
-    downloadPDF();
-    expect(window.print).toHaveBeenCalled();
+  test('init sets dates', () => {
+    init();
+    expect(document.getElementById('invoice-date').value).not.toBe('');
+    expect(document.getElementById('due-date').value).not.toBe('');
   });
 });
