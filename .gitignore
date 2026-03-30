@@ -81,3 +81,15 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Root Temp Files
+*.txt
+*.out
+*.tmp
+debug*
+temp*
+print*.js
+batch-create*.js
+gen-*.js
+audit_coverage.js
+allfail.txt
+
