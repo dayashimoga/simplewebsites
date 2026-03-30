@@ -1,0 +1,16 @@
+/* Writing & Speech Studio — Custom Styles */
+.tool-tabs { display: flex; gap: 8px; justify-content: center; }
+.tool-tabs .btn { flex: 1; max-width: 200px; }
+.layout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3); }
+.stat { text-align: center; padding: var(--space-3); }
+.stat-value { font-size: 1.5rem; font-weight: 800; }
+.stat-label { font-size: 0.7rem; color: var(--color-text-secondary); text-transform: uppercase; }
+.transcript { padding: 16px; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); min-height: 120px; line-height: 1.8; }
+.transcript .filler { background: rgba(239,68,68,0.2); color: #ef4444; padding: 1px 4px; border-radius: 3px; }
+.rec-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #888; margin-right: 6px; }
+.rec-dot.active { background: #ef4444; animation: pulse-dot 1s infinite; }
+@keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.filler-chip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md); margin: 3px; font-size: 0.85rem; }
+.filler-chip .count { font-weight: 700; color: #ef4444; }
+@media (max-width: 700px) { .layout-grid, .stats-bar { grid-template-columns: 1fr; } .stats-bar { grid-template-columns: repeat(2, 1fr); } }

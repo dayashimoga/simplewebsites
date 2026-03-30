@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar System Explorer — Interactive Planet Visualization</title>
+  <meta name="description" content="Explore our solar system interactively. Click planets for facts, compare sizes, calculate distances, and control orbit speed. Educational and fun for all ages.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Hero -->
+    <section class="hero">
+      <h1>🌌 <span class="text-gradient">Solar System Explorer</span></h1>
+      <p>Click planets · Arrow keys to navigate · Spacebar to pause · Press <strong>?</strong> for all shortcuts</p>
+    </section>
+
+    <div class="explorer-layout">
+      <!-- Main Canvas -->
+      <div class="canvas-container glass" id="canvas-wrap">
+        <canvas id="solar-canvas"></canvas>
+
+        <!-- Controls overlay -->
+        <div class="controls-bar">
+          <div class="controls-group">
+            <button class="ctrl-btn" id="play-btn" onclick="togglePlay()"><span class="btn-icon">⏸</span> Pause</button>
+            <button class="ctrl-btn active" id="orbits-btn" onclick="toggleOrbits()" title="Toggle orbit paths">⊙ Orbits</button>
+            <button class="ctrl-btn active" id="trails-btn" onclick="toggleTrails()" title="Toggle orbit trails">✦ Trails</button>
+            <button class="ctrl-btn active" id="asteroids-btn" onclick="toggleAsteroidBelt()" title="Toggle asteroid belt">🪨 Belt</button>
+          </div>
+          <span class="ctrl-divider"></span>
+          <div class="slider-ctrl">
+            <label>Speed</label>
+            <input type="range" min="0.1" max="10" step="0.1" value="1" oninput="setSpeed(parseFloat(this.value))">
+            <span class="speed-val" id="speed-label">1x</span>
+          </div>
+          <div class="slider-ctrl">
+            <label>Zoom</label>
+            <input type="range" min="0.3" max="1.8" step="0.05" value="1" oninput="setZoom(this.value)">
+          </div>
+          <span class="ctrl-divider"></span>
+          <button class="ctrl-btn" id="compare-btn" onclick="toggleComparisonMode()" title="Size comparison">📊 Compare</button>
+          <button class="ctrl-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+          <button class="ctrl-btn" onclick="toggleShortcuts()" title="Keyboard shortcuts">⌨ ?</button>
+        </div>
+      </div>
+
+      <!-- Size Comparison Panel (hidden by default) -->
+      <div class="comparison-panel glass hidden" id="comparison-panel">
+        <h3>📊 Planet Size Comparison</h3>
+        <div id="comparison-bars"></div>
+        <p class="help-hint">Relative to Jupiter (largest planet)</p>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Planet List -->
+        <div class="glass planet-list">
+          <h3>🪐 Planets</h3>
+          <button class="planet-btn" id="btn-mercury" onclick="selectPlanet('Mercury')"><span class="planet-dot" style="background:#b0b0b0;color:#b0b0b0"></span>Mercury</button>
+          <button class="planet-btn" id="btn-venus" onclick="selectPlanet('Venus')"><span class="planet-dot" style="background:#e8a838;color:#e8a838"></span>Venus</button>
+          <button class="planet-btn" id="btn-earth" onclick="selectPlanet('Earth')"><span class="planet-dot" style="background:#4fa4e8;color:#4fa4e8"></span>Earth</button>
+          <button class="planet-btn" id="btn-mars" onclick="selectPlanet('Mars')"><span class="planet-dot" style="background:#e0603e;color:#e0603e"></span>Mars</button>
+          <button class="planet-btn" id="btn-jupiter" onclick="selectPlanet('Jupiter')"><span class="planet-dot" style="background:#c4956a;color:#c4956a"></span>Jupiter</button>
+          <button class="planet-btn" id="btn-saturn" onclick="selectPlanet('Saturn')"><span class="planet-dot" style="background:#e8d282;color:#e8d282"></span>Saturn</button>
+          <button class="planet-btn" id="btn-uranus" onclick="selectPlanet('Uranus')"><span class="planet-dot" style="background:#7de8d0;color:#7de8d0"></span>Uranus</button>
+          <button class="planet-btn" id="btn-neptune" onclick="selectPlanet('Neptune')"><span class="planet-dot" style="background:#3366cc;color:#3366cc"></span>Neptune</button>
+        </div>
+
+        <!-- Planet Info -->
+        <div class="glass planet-info hidden" id="planet-info">
+          <h2 id="info-name"></h2>
+          <div class="size-bar-container">
+            <div class="size-bar-label">Relative Size</div>
+            <div class="size-bar-track"><div class="size-bar-fill" id="info-size-bar"></div></div>
+          </div>
+          <div class="info-grid">
+            <div class="info-row"><span class="info-label">Mass</span><span class="info-value" id="info-mass"></span></div>
+            <div class="info-row"><span class="info-label">Distance</span><span class="info-value" id="info-distance"></span></div>
+            <div class="info-row"><span class="info-label">Temperature</span><span class="info-value" id="info-temp"></span></div>
+            <div class="info-row"><span class="info-label">Orbital Period</span><span class="info-value" id="info-period"></span></div>
+            <div class="info-row"><span class="info-label">Moons</span><span class="info-value" id="info-moons"></span></div>
+            <div class="info-row"><span class="info-label">Gravity</span><span class="info-value" id="info-gravity"></span></div>
+            <div class="info-row"><span class="info-label">Diameter</span><span class="info-value" id="info-diameter"></span></div>
+            <div class="info-row"><span class="info-label">Day Length</span><span class="info-value" id="info-dayLength"></span></div>
+            <div class="info-row"><span class="info-label">Atmosphere</span><span class="info-value" id="info-atmosphere"></span></div>
+          </div>
+          <p class="fact-text" id="info-facts"></p>
+        </div>
+
+        <!-- Distance Calculator -->
+        <div class="glass distance-calc">
+          <h3>📏 Distance Calculator</h3>
+          <div class="dist-selectors">
+            <select id="dist-planet-1">
+              <option value="">From...</option>
+              <option value="Mercury">Mercury</option>
+              <option value="Venus">Venus</option>
+              <option value="Earth">Earth</option>
+              <option value="Mars">Mars</option>
+              <option value="Jupiter">Jupiter</option>
+              <option value="Saturn">Saturn</option>
+              <option value="Uranus">Uranus</option>
+              <option value="Neptune">Neptune</option>
+            </select>
+            <select id="dist-planet-2">
+              <option value="">To...</option>
+              <option value="Mercury">Mercury</option>
+              <option value="Venus">Venus</option>
+              <option value="Earth">Earth</option>
+              <option value="Mars">Mars</option>
+              <option value="Jupiter">Jupiter</option>
+              <option value="Saturn">Saturn</option>
+              <option value="Uranus">Uranus</option>
+              <option value="Neptune">Neptune</option>
+            </select>
+          </div>
+          <div id="dist-result">
+            <span class="text-muted">Select two different planets</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Overlay -->
+  <div class="shortcuts-overlay hidden" id="shortcuts-overlay">
+    <div class="shortcuts-card">
+      <h3>⌨️ Keyboard Shortcuts</h3>
+      <div class="shortcut-row"><span class="shortcut-desc">Play / Pause</span><span class="shortcut-key">Space</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Next Planet</span><span class="shortcut-key">→</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Previous Planet</span><span class="shortcut-key">←</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Toggle Orbits</span><span class="shortcut-key">O</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Toggle Trails</span><span class="shortcut-key">T</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Comparison Mode</span><span class="shortcut-key">C</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Fullscreen</span><span class="shortcut-key">F</span></div>
+      <div class="shortcut-row"><span class="shortcut-desc">Show Shortcuts</span><span class="shortcut-key">?</span></div>
+      <button class="shortcuts-close" onclick="toggleShortcuts()">Close</button>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <p>&copy; 2026 Solar System Explorer. Journey through space. 🚀</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

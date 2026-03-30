@@ -20,6 +20,19 @@
         
         #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50; }
         .auth-card { background: var(--color-surface); padding: var(--space-6);   width: 100%; max-width: 400px; text-align: center; }
+        
+        .stats-header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-4); }
+        .stats-row { display: flex; gap: var(--space-6); }
+        .stat-box { display: flex; flex-direction: column; align-items: center; }
+        .stat-num { font-size: 1.6rem; font-weight: 900; }
+        .stat-lbl { font-size: 0.7rem; color: var(--color-text-secondary, #888); text-transform: uppercase; letter-spacing: 1px; }
+        .text-green { color: #22c55e; }
+        .text-red { color: #ef4444; }
+        
+        .toolbar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); }
+        .search-box { flex: 1; padding: 8px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--color-border, rgba(255,255,255,0.1)); border-radius: 8px; color: inherit; font-size: 0.9rem; }
+        .search-box:focus { outline: none; border-color: var(--color-primary, #3b82f6); }
+        .toolbar-actions { display: flex; gap: 6px; }
     </style>
 </head>
 <body>
@@ -41,9 +54,21 @@
             <p>Toggle any tool online or offline instantly via Cloudflare KV.</p>
         </section>
 
-        <div class="flex justify-between items-center bg-surface p-4 rounded-lg border border-border mb-6">
-            <div class="font-bold">Total Sites: <span id="site-count" class="text-primary">0</span></div>
-            <button class="btn btn-secondary text-sm" onclick="logout()">Logout / Change Key</button>
+        <div class="card glass stats-header mb-4">
+            <div class="stats-row">
+                <div class="stat-box"><span class="stat-num" id="site-count">0</span><span class="stat-lbl">Total</span></div>
+                <div class="stat-box"><span class="stat-num text-green" id="online-count">0</span><span class="stat-lbl">Online</span></div>
+                <div class="stat-box"><span class="stat-num text-red" id="offline-count">0</span><span class="stat-lbl">Offline</span></div>
+            </div>
+            <button class="btn btn-secondary text-sm" onclick="logout()">🔒 Logout</button>
+        </div>
+
+        <div class="card glass toolbar mb-4">
+            <input type="text" id="search-input" class="input-text search-box" placeholder="🔍 Search sites..." oninput="filterSites()">
+            <div class="toolbar-actions">
+                <button class="btn btn-sm btn-primary" onclick="bulkToggle(true)">✅ Enable All</button>
+                <button class="btn btn-sm btn-secondary" onclick="bulkToggle(false)">⛔ Disable All</button>
+            </div>
         </div>
 
         <div id="loading" class="text-center animate-pulse text-accent py-8">Fetching platform KV status...</div>

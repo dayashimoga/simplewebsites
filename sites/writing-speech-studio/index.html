@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Writing & Speech Studio — Handwriting Generator & Voice Analyzer</title>
+  <meta name="description" content="Convert text to realistic handwriting or record speech for word count, filler detection, and WPM analysis. Two creative tools in one.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Indie+Flower&family=Shadows+Into+Light&family=Permanent+Marker&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container animate-fadeIn">
+    <section class="hero text-center mb-6">
+      <h1>✍️ <span class="text-gradient">Writing & Speech Studio</span></h1>
+      <p>Create handwritten notes or analyze your speech patterns</p>
+    </section>
+
+    <div class="tool-tabs mb-6">
+      <button class="btn btn-primary active" id="studio-tab-handwriting" onclick="switchStudioTab('handwriting')">✍️ Handwriting</button>
+      <button class="btn btn-secondary" id="studio-tab-speech" onclick="switchStudioTab('speech')">🎤 Speech</button>
+    </div>
+
+    <!-- Handwriting Panel -->
+    <div id="studio-panel-handwriting">
+      <div class="layout-grid">
+        <div class="card glass controls-section">
+          <div class="form-group mb-4">
+            <label for="hw-input" class="form-label font-bold">Your Text</label>
+            <textarea id="hw-input" class="input w-full p-3 h-32" placeholder="Start typing to see handwriting..." oninput="drawHandwriting()"></textarea>
+          </div>
+          <div class="grid col-2 gap-3 mb-4">
+            <div class="form-group">
+              <label for="hw-font" class="form-label text-sm">Font</label>
+              <select id="hw-font" class="input w-full p-2" onchange="drawHandwriting()">
+                <option value="'Caveat', cursive">Caveat</option>
+                <option value="'Indie Flower', cursive">Indie Flower</option>
+                <option value="'Shadows Into Light', cursive">Shadows Into Light</option>
+                <option value="'Permanent Marker', cursive">Permanent Marker</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="hw-paper" class="form-label text-sm">Paper</label>
+              <select id="hw-paper" class="input w-full p-2" onchange="drawHandwriting()">
+                <option value="lined">Lined</option>
+                <option value="blank">Blank</option>
+                <option value="yellow">Yellow Legal</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid col-2 gap-3 mb-4">
+            <div class="form-group">
+              <label for="hw-size" class="form-label text-sm">Size: <span id="hw-size-val">24</span>px</label>
+              <input type="range" id="hw-size" min="14" max="60" value="24" class="w-full" oninput="drawHandwriting()">
+            </div>
+            <div class="form-group">
+              <label for="hw-ink" class="form-label text-sm">Ink Color</label>
+              <select id="hw-ink" class="input w-full p-2" onchange="drawHandwriting()">
+                <option value="#000080">Blue</option><option value="#000000">Black</option>
+                <option value="#cc0000">Red</option><option value="#34a853">Green</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary w-full py-3 font-bold" onclick="downloadHandwriting()">📥 Download Image</button>
+        </div>
+        <div class="card glass preview-section d-flex justify-center">
+          <canvas id="hw-canvas" width="600" height="800" class="shadow-md rounded block"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Speech Panel -->
+    <div id="studio-panel-speech" class="hidden">
+      <div class="stats-bar mb-4">
+        <div class="card glass stat"><div class="stat-value" id="word-count">0</div><div class="stat-label">Words</div></div>
+        <div class="card glass stat"><div class="stat-value" id="filler-count">0</div><div class="stat-label">Fillers</div></div>
+        <div class="card glass stat"><div class="stat-value" id="wpm-rate">0</div><div class="stat-label">WPM</div></div>
+        <div class="card glass stat"><div class="stat-value" id="duration">0:00</div><div class="stat-label">Duration</div></div>
+      </div>
+      <div class="card glass recording-area mb-6">
+        <div class="flex justify-center gap-4 mb-6">
+          <button class="btn btn-accent record-btn" id="record-btn" onclick="toggleRecording()"><span class="rec-dot"></span> Start Recording</button>
+          <button class="btn btn-secondary" onclick="clearSpeechTranscript()">Clear</button>
+        </div>
+        <div class="error-msg hidden" id="speech-error"></div>
+        <div class="transcript-area">
+          <label class="form-label">Transcript</label>
+          <div class="transcript" id="speech-transcript">Press "Start Recording" and begin speaking...</div>
+        </div>
+      </div>
+      <div class="card glass"><h4 class="mb-3">📊 Filler Words</h4><div id="filler-grid"></div></div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 Writing & Speech Studio.</p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

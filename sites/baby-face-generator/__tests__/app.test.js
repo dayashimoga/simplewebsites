@@ -74,4 +74,58 @@ describe('Baby Face Generator', () => {
     const result = App.alignFace(canvas, null);
     expect(result).toBe(canvas);
   });
+
+  test('initFaceAPI loads models', async () => {
+    window.faceapi = {
+      nets: {
+        tinyFaceDetector: { loadFromUri: jest.fn().mockResolvedValue() },
+        faceLandmark68Net: { loadFromUri: jest.fn().mockResolvedValue() }
+      }
+    };
+    await App.initFaceAPI();
+    expect(window.faceapi.nets.tinyFaceDetector.loadFromUri).toHaveBeenCalled();
+  });
+
+  test('shareBaby invokes navigator.share', async () => {
+    const canvas = document.getElementById('baby-canvas');
+    canvas.toBlob = jest.fn((cb) => cb(new Blob(['data'], { type: 'image/png' })));
+    navigator.canShare = jest.fn(() => true);
+    navigator.share = jest.fn().mockResolvedValue();
+    
+    await App.shareBaby();
+    expect(canvas.toBlob).toHaveBeenCalled();
+    expect(navigator.share).toHaveBeenCalled();
+  });
+
+  test('loadParent with FaceAPI logic', async () => {
+    window.faceapi = {
+      nets: { tinyFaceDetector: { isLoaded: true } },
+      TinyFaceDetectorOptions: jest.fn(),
+      detectAllFaces: jest.fn(() => ({
+        withFaceLandmarks: jest.fn().mockResolvedValue([{ landmarks: { positions: [{x: 10, y: 10}] } }])
+      }))
+    };
+    
+    // Trigger load
+    document.getElementById('parent1-canvas').getContext = jest.fn(() => ({ drawImage: jest.fn(), fillRect: jest.fn() }));
+    
+    const file = new File(['test'], 'parent1.jpg', { type: 'image/jpeg' });
+    const reader = { readAsDataURL: function() { this.onload({ target: { result: 'base64' } }); }};
+    window.FileReader = jest.fn(() => reader);
+    
+    const originalImage = window.Image;
+    window.Image = function() {
+      const img = new originalImage();
+      setTimeout(() => img.onload && img.onload(), 0);
+      return img;
+    };
+
+    App.loadParent({ target: { files: [file] } }, 1);
+    jest.advanceTimersByTime(10);
+    // Needs promise flush for faceAPI
+    await Promise.resolve();
+    
+    expect(App.getState().parent1Loaded).toBe(true);
+    window.Image = originalImage;
+  });
 });

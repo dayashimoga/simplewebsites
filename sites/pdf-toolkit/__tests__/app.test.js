@@ -298,4 +298,50 @@ describe('PDF Toolkit', () => {
     expect(getSelectedPages().includes(0)).toBe(true);
     expect(firstItem.classList.contains('selected')).toBe(true);
   });
+
+  test('compressPdf saves with useObjectStreams', async () => {
+    const file = new File([''], 'test.pdf', { type: 'application/pdf' });
+    file.arrayBuffer = jest.fn().mockResolvedValue(new ArrayBuffer(0));
+    await compressPdf(file);
+    expect(mockPdfDoc.save).toHaveBeenCalledWith({ useObjectStreams: true });
+  });
+
+  test('addWatermarkToPdf writes text to pages', async () => {
+    const file = new File([''], 'test.pdf', { type: 'application/pdf' });
+    file.arrayBuffer = jest.fn().mockResolvedValue(new ArrayBuffer(0));
+    await addWatermarkToPdf(file, 'Draft', { fontSize: 24, opacity: 0.5 });
+    expect(mockPdfDoc.embedFont).toHaveBeenCalled();
+    expect(mockPages[0].drawText).toHaveBeenCalled();
+  });
+
+  test('handleSplitUpload and loadPdfThumbnails render canvas', async () => {
+    const file = new File([''], 'test.pdf', { type: 'application/pdf' });
+    file.arrayBuffer = jest.fn().mockResolvedValue(new ArrayBuffer(0));
+    const event = { target: { files: [file] } };
+    
+    // Mock canvas context
+    HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue({});
+    HTMLCanvasElement.prototype.toDataURL = jest.fn().mockReturnValue('data:image/png;base64,123');
+    
+    await handleSplitUpload(event);
+    await new Promise(process.nextTick);
+    await new Promise(process.nextTick);
+    await new Promise(process.nextTick);
+    await new Promise(r => setTimeout(r, 0));
+    
+    // Check if the mock library inserted the page thumbnail
+    expect(document.getElementById('split-ui').classList.contains('hidden')).toBe(false);
+    expect(document.getElementById('pdf-thumbnail-grid').innerHTML).toContain('Page 1');
+  });
+
+  test('loadPdfThumbnails gracefully handles pdf.js error', async () => {
+    const oldLib = global.pdfjsLib;
+    global.pdfjsLib = undefined;
+    
+    const file = new File([''], 'test.pdf', { type: 'application/pdf' });
+    await loadPdfThumbnails(file);
+    
+    expect(document.getElementById('pdf-thumbnail-grid').innerHTML).toContain('PDF.js failed to load');
+    global.pdfjsLib = oldLib; // Restore
+  });
 });

@@ -1,6 +1,7 @@
 let authKey = typeof localStorage !== 'undefined' ? localStorage.getItem('admin_passkey') : null;
 let sites = [];
 let filteredSites = [];
+let lastStatuses = {};
 
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
@@ -89,13 +90,16 @@ async function showDashboard() {
 
 function renderGrid(sitesList, statuses) {
     if (typeof document === 'undefined') return;
+    lastStatuses = statuses || lastStatuses;
     const grid = document.getElementById('sites-grid');
     if (!grid) return;
     grid.innerHTML = '';
+    let onlineCount = 0, offlineCount = 0;
 
     sitesList.forEach(site => {
-        const status = statuses[site.id] || 'enabled';
+        const status = lastStatuses[site.id] || 'enabled';
         const isEnabled = status === 'enabled' || status === 'true';
+        if (isEnabled) onlineCount++; else offlineCount++;
         
         const card = document.createElement('div');
         card.className = `site-card glass ${isEnabled ? '' : 'disabled'}`;
@@ -112,6 +116,14 @@ function renderGrid(sitesList, statuses) {
         `;
         grid.appendChild(card);
     });
+
+    // Update stats
+    const totalEl = document.getElementById('site-count');
+    const onlineEl = document.getElementById('online-count');
+    const offlineEl = document.getElementById('offline-count');
+    if (totalEl) totalEl.textContent = sitesList.length;
+    if (onlineEl) onlineEl.textContent = onlineCount;
+    if (offlineEl) offlineEl.textContent = offlineCount;
 }
 
 async function toggleSite(siteId, currentlyEnabled) {
@@ -133,10 +145,42 @@ async function toggleSite(siteId, currentlyEnabled) {
     }
 }
 
+function filterSites() {
+    if (typeof document === 'undefined') return;
+    const query = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+    if (!query) {
+        renderGrid(sites, lastStatuses);
+        return;
+    }
+    const filtered = sites.filter(s => {
+        const title = (s.title || s.id).toLowerCase();
+        return title.includes(query) || s.id.toLowerCase().includes(query);
+    });
+    renderGrid(filtered, lastStatuses);
+}
+
+async function bulkToggle(enable) {
+    const newState = enable ? 'enabled' : 'disabled';
+    if (typeof confirm !== 'undefined' && !confirm(`${enable ? 'Enable' : 'Disable'} ALL ${sites.length} sites?`)) return;
+    try {
+        for (const site of sites) {
+            await fetch('/api/admin/toggle', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${authKey}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ siteId: site.id, status: newState })
+            });
+        }
+        await showDashboard();
+    } catch (err) {
+        if (typeof alert !== 'undefined') alert('Bulk toggle error: ' + err.message);
+    }
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { logout, showDashboard, renderGrid, toggleSite,
-        getState: () => ({ authKey, sites, filteredSites }),
+    module.exports = { logout, showDashboard, renderGrid, toggleSite, filterSites, bulkToggle,
+        getState: () => ({ authKey, sites, filteredSites, lastStatuses }),
         setAuthKey: k => { authKey = k; }, 
         getAuthKey: () => authKey,
-        setSites: s => { sites = s; } };
+        setSites: s => { sites = s; },
+        setLastStatuses: s => { lastStatuses = s; } };
 }

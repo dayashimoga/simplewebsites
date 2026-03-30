@@ -1,8 +1,0 @@
-{
-  "name": "Text to Handwriting",
-  "emoji": "✍️",
-  "description": "Convert typed digital text into realistic handwritten notes with customizable fonts, ink colors, and paper styles.",
-  "category": "Productivity",
-  "path": "/sites/text-to-handwriting/",
-  "enabled": true
-}

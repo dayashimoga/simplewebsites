@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNA Sequence Analyzer — Nucleotide Analysis & Codon Translation</title>
+  <meta name="description" content="Analyze DNA/RNA sequences instantly. Get GC content, complement strands, codon-to-amino-acid translation, ORF detection, and interactive helix visualization.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container animate-fadeIn">
+    <section class="hero text-center mb-6">
+      <h1>🧬 <span class="text-gradient">DNA Sequence Analyzer</span></h1>
+      <p>Paste a DNA or RNA sequence to instantly analyze nucleotide composition, translate codons, find ORFs, and visualize the helix</p>
+    </section>
+
+    <div class="layout-main">
+      <!-- Input Panel -->
+      <div class="card glass input-panel">
+        <label for="seq-input" class="form-label font-bold">Paste Sequence (FASTA or raw)</label>
+        <textarea id="seq-input" class="input w-full seq-textarea" placeholder="ATGGCCATTGTAATGGGCCGCTGAAAGGG..." rows="5"></textarea>
+        <div id="seq-error" class="error-msg hidden mt-2"></div>
+
+        <div class="example-btns mt-4">
+          <span class="text-sm text-muted mr-2">Examples:</span>
+          <button class="btn btn-sm btn-secondary" onclick="loadExample('dna')">DNA Sample</button>
+          <button class="btn btn-sm btn-secondary" onclick="loadExample('rna')">RNA Sample</button>
+          <button class="btn btn-sm btn-secondary" onclick="loadExample('insulin')">Insulin Gene</button>
+          <button class="btn btn-sm btn-outline ml-auto" onclick="clearAnalysis()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div id="results-section" class="hidden">
+        <!-- Quick Stats -->
+        <div class="stats-grid mt-6">
+          <div class="card glass stat-card">
+            <div class="stat-value" id="seq-type">—</div>
+            <div class="stat-label">Type</div>
+          </div>
+          <div class="card glass stat-card">
+            <div class="stat-value" id="seq-length">—</div>
+            <div class="stat-label">Length</div>
+          </div>
+          <div class="card glass stat-card">
+            <div class="stat-value accent" id="gc-value">—</div>
+            <div class="stat-label">GC Content</div>
+          </div>
+          <div class="card glass stat-card">
+            <div class="stat-value" id="mol-weight">—</div>
+            <div class="stat-label">Mol. Weight</div>
+          </div>
+        </div>
+
+        <!-- GC Gauge -->
+        <div class="card glass mt-4">
+          <h3 class="mb-3">GC Content Distribution</h3>
+          <div class="gc-gauge">
+            <div class="gc-gauge-fill" id="gc-gauge-fill"></div>
+          </div>
+          <div class="nucleotide-counts mt-4">
+            <div class="nt-chip nt-a"><span class="nt-letter">A</span><span class="nt-count" id="count-a">0</span></div>
+            <div class="nt-chip nt-t"><span class="nt-letter" id="label-t">T</span><span class="nt-count" id="count-t">0</span></div>
+            <div class="nt-chip nt-g"><span class="nt-letter">G</span><span class="nt-count" id="count-g">0</span></div>
+            <div class="nt-chip nt-c"><span class="nt-letter">C</span><span class="nt-count" id="count-c">0</span></div>
+          </div>
+        </div>
+
+        <!-- Complement Strands -->
+        <div class="card glass mt-4">
+          <h3 class="mb-3">Complement Strands</h3>
+          <div class="strand-box">
+            <label class="text-xs text-muted font-bold">5′→3′ Complement</label>
+            <div class="seq-display" id="complement-seq"></div>
+          </div>
+          <div class="strand-box mt-3">
+            <label class="text-xs text-muted font-bold">3′→5′ Reverse Complement</label>
+            <div class="seq-display" id="reverse-complement-seq"></div>
+          </div>
+        </div>
+
+        <div class="two-col mt-4">
+          <!-- Codon Translation -->
+          <div class="card glass">
+            <h3 class="mb-3">Codon → Amino Acid Translation</h3>
+            <div class="codon-grid" id="translation-table"></div>
+          </div>
+
+          <!-- Helix Visualization -->
+          <div class="card glass helix-card">
+            <h3 class="mb-3">🧬 Helix Visualization</h3>
+            <canvas id="helix-canvas" width="200" height="500" class="helix-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- ORFs -->
+        <div class="card glass mt-4">
+          <h3 class="mb-3">Open Reading Frames (<span id="orf-count">0</span> found)</h3>
+          <div id="orf-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer text-center mt-6">
+    <p>&copy; 2026 DNA Sequence Analyzer. Explore genetics interactively.</p>
+  </footer>
+
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>
