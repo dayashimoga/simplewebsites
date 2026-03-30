@@ -74,6 +74,26 @@ describe('Rank Everything', () => {
         await expect(fetchMovies()).rejects.toThrow();
     });
 
+    test('fetchMovies returns mapped data', async () => {
+        setApiKeys({ tmdb: 'fakeTmdb', rawg: 'fakeRawg' });
+        fetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ results: [{ title: 'Movie 1', vote_average: 8, poster_path: '/img.jpg', release_date: '2022' }] })
+        });
+        const data = await fetchMovies();
+        expect(data[0].title).toBe('Movie 1');
+    });
+
+    test('fetchGames returns mapped data', async () => {
+        setApiKeys({ tmdb: 'fakeTmdb', rawg: 'fakeRawg' });
+        fetch.mockResolvedValue({
+            ok: true,
+            json: () => Promise.resolve({ results: [{ name: 'Game 1', background_image: '/img.png', released: '2021', rating: 9 }] })
+        });
+        const data = await fetchGames();
+        expect(data[0].title).toBe('Game 1');
+    });
+
     test('loadCategory calls renderList', async () => {
         fetch.mockResolvedValue({
             ok: true,

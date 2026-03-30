@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="style.css">
   <style>
     .tab-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:1.5rem; }
-    .toolkit-tab { padding:.5rem 1rem; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); cursor:pointer; font-size:.85rem; transition:all .2s; }
+    .toolkit-tab { padding:.5rem 1rem;   background:var(--surface); color:var(--text); cursor:pointer; font-size:.85rem; transition:all .2s; }
     .toolkit-tab:hover { border-color:var(--accent); }
     .toolkit-tab.active { background:var(--accent); color:#fff; border-color:var(--accent); }
     .tab-panel { display:none; }
@@ -21,7 +21,7 @@
     .slider-row input[type=range] { flex:1; }
     .slider-row .val-badge { width:40px; text-align:right; font-size:.8rem; font-weight:600; }
     .split-tile { display:inline-block; margin:6px; vertical-align:top; text-align:center; }
-    .merge-img-item { display:flex; align-items:center; gap:8px; padding:6px; background:var(--surface); border-radius:6px; margin-bottom:6px; }
+    .merge-img-item { display:flex; align-items:center; gap:8px; padding:6px; background:var(--surface);  margin-bottom:6px; }
     .merge-img-item .remove-btn { margin-left:auto; background:none; border:none; color:var(--red,#ef4444); cursor:pointer; font-size:1rem; }
     #split-results { display:flex; flex-wrap:wrap; gap:8px; margin-top:1rem; }
     .split-tile-label { font-size:.7rem; color:var(--muted); }
@@ -31,7 +31,7 @@
     .status-info { color:var(--muted); }
     .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     @media(max-width:600px) { .grid-2 { grid-template-columns:1fr; } }
-    code { background:var(--surface); padding:1px 5px; border-radius:4px; font-size:.8rem; }
+    code { background:var(--surface); padding:1px 5px;  font-size:.8rem; }
   </style>
 </head>
 <body>
@@ -74,7 +74,7 @@
           </div>
         </div>
         <div class="preview-container">
-          <img id="img-preview" style="max-width:100%;max-height:400px;object-fit:contain;border-radius:8px;background:repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 0 0 / 16px 16px;" alt="Preview">
+          <img id="img-preview" style="max-width:100%;max-height:400px;object-fit:contain;background:repeating-conic-gradient(#808080 0% 25%, transparent 0% 50%) 0 0 / 16px 16px;" alt="Preview">
         </div>
       </div>
 

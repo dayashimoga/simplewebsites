@@ -8,4 +8,22 @@ describe('Color Blindness Simulator', () => {
   test('rgbToHex converts correctly', () => { expect(rgbToHex(255,0,0)).toBe('#ff0000'); expect(rgbToHex(0,255,0)).toBe('#00ff00'); });
   test('applyMatrix transforms colors', () => { const r = applyMatrix([255,0,0], [1,0,0,0,1,0,0,0,1]); expect(r).toEqual([255,0,0]); });
   test('rgbToHex clamps values', () => { expect(rgbToHex(300, -10, 128)).toBe('#ff0080'); });
+
+  test('simulate updates DOM with color cards', () => {
+    document.body.innerHTML = '<div id="app"></div><input type="color" id="color-pick" value="#6366f1">';
+    const app = require('../app');
+    app.simulate();
+    const appDiv = document.getElementById('app');
+    expect(appDiv.innerHTML).toContain('Normal Vision');
+    expect(appDiv.innerHTML).toContain('Protanopia');
+    expect(appDiv.innerHTML).toContain('Deuteranopia');
+    expect(appDiv.innerHTML).toContain('Tritanopia');
+    expect(appDiv.innerHTML).toContain('Achromatopsia');
+  });
+
+  test('simulate handles missing DOM gracefully', () => {
+    document.body.innerHTML = '';
+    const app = require('../app');
+    expect(() => app.simulate()).not.toThrow();
+  });
 });

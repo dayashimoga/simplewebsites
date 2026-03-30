@@ -89,7 +89,10 @@ function setupDOM() {
     <div id="rotate-ui" class="hidden"></div>
     <div id="resize-file-info"></div>
     <div id="resize-ui" class="hidden"></div>
-    <select id="resize-preset"><option value="a4">A4</option></select>
+    <select id="resize-preset">
+      <option value="a4">A4</option>
+      <option value="letter">Letter</option>
+    </select>
     <div id="protect-file-info"></div>
     <div id="protect-ui" class="hidden"></div>
     <input id="protect-password" value="testpass" />
@@ -273,14 +276,26 @@ describe('PDF Toolkit', () => {
 
   test('selectAllPages and togglePageSelection', () => {
     setSplitPageCount(5);
-    selectAllPages();
-    expect(getSelectedPages().size).toBe(5);
-    
-    togglePageSelection(0);
-    expect(getSelectedPages().has(0)).toBe(false);
-    expect(getSelectedPages().size).toBe(4);
+    const grid = document.getElementById('pdf-thumbnail-grid');
+    grid.innerHTML = '';
+    for (let i = 0; i < 5; i++) {
+      const div = document.createElement('div');
+      div.className = 'pdf-thumb-item';
+      div.dataset.index = i;
+      grid.appendChild(div);
+    }
 
-    togglePageSelection(0);
-    expect(getSelectedPages().has(0)).toBe(true);
+    selectAllPages(true);
+    expect(getSelectedPages().length).toBe(5);
+    
+    const firstItem = grid.children[0];
+    togglePageSelection(firstItem, 0);
+    expect(getSelectedPages().includes(0)).toBe(false);
+    expect(firstItem.classList.contains('selected')).toBe(false);
+    expect(getSelectedPages().length).toBe(4);
+
+    togglePageSelection(firstItem, 0);
+    expect(getSelectedPages().includes(0)).toBe(true);
+    expect(firstItem.classList.contains('selected')).toBe(true);
   });
 });

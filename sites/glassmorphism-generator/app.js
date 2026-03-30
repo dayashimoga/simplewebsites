@@ -31,11 +31,11 @@ function buildGlassCSS({ blur = 16, opacity = 0.25, borderOpacity = 0.3, colorHe
 
     return `.glass {
     background: ${bgRgba};
-    border-radius: ${borderRadius}px;
-    ${shadow ? 'box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);' : ''}
+    
+    ${shadow ? '' : ''}
     backdrop-filter: blur(${blur}px);
     -webkit-backdrop-filter: blur(${blur}px);
-    border: 1px solid ${borderRgba};
+    
 }`;
 }
 

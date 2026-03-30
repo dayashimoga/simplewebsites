@@ -128,7 +128,7 @@ function renderList(items) {
     list.innerHTML = items.map((item, i) => {
         const medalColors = ['#fbbf24', '#cbd5e1', '#b45309'];
         const numColor = i < 3 ? medalColors[i] : 'var(--color-text-muted)';
-        const glow = i < 3 ? `box-shadow: 0 0 15px ${numColor}33; border-color: ${numColor}66;` : '';
+        const glow = i < 3 ? ` border-color: ${numColor}66;` : '';
         
         return `
         <div class="rank-card glass flex flex-col sm:flex-row items-center p-4 sm:p-5 gap-4 rounded-xl border border-border/50 hover:border-primary/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg mb-4" style="${glow}">

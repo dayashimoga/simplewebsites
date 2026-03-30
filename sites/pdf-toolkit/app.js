@@ -363,7 +363,7 @@ async function loadPdfThumbnails(file) {
       item.className   = 'pdf-thumb-item flex-col items-center justify-center p-2 cursor-pointer border-2 border-transparent transition-colors rounded-sm hover:border-muted';
       item.dataset.index = i - 1;
       item.innerHTML   = `
-        <img src="${canvas.toDataURL()}" style="width:100px; box-shadow:0 2px 4px rgba(0,0,0,0.1); border:1px solid var(--border)">
+        <img src="${canvas.toDataURL()}" style="width:100px;  border:1px solid var(--border)">
         <div class="text-xs mt-1 font-medium text-center">Page ${i}</div>
       `;
 
@@ -379,7 +379,7 @@ async function loadPdfThumbnails(file) {
       style.innerHTML = `
         .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
         .pdf-thumb-item.selected { border-color: var(--accent); background: rgba(0, 150, 255, 0.1); }
-        .pdf-thumb-item { display: flex; align-items: center; border-radius: 4px; }
+        .pdf-thumb-item { display: flex; align-items: center;  }
       `;
       document.head.appendChild(style);
     }

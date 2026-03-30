@@ -84,6 +84,7 @@ describe('Audio Trimmer', () => {
 
   test('handleFile decodes and sets buffer', async () => {
     const file = new File([''], 'test.mp3', { type: 'audio/mp3' });
+    file.arrayBuffer = jest.fn().mockResolvedValue(new ArrayBuffer(0));
     const event = { target: { files: [file] } };
     
     await app.handleFile(event);
@@ -149,5 +150,84 @@ describe('Audio Trimmer', () => {
     expect(app.getState().isPlaying).toBe(true);
     app.togglePlay();
     expect(app.getState().isPlaying).toBe(false);
+  });
+
+  test('resetApp clears state', () => {
+    app.setSourceBuffer({ duration: 10 });
+    app.setTrimStartRatio(0.1);
+    app.setIsDragging('left');
+    
+    // Setup DOM elements that resetApp modifies
+    document.getElementById('editor-container').classList.remove('hidden');
+    app.resetApp();
+    
+    expect(app.getState().sourceBuffer).toBeNull();
+    expect(app.getState().trimStartRatio).toBe(0);
+    expect(app.getState().trimEndRatio).toBe(1);
+    expect(app.getState().isPlaying).toBe(false);
+    expect(document.getElementById('editor-container').classList.contains('hidden')).toBe(true);
+  });
+
+  test('bufferToWav returns Blob', () => {
+    // Manually test bufferToWav
+    const mockChannelData = new Float32Array(5).fill(0.5);
+    const mockAudioBuffer = {
+      numberOfChannels: 1,
+      length: 5,
+      sampleRate: 44100,
+      getChannelData: () => mockChannelData
+    };
+
+    const blob = app.bufferToWav(mockAudioBuffer);
+    expect(blob).toBeInstanceOf(Blob);
+    expect(blob.type).toBe('audio/wav');
+  });
+
+  test('exportAudio creates offline rendering context', async () => {
+    app.setSourceBuffer({
+      duration: 1,
+      length: 44100,
+      numberOfChannels: 1,
+      sampleRate: 44100,
+      getChannelData: () => new Float32Array(44100).fill(0.1)
+    });
+    
+    app.setTrimStartRatio(0);
+    app.setTrimEndRatio(0.5); // cut in half
+
+    // Spy on Buffer creation inside OfflineAudioContext
+    app.exportAudio();
+    // exportAudio calls offlineCtx.startRendering()
+    // Resolving that triggers URL.createObjectURL and click
+    await new Promise(r => setTimeout(r, 0)); // wait for Promise 
+  });
+
+  test('drawPlayhead handles completion', () => {
+    app.setSourceBuffer({ duration: 10 });
+    app.setTrimStartRatio(0.1);
+    app.setTrimEndRatio(0.5);
+
+    // reset module to clear local audioCtx
+    jest.resetModules();
+    const freshApp = require('../app');
+    freshApp.setSourceBuffer({ duration: 10 });
+    freshApp.setTrimStartRatio(0.1);
+    freshApp.setTrimEndRatio(0.5);
+
+    let time = 0;
+    // Mock audioCtx.currentTime
+    global.AudioContext = jest.fn().mockImplementation(() => ({
+       get currentTime() { return time; },
+       createBufferSource: jest.fn().mockReturnValue({ connect: jest.fn(), start: jest.fn(), stop: jest.fn() }),
+       destination: {}
+    }));
+    
+    global.requestAnimationFrame = jest.fn();
+    global.cancelAnimationFrame = jest.fn();
+
+    freshApp.startPlayback();
+    time = 10; 
+    freshApp.drawPlayhead(); 
+    expect(freshApp.getState().isPlaying).toBe(false);
   });
 });

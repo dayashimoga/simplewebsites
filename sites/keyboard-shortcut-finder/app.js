@@ -89,7 +89,7 @@ function renderList(shortcuts) {
   const groups = {};
   shortcuts.forEach(s => { if (!groups[s.app]) groups[s.app] = []; groups[s.app].push(s); });
   el.innerHTML = Object.entries(groups).map(([app, items]) =>
-    '<div class="section-title">'+app+'</div><div class="card" style="margin-bottom:12px">' +
+    '<div class="section-title">'+app+'</div><div class="card glass" style="margin-bottom:12px">' +
     items.map(s => '<div class="shortcut-card"><div class="sc-action">'+s.action+'<div class="sc-app">'+s.cat+'</div></div><div class="sc-keys">'+s.keys.map(k=>'<span class="key">'+k+'</span>').join('')+'</div></div>').join('') +
     '</div>'
   ).join('');

@@ -11,7 +11,7 @@
   <div class="container container-sm">
     <section class="hero"><h1>🧠 <span class="text-gradient">Trivia Quiz</span></h1><p>Test your knowledge across 5 categories. How long can you keep your streak?</p></section>
 
-    <div id="setup-screen" class="card">
+    <div id="setup-screen" class="card glass">
       <h3 class="mb-4">Choose a Category</h3>
       <div class="category-grid" id="category-grid">
         <button class="cat-btn" onclick="startQuiz('science')">🔬 Science</button>
@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <div id="quiz-screen" class="card" style="display:none">
+    <div id="quiz-screen" class="card glass" style="display:none">
       <div class="quiz-header">
         <span class="badge" id="q-category">Science</span>
         <span class="badge badge-accent" id="q-counter">1 / 10</span>
@@ -35,7 +35,7 @@
       <div class="quiz-feedback hidden" id="quiz-feedback"></div>
     </div>
 
-    <div id="result-screen" class="card" style="display:none">
+    <div id="result-screen" class="card glass" style="display:none">
       <div class="result-icon" id="result-icon">🏆</div>
       <h2 id="result-title">Quiz Complete!</h2>
       <div class="result-stats" id="result-stats"></div>

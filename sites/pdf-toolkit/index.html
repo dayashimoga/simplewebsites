@@ -12,15 +12,15 @@
   <link rel="stylesheet" href="style.css">
   <style>
     .tab-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 1.25rem; }
-    .merge-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+    .merge-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--surface);   }
     .drag-handle { cursor: grab; color: var(--text-muted); font-size: 1.1rem; }
     .file-name { flex: 1; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .file-size { font-size: .78rem; color: var(--text-muted); }
     .remove-btn { background: none; border: none; color: var(--red, #ef4444); cursor: pointer; font-size: 1rem; padding: 2px 6px; }
     .remove-btn:hover { opacity: .75; }
-    .split-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; margin-bottom: 6px; }
+    .split-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--surface);   margin-bottom: 6px; }
     .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
-    .pdf-thumb-item { display: flex; flex-direction: column; align-items: center; border-radius: 6px; border: 2px solid transparent; transition: border-color .15s, background .15s; padding: 8px; cursor: pointer; }
+    .pdf-thumb-item { display: flex; flex-direction: column; align-items: center;  border: 2px solid transparent; transition: border-color .15s, background .15s; padding: 8px; cursor: pointer; }
     .pdf-thumb-item:hover { border-color: var(--text-muted); }
     .pdf-thumb-item.selected { border-color: var(--accent, #6366f1); background: rgba(99,102,241,.1); }
     .rotate-btns { display: flex; gap: 10px; flex-wrap: wrap; }
