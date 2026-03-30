@@ -114,7 +114,7 @@ function updateStyles() {
 
   // Update CSS text
   if (activeTab === 'shadow') {
-    out.value = `\n-webkit-\n-moz-`;
+    out.value = `box-shadow: ${boxShadow};\n-webkit-box-shadow: ${boxShadow};\n-moz-box-shadow: ${boxShadow};`;
   } else {
     out.value = `background: ${c1}; /* Fallback */\nbackground: ${background};`;
   }

@@ -225,7 +225,7 @@ describe('Audio Trimmer', () => {
     global.requestAnimationFrame = jest.fn();
     global.cancelAnimationFrame = jest.fn();
 
-    freshApp.startPlayback();
+    freshApp.togglePlay();
     time = 10; 
     freshApp.drawPlayhead(); 
     expect(freshApp.getState().isPlaying).toBe(false);
