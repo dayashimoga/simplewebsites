@@ -1,0 +1,120 @@
+/* Ocean & Marine Explorer — Premium Styles */
+
+.text-gradient-ocean { background: linear-gradient(135deg, #0ea5e9, #06b6d4, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Tabs */
+.ocean-tabs { display: flex; gap: 4px; padding: 6px; overflow-x: auto; }
+.ocean-tab-btn {
+  flex: 1; min-width: 120px; padding: 10px 14px; font-size: 0.8rem; border-radius: var(--radius-md);
+  background: transparent; border: 1px solid var(--color-border); color: var(--color-text);
+  cursor: pointer; transition: all 0.25s; white-space: nowrap;
+}
+.ocean-tab-btn.active { background: linear-gradient(135deg, #0ea5e9, #06b6d4); color: #fff; border-color: #0ea5e9; box-shadow: 0 4px 15px rgba(14,165,233,0.3); }
+.ocean-tab-btn:hover:not(.active) { border-color: #0ea5e9; background: rgba(14,165,233,0.1); }
+.ocean-tab-content.hidden { display: none !important; }
+
+/* Depth Chart */
+.depth-layout { display: grid; grid-template-columns: 1fr 350px; gap: var(--space-4); align-items: start; }
+@media (max-width: 800px) { .depth-layout { grid-template-columns: 1fr; } }
+.depth-chart { display: flex; flex-direction: column; gap: 4px; }
+.zone-bar {
+  padding: 20px; border-radius: var(--radius-md); cursor: pointer; transition: all 0.3s;
+  border: 2px solid transparent; position: relative; overflow: hidden;
+}
+.zone-bar:hover { transform: translateX(6px); border-color: rgba(255,255,255,0.2); }
+.zone-bar.active { border-color: #22d3ee; box-shadow: 0 0 20px rgba(34,211,238,0.3); transform: translateX(6px); }
+.zone-content { display: flex; flex-direction: column; gap: 2px; }
+.zone-name { color: #fff; font-weight: 700; font-size: 0.95rem; }
+.zone-depth { color: rgba(255,255,255,0.7); font-size: 0.8rem; }
+.zone-creatures { color: rgba(255,255,255,0.5); font-size: 0.7rem; }
+.zone-stats { display: flex; gap: 12px; margin-top: 8px; font-size: 0.7rem; color: rgba(255,255,255,0.6); }
+.zone-desc { font-size: 0.85rem; color: var(--color-text-secondary); margin: 8px 0; }
+.zone-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.zi { text-align: center; padding: 10px; background: var(--color-surface); border-radius: var(--radius-md); }
+.zi-icon { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+.zi-val { font-weight: 700; font-size: 0.8rem; display: block; }
+.zi-lbl { font-size: 0.65rem; color: var(--color-text-secondary); }
+.zone-creature-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.mini-creature { padding: 6px 12px; background: var(--color-surface); border-radius: var(--radius-full); font-size: 0.75rem; cursor: pointer; border: 1px solid var(--color-border); transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
+.mini-creature:hover { border-color: #0ea5e9; background: rgba(14,165,233,0.1); }
+
+/* Creature Filters */
+.creature-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 6px 14px; border-radius: var(--radius-full); font-size: 0.8rem; cursor: pointer;
+  background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); transition: all 0.2s;
+}
+.filter-btn.active { background: #0ea5e9; color: #fff; border-color: #0ea5e9; }
+.filter-btn:hover:not(.active) { border-color: #0ea5e9; }
+
+/* Creatures Grid */
+.creatures-layout { display: grid; grid-template-columns: 1fr 350px; gap: var(--space-4); align-items: start; }
+@media (max-width: 800px) { .creatures-layout { grid-template-columns: 1fr; } }
+.creatures-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.creature-card {
+  padding: 14px 10px; text-align: center; border-radius: var(--radius-md); cursor: pointer;
+  background: var(--color-surface); border: 2px solid var(--color-border); transition: all 0.3s;
+}
+.creature-card:hover { transform: translateY(-4px); border-color: #06b6d4; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+.creature-card.selected { border-color: #0ea5e9; background: rgba(14,165,233,0.1); }
+.creature-emoji { font-size: 2.5rem; display: block; margin-bottom: 4px; }
+.creature-name { font-weight: 700; font-size: 0.8rem; display: block; }
+.creature-group { font-size: 0.65rem; color: var(--color-text-secondary); text-transform: capitalize; display: block; }
+.creature-conservation { font-size: 0.6rem; padding: 2px 8px; border-radius: var(--radius-full); display: inline-block; margin-top: 4px; }
+.creature-conservation.least-concern { background: rgba(34,197,94,0.15); color: #22c55e; }
+.creature-conservation.vulnerable { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.creature-conservation.endangered { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+/* Creature Detail */
+.cd-header { display: flex; align-items: center; gap: 14px; margin-bottom: var(--space-3); }
+.cd-emoji { font-size: 3.5rem; }
+.cd-header h2 { margin: 0; font-size: 1.3rem; background: linear-gradient(135deg, #0ea5e9, #22d3ee); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.cd-zone { font-size: 0.75rem; }
+.cd-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: var(--space-3); }
+.cds { padding: 8px; background: var(--color-surface); border-radius: var(--radius-md); font-size: 0.75rem; text-align: center; border: 1px solid var(--color-border); }
+.cds span { display: block; font-size: 1rem; margin-bottom: 2px; }
+.cd-fact { padding: 12px; background: rgba(14,165,233,0.1); border-radius: var(--radius-md); font-size: 0.85rem; margin-bottom: var(--space-3); border-left: 3px solid #0ea5e9; }
+.cd-conservation { font-size: 0.85rem; }
+
+/* Reef Simulator */
+.reef-layout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+@media (max-width: 700px) { .reef-layout { grid-template-columns: 1fr; } }
+.reef-slider { margin-bottom: var(--space-3); }
+.reef-slider label { font-size: 0.8rem; display: block; margin-bottom: 4px; }
+.reef-slider input[type="range"] { width: 100%; }
+.reef-display { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 250px; text-align: center; }
+.reef-health-bar { width: 100%; height: 20px; background: var(--color-surface); border-radius: var(--radius-full); overflow: hidden; border: 1px solid var(--color-border); margin-bottom: var(--space-3); }
+.reef-fill { height: 100%; border-radius: var(--radius-full); transition: all 0.5s; }
+.reef-status { font-size: 1.1rem; margin-bottom: 8px; }
+.reef-desc { font-size: 0.85rem; color: var(--color-text-secondary); }
+
+/* Food Chain */
+.food-chain { max-width: 500px; margin: 0 auto; }
+.fc-item { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 6px; animation: slideIn 0.4s ease both; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+.fc-emoji { font-size: 2rem; }
+.fc-info { flex: 1; }
+.fc-name { font-weight: 700; font-size: 0.95rem; display: block; }
+.fc-role { font-size: 0.7rem; color: #0ea5e9; font-weight: 600; text-transform: uppercase; }
+.fc-desc { font-size: 0.8rem; color: var(--color-text-secondary); margin: 4px 0 0; }
+.fc-arrow { text-align: center; font-size: 1.5rem; color: #0ea5e9; margin: 4px 0; padding-left: 14px; }
+
+/* Quiz */
+.quiz-layout { max-width: 600px; margin: 0 auto; }
+.quiz-question { font-size: 1.1rem; font-weight: 700; margin-bottom: var(--space-3); }
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+.oq-btn {
+  padding: 14px 18px; text-align: left; border-radius: var(--radius-md); cursor: pointer;
+  background: var(--color-surface); border: 2px solid var(--color-border); color: var(--color-text);
+  font-size: 0.9rem; transition: all 0.25s;
+}
+.oq-btn:hover:not(:disabled) { border-color: #0ea5e9; transform: translateX(4px); }
+.oq-btn.correct { border-color: #22c55e; background: rgba(34,197,94,0.2); }
+.oq-btn.wrong { border-color: #ef4444; background: rgba(239,68,68,0.2); }
+.oq-btn:disabled { cursor: default; }
+.quiz-feedback { padding: 12px; font-weight: 700; text-align: center; margin-top: var(--space-3); }
+.quiz-stats { display: flex; justify-content: center; gap: var(--space-6); }
+.section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: var(--space-3); }
+.empty-state { text-align: center; padding: 40px; color: var(--color-text-secondary); }
+
+.hidden { display: none !important; }

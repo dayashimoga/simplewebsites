@@ -1,388 +1,388 @@
 /* ===== Mandala Drawer Advanced ===== */
 
 // --- DOM & Contexts ---
- /* istanbul ignore next */ let bgCanvas, mandalaCanvas, cursorCanvas, guideCanvas;
- /* istanbul ignore next */ let bgCtx, mandalaCtx, cursorCtx, guideCtx;
- /* istanbul ignore next */ let canvasWrapper;
+ let bgCanvas, mandalaCanvas, cursorCanvas, guideCanvas;
+ let bgCtx, mandalaCtx, cursorCtx, guideCtx;
+ let canvasWrapper;
 
 // --- State ---
- /* istanbul ignore next */ const state = {
-  /* istanbul ignore next */ segments: 12,
-  /* istanbul ignore next */ mirror: true,
-  /* istanbul ignore next */ guides: true,
-  /* istanbul ignore next */ tool: 'draw', // draw, erase
-  /* istanbul ignore next */ brushType: 'round', // round, calligraphy, spray, glow
-  /* istanbul ignore next */ brushSize: 3,
-  /* istanbul ignore next */ brushOpacity: 1,
-  /* istanbul ignore next */ color: '#6366f1',
-  /* istanbul ignore next */ bgColor: '#121212',
-  /* istanbul ignore next */ zoom: 1,
-  /* istanbul ignore next */ pixels: 800, // Fixed resolution
-  /* istanbul ignore next */ isDrawing: false,
-  /* istanbul ignore next */ lastX: 0,
-  /* istanbul ignore next */ lastY: 0,
-  /* istanbul ignore next */ autoDrawing: false,
-  /* istanbul ignore next */ autoDrawId: null
+ const state = {
+  segments: 12,
+  mirror: true,
+  guides: true,
+  tool: 'draw', // draw, erase
+  brushType: 'round', // round, calligraphy, spray, glow
+  brushSize: 3,
+  brushOpacity: 1,
+  color: '#6366f1',
+  bgColor: '#121212',
+  zoom: 1,
+  pixels: 800, // Fixed resolution
+  isDrawing: false,
+  lastX: 0,
+  lastY: 0,
+  autoDrawing: false,
+  autoDrawId: null
 };
 
 // --- History Stack ---
- /* istanbul ignore next */ const history = {
-  /* istanbul ignore next */ undoStack: [],
-  /* istanbul ignore next */ redoStack: [],
-  /* istanbul ignore next */ max: 20
+ const history = {
+  undoStack: [],
+  redoStack: [],
+  max: 20
 };
 
 // --- Presets ---
- /* istanbul ignore next */ const PALETTES = [
-  /* istanbul ignore next */ ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e'], // Rainbow
-  /* istanbul ignore next */ ['#1e1b4b', '#312e81', '#4338ca', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe'], // Indigo
-  /* istanbul ignore next */ ['#020617', '#0f172a', '#1e293b', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1', '#f1f5f9', '#ffffff'] // Grayscale
+ const PALETTES = [
+  ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e'], // Rainbow
+  ['#1e1b4b', '#312e81', '#4338ca', '#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe'], // Indigo
+  ['#020617', '#0f172a', '#1e293b', '#334155', '#475569', '#64748b', '#94a3b8', '#cbd5e1', '#f1f5f9', '#ffffff'] // Grayscale
 ];
 
 // --- Initialization ---
- /* istanbul ignore next */ function init() {
-  /* istanbul ignore next */ canvasWrapper = document.getElementById('canvas-wrapper');
+ function init() {
+  canvasWrapper = document.getElementById('canvas-wrapper');
   
-  /* istanbul ignore next */ bgCanvas = document.getElementById('bg-canvas');
-  /* istanbul ignore next */ mandalaCanvas = document.getElementById('mandala-canvas');
-  /* istanbul ignore next */ cursorCanvas = document.getElementById('cursor-canvas');
-  /* istanbul ignore next */ guideCanvas = document.getElementById('guide-canvas');
+  bgCanvas = document.getElementById('bg-canvas');
+  mandalaCanvas = document.getElementById('mandala-canvas');
+  cursorCanvas = document.getElementById('cursor-canvas');
+  guideCanvas = document.getElementById('guide-canvas');
 
-  /* istanbul ignore next */ bgCtx = bgCanvas.getContext('2d', { alpha: false });
-  /* istanbul ignore next */ mandalaCtx = mandalaCanvas.getContext('2d', { willReadFrequently: true });
-  /* istanbul ignore next */ cursorCtx = cursorCanvas.getContext('2d');
-  /* istanbul ignore next */ guideCtx = guideCanvas.getContext('2d');
+  bgCtx = bgCanvas.getContext('2d', { alpha: false });
+  mandalaCtx = mandalaCanvas.getContext('2d', { willReadFrequently: true });
+  cursorCtx = cursorCanvas.getContext('2d');
+  guideCtx = guideCanvas.getContext('2d');
 
-  /* istanbul ignore next */ resizeCanvases();
+  resizeCanvases();
   
   // Set initial background
-  /* istanbul ignore next */ setBgColor(state.bgColor);
+  setBgColor(state.bgColor);
   
   // Draw guides
-  /* istanbul ignore next */ drawGuides();
+  drawGuides();
   
   // Init palettes
-  /* istanbul ignore next */ initPalettes();
+  initPalettes();
   
   // Save initial empty state
-  /* istanbul ignore next */ saveState();
+  saveState();
 
   // Setup listeners
-  /* istanbul ignore next */ setupEvents();
+  setupEvents();
   
   // Handle window resize 
-  /* istanbul ignore next */ window.addEventListener('resize', handleContainerResize);
-  /* istanbul ignore next */ handleContainerResize();
+  window.addEventListener('resize', handleContainerResize);
+  handleContainerResize();
 }
 
- /* istanbul ignore next */ function resizeCanvases() {
-   /* istanbul ignore next */ const size = state.pixels;
+ function resizeCanvases() {
+   const size = state.pixels;
   [bgCanvas, mandalaCanvas, cursorCanvas, guideCanvas].forEach(c => {
-    /* istanbul ignore next */ c.width = size;
-    /* istanbul ignore next */ c.height = size;
-  /* istanbul ignore next */ });
+    c.width = size;
+    c.height = size;
+  });
   
 
-   /* istanbul ignore next */ if (canvasWrapper) {
-    /* istanbul ignore next */ canvasWrapper.style.width = size + 'px';
-    /* istanbul ignore next */ canvasWrapper.style.height = size + 'px';
+   if (canvasWrapper) {
+    canvasWrapper.style.width = size + 'px';
+    canvasWrapper.style.height = size + 'px';
   }
 }
 
- /* istanbul ignore next */ function handleContainerResize() {
-   /* istanbul ignore next */ const container = document.getElementById('canvas-container');
+ function handleContainerResize() {
+   const container = document.getElementById('canvas-container');
 
-   /* istanbul ignore next */ if (!container || !canvasWrapper) return;
+   if (!container || !canvasWrapper) return;
   
   // Scale down CSS if screen is smaller than pixel size
 
   const padding = window.innerWidth <= 768 ? 20 : 60;
 
-   /* istanbul ignore next */ const minDim = Math.min(container.clientWidth, container.clientHeight) - padding;
+   const minDim = Math.min(container.clientWidth, container.clientHeight) - padding;
   
 
   if (minDim < state.pixels) {
 
-     /* istanbul ignore next */ const scale = minDim / state.pixels;
+     const scale = minDim / state.pixels;
 
     canvasWrapper.style.transform = `scale(${scale * state.zoom})`;
-  /* istanbul ignore next */ } else {
+  } else {
 
     canvasWrapper.style.transform = `scale(${state.zoom})`;
   }
 }
 
 
- /* istanbul ignore next */ function setZoom(val) {
+ function setZoom(val) {
 
-  /* istanbul ignore next */ state.zoom = parseInt(val) / 100;
+  state.zoom = parseInt(val) / 100;
 
-  /* istanbul ignore next */ document.getElementById('zoom-val').textContent = val;
+  document.getElementById('zoom-val').textContent = val;
 
-  /* istanbul ignore next */ handleContainerResize();
+  handleContainerResize();
 }
 
 // --- Drawing Logic ---
- /* istanbul ignore next */ function setupEvents() {
-   /* istanbul ignore next */ const opts = { passive: false };
-  /* istanbul ignore next */ mandalaCanvas.addEventListener('mousedown', startPosition, opts);
-  /* istanbul ignore next */ mandalaCanvas.addEventListener('touchstart', startPosition, opts);
+ function setupEvents() {
+   const opts = { passive: false };
+  mandalaCanvas.addEventListener('mousedown', startPosition, opts);
+  mandalaCanvas.addEventListener('touchstart', startPosition, opts);
   
-  /* istanbul ignore next */ window.addEventListener('mouseup', endPosition);
-  /* istanbul ignore next */ window.addEventListener('touchend', endPosition);
+  window.addEventListener('mouseup', endPosition);
+  window.addEventListener('touchend', endPosition);
   
-  /* istanbul ignore next */ mandalaCanvas.addEventListener('mousemove', draw, opts);
-  /* istanbul ignore next */ mandalaCanvas.addEventListener('touchmove', draw, opts);
+  mandalaCanvas.addEventListener('mousemove', draw, opts);
+  mandalaCanvas.addEventListener('touchmove', draw, opts);
   
-  /* istanbul ignore next */ mandalaCanvas.addEventListener('mouseenter', showCursor);
-  /* istanbul ignore next */ mandalaCanvas.addEventListener('mouseleave', hideCursor);
+  mandalaCanvas.addEventListener('mouseenter', showCursor);
+  mandalaCanvas.addEventListener('mouseleave', hideCursor);
 
   mandalaCanvas.addEventListener('contextmenu', e => e.preventDefault());
 }
 
- /* istanbul ignore next */ function getPos(e) {
-   /* istanbul ignore next */ const rect = mandalaCanvas.getBoundingClientRect();
+ function getPos(e) {
+   const rect = mandalaCanvas.getBoundingClientRect();
 
-   /* istanbul ignore next */ const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
 
-   /* istanbul ignore next */ const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+   const clientY = e.touches ? e.touches[0].clientY : e.clientY;
   
   // Need to account for CSS scaling
-   /* istanbul ignore next */ const scaleX = mandalaCanvas.width / rect.width;
-   /* istanbul ignore next */ const scaleY = mandalaCanvas.height / rect.height;
+   const scaleX = mandalaCanvas.width / rect.width;
+   const scaleY = mandalaCanvas.height / rect.height;
 
-   /* istanbul ignore next */ return {
-    /* istanbul ignore next */ x: (clientX - rect.left) * scaleX,
-    /* istanbul ignore next */ y: (clientY - rect.top) * scaleY
+   return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY
   };
 }
 
 
- /* istanbul ignore next */ function startPosition(e) {
+ function startPosition(e) {
 
-   /* istanbul ignore next */ if (e.button === 2) return; // Right click
+   if (e.button === 2) return; // Right click
 
-  /* istanbul ignore next */ e.preventDefault(); // Prevent scrolling on touch
+  e.preventDefault(); // Prevent scrolling on touch
   
 
-   /* istanbul ignore next */ if (state.autoDrawing) toggleAutoDraw(); // Stop auto draw if manual interaction
+   if (state.autoDrawing) toggleAutoDraw(); // Stop auto draw if manual interaction
   
 
-  /* istanbul ignore next */ state.isDrawing = true;
+  state.isDrawing = true;
 
-   /* istanbul ignore next */ const pos = getPos(e);
+   const pos = getPos(e);
 
-  /* istanbul ignore next */ state.lastX = pos.x;
+  state.lastX = pos.x;
 
-  /* istanbul ignore next */ state.lastY = pos.y;
+  state.lastY = pos.y;
   
   // Draw a single dot
 
-  /* istanbul ignore next */ drawSymmetric(pos.x, pos.y, pos.x, pos.y);
+  drawSymmetric(pos.x, pos.y, pos.x, pos.y);
 }
 
 
- /* istanbul ignore next */ function endPosition() {
+ function endPosition() {
 
-   /* istanbul ignore next */ if (!state.isDrawing) return;
+   if (!state.isDrawing) return;
 
-  /* istanbul ignore next */ state.isDrawing = false;
+  state.isDrawing = false;
 
-  /* istanbul ignore next */ mandalaCtx.beginPath();
+  mandalaCtx.beginPath();
 
-  /* istanbul ignore next */ saveState();
+  saveState();
 }
 
 
- /* istanbul ignore next */ function draw(e) {
+ function draw(e) {
 
-   /* istanbul ignore next */ if (!state.isDrawing) {
+   if (!state.isDrawing) {
 
-    /* istanbul ignore next */ updateCursor(e);
+    updateCursor(e);
 
-     /* istanbul ignore next */ return;
+     return;
   }
   
 
-  /* istanbul ignore next */ e.preventDefault();
+  e.preventDefault();
 
-   /* istanbul ignore next */ const pos = getPos(e);
+   const pos = getPos(e);
 
-  /* istanbul ignore next */ drawSymmetric(state.lastX, state.lastY, pos.x, pos.y);
+  drawSymmetric(state.lastX, state.lastY, pos.x, pos.y);
 
-  /* istanbul ignore next */ state.lastX = pos.x;
+  state.lastX = pos.x;
 
-  /* istanbul ignore next */ state.lastY = pos.y;
+  state.lastY = pos.y;
 }
 
 // Core rendering engine
- /* istanbul ignore next */ function drawSymmetric(x1, y1, x2, y2, context = mandalaCtx, params = state) {
-   /* istanbul ignore next */ const cx = state.pixels / 2;
-   /* istanbul ignore next */ const cy = state.pixels / 2;
-   /* istanbul ignore next */ const angleIncrement = (Math.PI * 2) / params.segments;
+ function drawSymmetric(x1, y1, x2, y2, context = mandalaCtx, params = state) {
+   const cx = state.pixels / 2;
+   const cy = state.pixels / 2;
+   const angleIncrement = (Math.PI * 2) / params.segments;
   
   // Transform absolute to relative to center
-   /* istanbul ignore next */ const p1 = { x: x1 - cx, y: y1 - cy };
-   /* istanbul ignore next */ const p2 = { x: x2 - cx, y: y2 - cy };
+   const p1 = { x: x1 - cx, y: y1 - cy };
+   const p2 = { x: x2 - cx, y: y2 - cy };
 
-  /* istanbul ignore next */ context.save();
-  /* istanbul ignore next */ setupBrushContext(context, params);
+  context.save();
+  setupBrushContext(context, params);
 
   for (let i = 0; i < params.segments; i++) {
-     /* istanbul ignore next */ const angle = i * angleIncrement;
+     const angle = i * angleIncrement;
     
     // Rotate and draw normal segment
-    /* istanbul ignore next */ context.save();
-    /* istanbul ignore next */ context.translate(cx, cy);
-    /* istanbul ignore next */ context.rotate(angle);
-    /* istanbul ignore next */ drawStroke(context, p1, p2, params);
-    /* istanbul ignore next */ context.restore();
+    context.save();
+    context.translate(cx, cy);
+    context.rotate(angle);
+    drawStroke(context, p1, p2, params);
+    context.restore();
 
     // Draw mirrored segment if enabled
 
-     /* istanbul ignore next */ if (params.mirror) {
-      /* istanbul ignore next */ context.save();
-      /* istanbul ignore next */ context.translate(cx, cy);
-      /* istanbul ignore next */ context.rotate(angle);
+     if (params.mirror) {
+      context.save();
+      context.translate(cx, cy);
+      context.rotate(angle);
       // Flip X axis for mirroring
-      /* istanbul ignore next */ context.scale(-1, 1);
-      /* istanbul ignore next */ drawStroke(context, p1, p2, params);
-      /* istanbul ignore next */ context.restore();
+      context.scale(-1, 1);
+      drawStroke(context, p1, p2, params);
+      context.restore();
     }
   }
-  /* istanbul ignore next */ context.restore();
+  context.restore();
 }
 
- /* istanbul ignore next */ function setupBrushContext(ctx, params) {
+ function setupBrushContext(ctx, params) {
 
-   /* istanbul ignore next */ if (params.tool === 'erase') {
+   if (params.tool === 'erase') {
 
-    /* istanbul ignore next */ ctx.globalCompositeOperation = 'destination-out';
+    ctx.globalCompositeOperation = 'destination-out';
 
-    /* istanbul ignore next */ ctx.lineWidth = params.brushSize * 2;
+    ctx.lineWidth = params.brushSize * 2;
 
-    /* istanbul ignore next */ ctx.lineCap = 'round';
+    ctx.lineCap = 'round';
 
-    /* istanbul ignore next */ ctx.lineJoin = 'round';
+    ctx.lineJoin = 'round';
 
-     /* istanbul ignore next */ return;
+     return;
   }
   
-  /* istanbul ignore next */ ctx.globalCompositeOperation = 'source-over';
-  /* istanbul ignore next */ ctx.globalAlpha = params.brushOpacity;
-   /* istanbul ignore next */ const color = hexToRgb(params.color);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = params.brushOpacity;
+   const color = hexToRgb(params.color);
   const rgba = `rgba(${color.r}, ${color.g}, ${color.b}, ${params.brushOpacity})`;
 
 
-   /* istanbul ignore next */ switch (params.brushType) {
-    /* istanbul ignore next */ case 'round':
-      /* istanbul ignore next */ ctx.lineWidth = params.brushSize;
-      /* istanbul ignore next */ ctx.lineCap = 'round';
-      /* istanbul ignore next */ ctx.lineJoin = 'round';
-      /* istanbul ignore next */ ctx.strokeStyle = rgba;
-      /* istanbul ignore next */ ctx.fillStyle = rgba;
-      /* istanbul ignore next */ break;
-    /* istanbul ignore next */ case 'calligraphy':
+   switch (params.brushType) {
+    case 'round':
+      ctx.lineWidth = params.brushSize;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = rgba;
+      ctx.fillStyle = rgba;
+      break;
+    case 'calligraphy':
 
-      /* istanbul ignore next */ ctx.lineWidth = 1;
+      ctx.lineWidth = 1;
 
-      /* istanbul ignore next */ ctx.lineCap = 'square';
+      ctx.lineCap = 'square';
 
-      /* istanbul ignore next */ ctx.lineJoin = 'miter';
+      ctx.lineJoin = 'miter';
 
-      /* istanbul ignore next */ ctx.strokeStyle = rgba;
+      ctx.strokeStyle = rgba;
 
-      /* istanbul ignore next */ ctx.fillStyle = rgba;
+      ctx.fillStyle = rgba;
 
-      /* istanbul ignore next */ break;
-    /* istanbul ignore next */ case 'spray':
+      break;
+    case 'spray':
 
-      /* istanbul ignore next */ ctx.fillStyle = rgba;
+      ctx.fillStyle = rgba;
 
-      /* istanbul ignore next */ break;
-    /* istanbul ignore next */ case 'glow':
+      break;
+    case 'glow':
 
-      /* istanbul ignore next */ ctx.lineWidth = params.brushSize;
+      ctx.lineWidth = params.brushSize;
 
-      /* istanbul ignore next */ ctx.lineCap = 'round';
+      ctx.lineCap = 'round';
 
-      /* istanbul ignore next */ ctx.lineJoin = 'round';
+      ctx.lineJoin = 'round';
 
-      /* istanbul ignore next */ ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = '#fff';
 
-      /* istanbul ignore next */ ctx.shadowColor = params.color;
+      ctx.shadowColor = params.color;
 
-      /* istanbul ignore next */ ctx.shadowBlur = params.brushSize * 3;
+      ctx.shadowBlur = params.brushSize * 3;
 
-      /* istanbul ignore next */ break;
+      break;
   }
 }
 
- /* istanbul ignore next */ function drawStroke(ctx, p1, p2, params) {
+ function drawStroke(ctx, p1, p2, params) {
 
-   /* istanbul ignore next */ if (params.tool === 'erase' || params.brushType === 'round' || params.brushType === 'glow') {
-    /* istanbul ignore next */ ctx.beginPath();
-    /* istanbul ignore next */ ctx.moveTo(p1.x, p1.y);
-    /* istanbul ignore next */ ctx.lineTo(p2.x, p2.y);
-    /* istanbul ignore next */ ctx.stroke();
-     /* istanbul ignore next */ return;
+   if (params.tool === 'erase' || params.brushType === 'round' || params.brushType === 'glow') {
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+     return;
   }
 
 
-   /* istanbul ignore next */ if (params.brushType === 'calligraphy') {
+   if (params.brushType === 'calligraphy') {
     // Slanted thick stroke
 
-     /* istanbul ignore next */ const offset = params.brushSize / 2;
+     const offset = params.brushSize / 2;
 
-    /* istanbul ignore next */ ctx.beginPath();
+    ctx.beginPath();
 
-    /* istanbul ignore next */ ctx.moveTo(p1.x - offset, p1.y + offset);
+    ctx.moveTo(p1.x - offset, p1.y + offset);
 
-    /* istanbul ignore next */ ctx.lineTo(p2.x - offset, p2.y + offset);
+    ctx.lineTo(p2.x - offset, p2.y + offset);
 
-    /* istanbul ignore next */ ctx.lineTo(p2.x + offset, p2.y - offset);
+    ctx.lineTo(p2.x + offset, p2.y - offset);
 
-    /* istanbul ignore next */ ctx.lineTo(p1.x + offset, p1.y - offset);
+    ctx.lineTo(p1.x + offset, p1.y - offset);
 
-    /* istanbul ignore next */ ctx.fill();
+    ctx.fill();
 
-     /* istanbul ignore next */ return;
+     return;
   }
 
 
-   /* istanbul ignore next */ if (params.brushType === 'spray') {
+   if (params.brushType === 'spray') {
     // Generate random dots around the line
 
-     /* istanbul ignore next */ const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+     const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
 
-     /* istanbul ignore next */ const steps = Math.max(1, Math.floor(dist));
+     const steps = Math.max(1, Math.floor(dist));
 
-     /* istanbul ignore next */ const density = params.brushSize * 2;
+     const density = params.brushSize * 2;
 
-     /* istanbul ignore next */ const radius = params.brushSize * 1.5;
+     const radius = params.brushSize * 1.5;
 
 
     for (let i = 0; i <= steps; i++) {
 
-      /* istanbul ignore next */ const x = p1.x + (p2.x - p1.x) * (i / steps);
+      const x = p1.x + (p2.x - p1.x) * (i / steps);
 
-      /* istanbul ignore next */ const y = p1.y + (p2.y - p1.y) * (i / steps);
+      const y = p1.y + (p2.y - p1.y) * (i / steps);
       
 
       for (let j = 0; j < density; j++) {
 
-        /* istanbul ignore next */ const dx = (Math.random() - 0.5) * radius * 2;
+        const dx = (Math.random() - 0.5) * radius * 2;
 
-        /* istanbul ignore next */ const dy = (Math.random() - 0.5) * radius * 2;
+        const dy = (Math.random() - 0.5) * radius * 2;
         // Circular mask
 
         if (dx*dx + dy*dy <= radius*radius) {
 
-          /* istanbul ignore next */ ctx.beginPath();
+          ctx.beginPath();
 
-          /* istanbul ignore next */ ctx.arc(x + dx, y + dy, 0.5, 0, Math.PI * 2);
+          ctx.arc(x + dx, y + dy, 0.5, 0, Math.PI * 2);
 
-          /* istanbul ignore next */ ctx.fill();
+          ctx.fill();
         }
       }
     }
@@ -390,332 +390,332 @@
 }
 
 // --- Dynamic Cursor ---
- /* istanbul ignore next */ function updateCursor(e) {
-   /* istanbul ignore next */ const pos = getPos(e);
-  /* istanbul ignore next */ cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+ function updateCursor(e) {
+   const pos = getPos(e);
+  cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
   
 
-   /* istanbul ignore next */ if (state.tool === 'erase') {
+   if (state.tool === 'erase') {
 
-    /* istanbul ignore next */ cursorCtx.beginPath();
+    cursorCtx.beginPath();
 
-    /* istanbul ignore next */ cursorCtx.arc(pos.x, pos.y, state.brushSize, 0, Math.PI * 2);
+    cursorCtx.arc(pos.x, pos.y, state.brushSize, 0, Math.PI * 2);
 
-    /* istanbul ignore next */ cursorCtx.strokeStyle = '#fff';
+    cursorCtx.strokeStyle = '#fff';
 
-    /* istanbul ignore next */ cursorCtx.lineWidth = 1;
+    cursorCtx.lineWidth = 1;
 
-    /* istanbul ignore next */ cursorCtx.stroke();
-  /* istanbul ignore next */ } else {
+    cursorCtx.stroke();
+  } else {
     // Draw mirrored cursors
-    /* istanbul ignore next */ drawSymmetric(pos.x, pos.y, pos.x, pos.y, cursorCtx, {
-      /* istanbul ignore next */ ...state,
-      /* istanbul ignore next */ tool: 'draw',
-      /* istanbul ignore next */ brushType: 'round',
-      /* istanbul ignore next */ brushOpacity: 0.5,
-      /* istanbul ignore next */ brushSize: Math.max(2, state.brushSize / 2)
-    /* istanbul ignore next */ });
+    drawSymmetric(pos.x, pos.y, pos.x, pos.y, cursorCtx, {
+      ...state,
+      tool: 'draw',
+      brushType: 'round',
+      brushOpacity: 0.5,
+      brushSize: Math.max(2, state.brushSize / 2)
+    });
   }
 }
 
 
- /* istanbul ignore next */ function showCursor() { cursorCanvas.style.opacity = 1; }
+ function showCursor() { cursorCanvas.style.opacity = 1; }
 
- /* istanbul ignore next */ function hideCursor() { cursorCanvas.style.opacity = 0; cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height); }
+ function hideCursor() { cursorCanvas.style.opacity = 0; cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height); }
 
 // --- Guidelines ---
- /* istanbul ignore next */ function drawGuides() {
-  /* istanbul ignore next */ guideCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
+ function drawGuides() {
+  guideCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
 
-   /* istanbul ignore next */ if (!state.guides) return;
+   if (!state.guides) return;
 
-   /* istanbul ignore next */ const cx = state.pixels / 2;
-   /* istanbul ignore next */ const cy = state.pixels / 2;
-   /* istanbul ignore next */ const radius = Math.max(cx, cy);
-   /* istanbul ignore next */ const angleInc = (Math.PI * 2) / state.segments;
+   const cx = state.pixels / 2;
+   const cy = state.pixels / 2;
+   const radius = Math.max(cx, cy);
+   const angleInc = (Math.PI * 2) / state.segments;
 
-  /* istanbul ignore next */ guideCtx.save();
-  /* istanbul ignore next */ guideCtx.translate(cx, cy);
+  guideCtx.save();
+  guideCtx.translate(cx, cy);
   
   // Helper rings
-  /* istanbul ignore next */ guideCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-  /* istanbul ignore next */ guideCtx.lineWidth = 1;
-  /* istanbul ignore next */ guideCtx.beginPath();
-  /* istanbul ignore next */ guideCtx.arc(0, 0, radius * 0.25, 0, Math.PI*2);
-  /* istanbul ignore next */ guideCtx.arc(0, 0, radius * 0.5, 0, Math.PI*2);
-  /* istanbul ignore next */ guideCtx.arc(0, 0, radius * 0.75, 0, Math.PI*2);
-  /* istanbul ignore next */ guideCtx.stroke();
+  guideCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+  guideCtx.lineWidth = 1;
+  guideCtx.beginPath();
+  guideCtx.arc(0, 0, radius * 0.25, 0, Math.PI*2);
+  guideCtx.arc(0, 0, radius * 0.5, 0, Math.PI*2);
+  guideCtx.arc(0, 0, radius * 0.75, 0, Math.PI*2);
+  guideCtx.stroke();
 
   // Segment lines
-  /* istanbul ignore next */ guideCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  guideCtx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
   for (let i = 0; i < state.segments; i++) {
-    /* istanbul ignore next */ guideCtx.beginPath();
-    /* istanbul ignore next */ guideCtx.moveTo(0, 0);
-    /* istanbul ignore next */ guideCtx.lineTo(0, -radius);
-    /* istanbul ignore next */ guideCtx.stroke();
+    guideCtx.beginPath();
+    guideCtx.moveTo(0, 0);
+    guideCtx.lineTo(0, -radius);
+    guideCtx.stroke();
     
     // Draw sub-mirror lines if enabled
 
-     /* istanbul ignore next */ if (state.mirror) {
-      /* istanbul ignore next */ guideCtx.save();
-      /* istanbul ignore next */ guideCtx.rotate(angleInc / 2);
-      /* istanbul ignore next */ guideCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-      /* istanbul ignore next */ guideCtx.setLineDash([5, 5]);
-      /* istanbul ignore next */ guideCtx.beginPath();
-      /* istanbul ignore next */ guideCtx.moveTo(0, 0);
-      /* istanbul ignore next */ guideCtx.lineTo(0, -radius);
-      /* istanbul ignore next */ guideCtx.stroke();
-      /* istanbul ignore next */ guideCtx.restore();
+     if (state.mirror) {
+      guideCtx.save();
+      guideCtx.rotate(angleInc / 2);
+      guideCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      guideCtx.setLineDash([5, 5]);
+      guideCtx.beginPath();
+      guideCtx.moveTo(0, 0);
+      guideCtx.lineTo(0, -radius);
+      guideCtx.stroke();
+      guideCtx.restore();
     }
     
-    /* istanbul ignore next */ guideCtx.rotate(angleInc);
+    guideCtx.rotate(angleInc);
   }
-  /* istanbul ignore next */ guideCtx.restore();
+  guideCtx.restore();
 }
 
 // --- History (Undo/Redo) ---
- /* istanbul ignore next */ function saveState() {
+ function saveState() {
   if (history.undoStack.length >= history.max) history.undoStack.shift();
-  /* istanbul ignore next */ history.undoStack.push(mandalaCanvas.toDataURL());
-  /* istanbul ignore next */ history.redoStack = []; // Clear redo
-  /* istanbul ignore next */ updateHistoryButtons();
+  history.undoStack.push(mandalaCanvas.toDataURL());
+  history.redoStack = []; // Clear redo
+  updateHistoryButtons();
 }
 
- /* istanbul ignore next */ function undo() {
+ function undo() {
   if (history.undoStack.length <= 1) return;
-   /* istanbul ignore next */ const curr = history.undoStack.pop();
-  /* istanbul ignore next */ history.redoStack.push(curr);
-  /* istanbul ignore next */ restoreFromDataUrl(history.undoStack[history.undoStack.length - 1]);
+   const curr = history.undoStack.pop();
+  history.redoStack.push(curr);
+  restoreFromDataUrl(history.undoStack[history.undoStack.length - 1]);
 }
 
- /* istanbul ignore next */ function redo() {
-   /* istanbul ignore next */ if (history.redoStack.length === 0) return;
-   /* istanbul ignore next */ const next = history.redoStack.pop();
-  /* istanbul ignore next */ history.undoStack.push(next);
-  /* istanbul ignore next */ restoreFromDataUrl(next);
+ function redo() {
+   if (history.redoStack.length === 0) return;
+   const next = history.redoStack.pop();
+  history.undoStack.push(next);
+  restoreFromDataUrl(next);
 }
 
- /* istanbul ignore next */ function restoreFromDataUrl(dataUrl) {
-   /* istanbul ignore next */ const img = new Image();
+ function restoreFromDataUrl(dataUrl) {
+   const img = new Image();
 
   img.onload = () => {
 
-    /* istanbul ignore next */ mandalaCtx.clearRect(0, 0, mandalaCanvas.width, mandalaCanvas.height);
+    mandalaCtx.clearRect(0, 0, mandalaCanvas.width, mandalaCanvas.height);
 
-    /* istanbul ignore next */ mandalaCtx.drawImage(img, 0, 0);
+    mandalaCtx.drawImage(img, 0, 0);
 
-    /* istanbul ignore next */ updateHistoryButtons();
+    updateHistoryButtons();
   };
-  /* istanbul ignore next */ img.src = dataUrl;
+  img.src = dataUrl;
 }
 
- /* istanbul ignore next */ function updateHistoryButtons() {
-   /* istanbul ignore next */ const btnUndo = document.getElementById('btn-undo');
-   /* istanbul ignore next */ const btnRedo = document.getElementById('btn-redo');
+ function updateHistoryButtons() {
+   const btnUndo = document.getElementById('btn-undo');
+   const btnRedo = document.getElementById('btn-redo');
 
   if(btnUndo) btnUndo.disabled = history.undoStack.length <= 1;
 
-  /* istanbul ignore next */ if(btnRedo) btnRedo.disabled = history.redoStack.length === 0;
+  if(btnRedo) btnRedo.disabled = history.redoStack.length === 0;
 }
 
- /* istanbul ignore next */ function clearCanvas() {
-  /* istanbul ignore next */ mandalaCtx.clearRect(0, 0, mandalaCanvas.width, mandalaCanvas.height);
+ function clearCanvas() {
+  mandalaCtx.clearRect(0, 0, mandalaCanvas.width, mandalaCanvas.height);
 
-   /* istanbul ignore next */ if (state.autoDrawing) toggleAutoDraw();
-  /* istanbul ignore next */ saveState();
+   if (state.autoDrawing) toggleAutoDraw();
+  saveState();
 }
 
 // --- Auto Draw ---
- /* istanbul ignore next */ let autoAngle = 0;
- /* istanbul ignore next */ let autoRadius = 0;
- /* istanbul ignore next */ let autoPhase = 0;
+ let autoAngle = 0;
+ let autoRadius = 0;
+ let autoPhase = 0;
 
- /* istanbul ignore next */ function toggleAutoDraw() {
-  /* istanbul ignore next */ state.autoDrawing = !state.autoDrawing;
-   /* istanbul ignore next */ const btn = document.getElementById('btn-autodraw');
+ function toggleAutoDraw() {
+  state.autoDrawing = !state.autoDrawing;
+   const btn = document.getElementById('btn-autodraw');
   
-   /* istanbul ignore next */ if (state.autoDrawing) {
+   if (state.autoDrawing) {
 
-    /* istanbul ignore next */ if(btn) btn.classList.add('active');
-    /* istanbul ignore next */ autoAngle = 0; autoRadius = 10; autoPhase = Math.random() * Math.PI;
+    if(btn) btn.classList.add('active');
+    autoAngle = 0; autoRadius = 10; autoPhase = Math.random() * Math.PI;
     
     // Pick random tool/color settings safely
-    /* istanbul ignore next */ state.tool = 'draw';
-    /* istanbul ignore next */ setTool('draw');
-     /* istanbul ignore next */ const colors = PALETTES[0];
-    /* istanbul ignore next */ setBrushColor(colors[Math.floor(Math.random() * colors.length)]);
+    state.tool = 'draw';
+    setTool('draw');
+     const colors = PALETTES[0];
+    setBrushColor(colors[Math.floor(Math.random() * colors.length)]);
 
-    /* istanbul ignore next */ setBrushType(['round', 'glow'][Math.floor(Math.random()*2)]);
+    setBrushType(['round', 'glow'][Math.floor(Math.random()*2)]);
     
 
-    /* istanbul ignore next */ cancelAnimationFrame(state.autoDrawId);
+    cancelAnimationFrame(state.autoDrawId);
 
-    /* istanbul ignore next */ autoDrawFrame();
-  /* istanbul ignore next */ } else {
+    autoDrawFrame();
+  } else {
 
-    /* istanbul ignore next */ if(btn) btn.classList.remove('active');
-    /* istanbul ignore next */ cancelAnimationFrame(state.autoDrawId);
-    /* istanbul ignore next */ saveState();
+    if(btn) btn.classList.remove('active');
+    cancelAnimationFrame(state.autoDrawId);
+    saveState();
   }
 }
 
 
- /* istanbul ignore next */ function autoDrawFrame() {
+ function autoDrawFrame() {
 
-   /* istanbul ignore next */ if (!state.autoDrawing) return;
+   if (!state.autoDrawing) return;
 
-   /* istanbul ignore next */ const cx = state.pixels / 2;
+   const cx = state.pixels / 2;
 
-   /* istanbul ignore next */ const cy = state.pixels / 2;
+   const cy = state.pixels / 2;
 
   // Lissajous curve math mapped to center
 
-   /* istanbul ignore next */ const rOffset = Math.sin(autoPhase * 2) * 20;
+   const rOffset = Math.sin(autoPhase * 2) * 20;
 
-   /* istanbul ignore next */ const x = cx + Math.cos(autoAngle) * (autoRadius + rOffset);
+   const x = cx + Math.cos(autoAngle) * (autoRadius + rOffset);
 
-   /* istanbul ignore next */ const y = cy + Math.sin(autoAngle * 3) * (autoRadius + rOffset);
+   const y = cy + Math.sin(autoAngle * 3) * (autoRadius + rOffset);
   
   // Previous point
 
-   /* istanbul ignore next */ const px = cx + Math.cos(autoAngle - 0.05) * (autoRadius + rOffset);
+   const px = cx + Math.cos(autoAngle - 0.05) * (autoRadius + rOffset);
 
-   /* istanbul ignore next */ const py = cy + Math.sin((autoAngle - 0.05) * 3) * (autoRadius + rOffset);
-
-
-  /* istanbul ignore next */ drawSymmetric(px, py, x, y);
+   const py = cy + Math.sin((autoAngle - 0.05) * 3) * (autoRadius + rOffset);
 
 
-  /* istanbul ignore next */ autoAngle += 0.02;
+  drawSymmetric(px, py, x, y);
 
-  /* istanbul ignore next */ autoRadius += 0.2;
 
-  /* istanbul ignore next */ autoPhase += 0.01;
+  autoAngle += 0.02;
+
+  autoRadius += 0.2;
+
+  autoPhase += 0.01;
 
   // Change color periodically
 
   if (Math.random() < 0.005) {
 
-     /* istanbul ignore next */ const colors = PALETTES[0];
+     const colors = PALETTES[0];
 
-     /* istanbul ignore next */ const c = colors[Math.floor(Math.random() * colors.length)];
+     const c = colors[Math.floor(Math.random() * colors.length)];
 
-    /* istanbul ignore next */ document.getElementById('brush-color').value = c;
+    document.getElementById('brush-color').value = c;
 
-    /* istanbul ignore next */ state.color = c;
+    state.color = c;
   }
 
   // Stop when reaching bounds
 
   if (autoRadius > state.pixels / 2 - 20) {
 
-    /* istanbul ignore next */ toggleAutoDraw();
-  /* istanbul ignore next */ } else {
+    toggleAutoDraw();
+  } else {
 
-    /* istanbul ignore next */ state.autoDrawId = requestAnimationFrame(autoDrawFrame);
+    state.autoDrawId = requestAnimationFrame(autoDrawFrame);
   }
 }
 
 // --- Save / Export ---
 
- /* istanbul ignore next */ function downloadImage() {
+ function downloadImage() {
   // Combine bg and drawing
 
-   /* istanbul ignore next */ const tempCanvas = document.createElement('canvas');
+   const tempCanvas = document.createElement('canvas');
 
-  /* istanbul ignore next */ tempCanvas.width = state.pixels;
+  tempCanvas.width = state.pixels;
 
-  /* istanbul ignore next */ tempCanvas.height = state.pixels;
+  tempCanvas.height = state.pixels;
 
-   /* istanbul ignore next */ const tCtx = tempCanvas.getContext('2d');
+   const tCtx = tempCanvas.getContext('2d');
   
 
-  /* istanbul ignore next */ tCtx.drawImage(bgCanvas, 0, 0);
+  tCtx.drawImage(bgCanvas, 0, 0);
 
-  /* istanbul ignore next */ tCtx.drawImage(mandalaCanvas, 0, 0);
+  tCtx.drawImage(mandalaCanvas, 0, 0);
   
 
-   /* istanbul ignore next */ const link = document.createElement('a');
+   const link = document.createElement('a');
 
   link.download = `mandala-${Date.now()}.png`;
 
-  /* istanbul ignore next */ link.href = tempCanvas.toDataURL('image/png');
+  link.href = tempCanvas.toDataURL('image/png');
 
-  /* istanbul ignore next */ link.click();
+  link.click();
 }
 
 // --- Gallery LocalStorage ---
 
- /* istanbul ignore next */ function showGallery() {
+ function showGallery() {
 
-  /* istanbul ignore next */ document.getElementById('gallery-modal')?.classList.remove('hidden');
+  document.getElementById('gallery-modal')?.classList.remove('hidden');
 
-  /* istanbul ignore next */ renderGallery();
+  renderGallery();
 }
 
- /* istanbul ignore next */ function closeGallery() {
+ function closeGallery() {
 
-  /* istanbul ignore next */ document.getElementById('gallery-modal')?.classList.add('hidden');
+  document.getElementById('gallery-modal')?.classList.add('hidden');
 }
 
 
- /* istanbul ignore next */ function saveToGallery() {
+ function saveToGallery() {
 
-  /* istanbul ignore next */ try {
+  try {
 
-     /* istanbul ignore next */ const max = 12;
+     const max = 12;
 
-     /* istanbul ignore next */ let saved = JSON.parse(localStorage.getItem('mandalas') || '[]');
+     let saved = JSON.parse(localStorage.getItem('mandalas') || '[]');
     
     // Create combined thumbnail
 
-     /* istanbul ignore next */ const thumbCanvas = document.createElement('canvas');
+     const thumbCanvas = document.createElement('canvas');
 
-    /* istanbul ignore next */ thumbCanvas.width = 300; thumbCanvas.height = 300;
+    thumbCanvas.width = 300; thumbCanvas.height = 300;
 
-     /* istanbul ignore next */ const tCtx = thumbCanvas.getContext('2d');
+     const tCtx = thumbCanvas.getContext('2d');
 
-    /* istanbul ignore next */ tCtx.drawImage(bgCanvas, 0, 0, 300, 300);
+    tCtx.drawImage(bgCanvas, 0, 0, 300, 300);
 
-    /* istanbul ignore next */ tCtx.drawImage(mandalaCanvas, 0, 0, 300, 300);
+    tCtx.drawImage(mandalaCanvas, 0, 0, 300, 300);
     
 
-     /* istanbul ignore next */ const entry = {
-      /* istanbul ignore next */ id: Date.now(),
-      /* istanbul ignore next */ thumb: thumbCanvas.toDataURL('image/jpeg', 0.8),
-      /* istanbul ignore next */ data: history.undoStack[history.undoStack.length - 1], // The raw transparent layer
-      /* istanbul ignore next */ bgColor: state.bgColor
+     const entry = {
+      id: Date.now(),
+      thumb: thumbCanvas.toDataURL('image/jpeg', 0.8),
+      data: history.undoStack[history.undoStack.length - 1], // The raw transparent layer
+      bgColor: state.bgColor
     };
     
 
-    /* istanbul ignore next */ saved.unshift(entry);
+    saved.unshift(entry);
 
     if (saved.length > max) saved.pop();
     
 
-    /* istanbul ignore next */ localStorage.setItem('mandalas', JSON.stringify(saved));
+    localStorage.setItem('mandalas', JSON.stringify(saved));
 
-    /* istanbul ignore next */ renderGallery();
+    renderGallery();
 
-  /* istanbul ignore next */ } catch(e) { console.error("Gallery save error:", e); }
+  } catch(e) { console.error("Gallery save error:", e); }
 }
 
 
- /* istanbul ignore next */ function renderGallery() {
+ function renderGallery() {
 
-   /* istanbul ignore next */ const grid = document.getElementById('gallery-grid');
+   const grid = document.getElementById('gallery-grid');
 
-  /* istanbul ignore next */ if(!grid) return;
+  if(!grid) return;
 
-  /* istanbul ignore next */ try {
+  try {
 
-     /* istanbul ignore next */ const saved = JSON.parse(localStorage.getItem('mandalas') || '[]');
+     const saved = JSON.parse(localStorage.getItem('mandalas') || '[]');
 
-    /* istanbul ignore next */ if(saved.length === 0) {
+    if(saved.length === 0) {
 
       grid.innerHTML = '<p class="text-sm text-gray-500 col-span-full">No saved mandalas yet.</p>';
 
-      /* istanbul ignore next */ return;
+      return;
     }
 
     grid.innerHTML = saved.map((s, i) => `
@@ -725,106 +725,106 @@
       </div>
     `).join('');
 
-  /* istanbul ignore next */ } catch(e) { grid.innerHTML = 'Error loading gallery.'; }
+  } catch(e) { grid.innerHTML = 'Error loading gallery.'; }
 }
 
 
- /* istanbul ignore next */ function loadFromGallery(idx) {
+ function loadFromGallery(idx) {
 
-  /* istanbul ignore next */ try {
+  try {
 
-     /* istanbul ignore next */ const saved = JSON.parse(localStorage.getItem('mandalas') || '[]');
+     const saved = JSON.parse(localStorage.getItem('mandalas') || '[]');
 
-    /* istanbul ignore next */ if(saved[idx]) {
+    if(saved[idx]) {
 
-      /* istanbul ignore next */ setBgColor(saved[idx].bgColor);
+      setBgColor(saved[idx].bgColor);
 
-      /* istanbul ignore next */ document.getElementById('bg-color').value = saved[idx].bgColor;
+      document.getElementById('bg-color').value = saved[idx].bgColor;
 
-      /* istanbul ignore next */ restoreFromDataUrl(saved[idx].data);
+      restoreFromDataUrl(saved[idx].data);
       // Let img load then save state
 
-      /* istanbul ignore next */ setTimeout(saveState, 50);
+      setTimeout(saveState, 50);
 
-      /* istanbul ignore next */ closeGallery();
+      closeGallery();
     }
-  /* istanbul ignore next */ } catch(e) {}
+  } catch(e) {}
 }
 
 
- /* istanbul ignore next */ function deleteGalleryItem(idx) {
+ function deleteGalleryItem(idx) {
 
-  /* istanbul ignore next */ try {
+  try {
 
-     /* istanbul ignore next */ let saved = JSON.parse(localStorage.getItem('mandalas') || '[]');
+     let saved = JSON.parse(localStorage.getItem('mandalas') || '[]');
 
-    /* istanbul ignore next */ saved.splice(idx, 1);
+    saved.splice(idx, 1);
 
-    /* istanbul ignore next */ localStorage.setItem('mandalas', JSON.stringify(saved));
+    localStorage.setItem('mandalas', JSON.stringify(saved));
 
-    /* istanbul ignore next */ renderGallery();
-  /* istanbul ignore next */ } catch(e) {}
+    renderGallery();
+  } catch(e) {}
 }
 
 
 // --- UI Integration ---
- /* istanbul ignore next */ function setTool(tool) {
-  /* istanbul ignore next */ state.tool = tool;
+ function setTool(tool) {
+  state.tool = tool;
 
   document.querySelectorAll('.tool-btn[data-tool]').forEach(b => {
 
-    /* istanbul ignore next */ b.classList.toggle('active', b.dataset.tool === tool);
-  /* istanbul ignore next */ });
+    b.classList.toggle('active', b.dataset.tool === tool);
+  });
 }
 
- /* istanbul ignore next */ function setBrushType(type) { state.brushType = type; updateCursor(getDummyEvent()); }
- /* istanbul ignore next */ function setBrushSize(size) { state.brushSize = parseInt(size); document.getElementById('size-val').textContent = size; updateCursor(getDummyEvent());}
+ function setBrushType(type) { state.brushType = type; updateCursor(getDummyEvent()); }
+ function setBrushSize(size) { state.brushSize = parseInt(size); document.getElementById('size-val').textContent = size; updateCursor(getDummyEvent());}
 
- /* istanbul ignore next */ function setBrushOpacity(op) { state.brushOpacity = parseFloat(op); document.getElementById('opacity-val').textContent = Math.round(op * 100); }
+ function setBrushOpacity(op) { state.brushOpacity = parseFloat(op); document.getElementById('opacity-val').textContent = Math.round(op * 100); }
 
- /* istanbul ignore next */ function setBrushColor(color) { state.color = color; if(state.tool==='erase') setTool('draw'); document.getElementById('brush-color').value = color; updateCursor(getDummyEvent());}
- /* istanbul ignore next */ function setBgColor(color) { 
-  /* istanbul ignore next */ state.bgColor = color; 
-  /* istanbul ignore next */ bgCtx.fillStyle = color;
-  /* istanbul ignore next */ bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+ function setBrushColor(color) { state.color = color; if(state.tool==='erase') setTool('draw'); document.getElementById('brush-color').value = color; updateCursor(getDummyEvent());}
+ function setBgColor(color) { 
+  state.bgColor = color; 
+  bgCtx.fillStyle = color;
+  bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
 }
 
- /* istanbul ignore next */ function updateSymmetry(val) {
-   /* istanbul ignore next */ const segs = val || document.getElementById('segment-slider').value;
-  /* istanbul ignore next */ state.segments = parseInt(segs);
-   /* istanbul ignore next */ const el = document.getElementById('seg-val');
+ function updateSymmetry(val) {
+   const segs = val || document.getElementById('segment-slider').value;
+  state.segments = parseInt(segs);
+   const el = document.getElementById('seg-val');
 
-  /* istanbul ignore next */ if(el) el.textContent = state.segments;
-  /* istanbul ignore next */ drawGuides();
+  if(el) el.textContent = state.segments;
+  drawGuides();
 }
 
- /* istanbul ignore next */ function toggleSetting(key, val) {
-  /* istanbul ignore next */ state[key] = val;
+ function toggleSetting(key, val) {
+  state[key] = val;
 
-  /* istanbul ignore next */ if(key === 'guides' || key === 'mirror') drawGuides();
+  if(key === 'guides' || key === 'mirror') drawGuides();
 }
 
 
- /* istanbul ignore next */ function toggleSidebar() {
+ function toggleSidebar() {
 
-  /* istanbul ignore next */ document.getElementById('sidebar')?.classList.toggle('open');
+  document.getElementById('sidebar')?.classList.toggle('open');
 }
 
 // Helper Hex to RGB for opacity handling
- /* istanbul ignore next */ function hexToRgb(hex) {
+ function hexToRgb(hex) {
    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-   /* istanbul ignore next */ return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : {r:255,g:255,b:255};
+   return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : {r:255,g:255,b:255};
 }
 
- /* istanbul ignore next */ function getDummyEvent() { return { clientX: -100, clientY: -100 }; } // For updating hidden cursor
+ function getDummyEvent() { return { clientX: -100, clientY: -100 }; } // For updating hidden cursor
 
- /* istanbul ignore next */ function initPalettes() {
-   /* istanbul ignore next */ const container = document.getElementById('palette-grid');
+ function initPalettes() {
+   const container = document.getElementById('palette-grid');
 
-   /* istanbul ignore next */ if (!container) return;
+   if (!container) return;
   // Mix palettes
 
-   /* istanbul ignore next */ const swatches = [...PALETTES[0], ...PALETTES[1]];
+   const swatches = [...PALETTES[0], ...PALETTES[1]];
   // Simple unique 16 random vivid colors 
 
   container.innerHTML = swatches.slice(0, 24).map(c => `
@@ -834,32 +834,32 @@
 
 // Global short cuts
 
- /* istanbul ignore next */ if (typeof document !== 'undefined') {
+ if (typeof document !== 'undefined') {
 
   document.addEventListener('keydown', e => {
 
-     /* istanbul ignore next */ if (e.ctrlKey || e.metaKey) {
+     if (e.ctrlKey || e.metaKey) {
 
-      /* istanbul ignore next */ if (e.key === 'z') { e.preventDefault(); undo(); }
+      if (e.key === 'z') { e.preventDefault(); undo(); }
 
-      /* istanbul ignore next */ if (e.key === 'y') { e.preventDefault(); redo(); }
+      if (e.key === 'y') { e.preventDefault(); redo(); }
     }
-  /* istanbul ignore next */ });
+  });
 }
 
 // Wait for load
 
- /* istanbul ignore next */ if (typeof document !== 'undefined') {
-  /* istanbul ignore next */ document.addEventListener('DOMContentLoaded', init);
+ if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
 }
 
 // Explort for Jest
 
- /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-  /* istanbul ignore next */ module.exports = {
-    /* istanbul ignore next */ init, setTool, setBrushType, setBrushSize, setBrushColor, setBgColor,
-    /* istanbul ignore next */ updateSymmetry, toggleSetting, undo, redo, clearCanvas, drawSymmetric, 
-    /* istanbul ignore next */ toggleAutoDraw, saveState,
+ if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    init, setTool, setBrushType, setBrushSize, setBrushColor, setBgColor,
+    updateSymmetry, toggleSetting, undo, redo, clearCanvas, drawSymmetric, 
+    toggleAutoDraw, saveState,
     getState: () => ({ ...state }),
     getHistoryItems: () => history.undoStack.length,
     cleanup: () => { cancelAnimationFrame(state.autoDrawId); }

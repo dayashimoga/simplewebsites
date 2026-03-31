@@ -4,29 +4,29 @@
  * Fallback: Direct 1secmail API (works in some browsers), then client-generated email.
  */
 
- /* istanbul ignore next */ const PROXY_API = '/api/mail';
- /* istanbul ignore next */ const SECMAIL_API = 'https://www.1secmail.com/api/v1/';
- /* istanbul ignore next */ const SECMAIL_DOMAINS = ['1secmail.com', '1secmail.org', '1secmail.net', 'kzccv.com', 'qiott.com', 'wuuvo.com', 'icznn.com', 'yeezmail.com'];
+ const PROXY_API = '/api/mail';
+ const SECMAIL_API = 'https://www.1secmail.com/api/v1/';
+ const SECMAIL_DOMAINS = ['1secmail.com', '1secmail.org', '1secmail.net', 'kzccv.com', 'qiott.com', 'wuuvo.com', 'icznn.com', 'yeezmail.com'];
 
- /* istanbul ignore next */ let currentEmail = '';
- /* istanbul ignore next */ let currentLogin = '';
- /* istanbul ignore next */ let currentDomain = '';
- /* istanbul ignore next */ let checkInterval = null;
- /* istanbul ignore next */ let countdownInterval = null;
- /* istanbul ignore next */ let secondsLeft = 10;
- /* istanbul ignore next */ let seenMessageIds = new Set();
- /* istanbul ignore next */ let allMessages = [];
- /* istanbul ignore next */ let retryCount = 0;
- /* istanbul ignore next */ let useProxy = true; // Try proxy first
- /* istanbul ignore next */ const MAX_RETRIES = 3;
+ let currentEmail = '';
+ let currentLogin = '';
+ let currentDomain = '';
+ let checkInterval = null;
+ let countdownInterval = null;
+ let secondsLeft = 10;
+ let seenMessageIds = new Set();
+ let allMessages = [];
+ let retryCount = 0;
+ let useProxy = true; // Try proxy first
+ const MAX_RETRIES = 3;
 
- /* istanbul ignore next */ async function init() {
-   /* istanbul ignore next */ const saved = localStorage.getItem('stacky_temp_mail');
-    /* istanbul ignore next */ if (saved && saved.includes('@')) {
-    /* istanbul ignore next */ setAndStart(saved);
-     /* istanbul ignore next */ return;
+ async function init() {
+   const saved = localStorage.getItem('stacky_temp_mail');
+    if (saved && saved.includes('@')) {
+    setAndStart(saved);
+     return;
   }
-  /* istanbul ignore next */ await generateNewEmail();
+  await generateNewEmail();
 }
 
 /**
@@ -35,140 +35,140 @@
  * 2. Direct 1secmail API (may work in some browsers)
  * 3. Client-side generated address (guaranteed)
  */
- /* istanbul ignore next */ async function generateNewEmail() {
+ async function generateNewEmail() {
 
-    /* istanbul ignore next */ if (checkInterval) clearInterval(checkInterval);
-    /* istanbul ignore next */ if (countdownInterval) clearInterval(countdownInterval);
+    if (checkInterval) clearInterval(checkInterval);
+    if (countdownInterval) clearInterval(countdownInterval);
 
-   /* istanbul ignore next */ const el = document.getElementById('email-address');
+   const el = document.getElementById('email-address');
 
-    /* istanbul ignore next */ if (el) el.value = 'Generating...';
+    if (el) el.value = 'Generating...';
 
-   /* istanbul ignore next */ const status = document.getElementById('status-text');
+   const status = document.getElementById('status-text');
 
   // Strategy 1: Proxy
-  /* istanbul ignore next */ try {
+  try {
     const res = await fetchWithTimeout(`${PROXY_API}?action=generate&provider=secmail`, 5000);
 
-     /* istanbul ignore next */ if (res.ok) {
+     if (res.ok) {
 
-      /* istanbul ignore next */ const data = await res.json();
+      const data = await res.json();
 
-       /* istanbul ignore next */ if (Array.isArray(data) && data[0]) {
+       if (Array.isArray(data) && data[0]) {
 
-        /* istanbul ignore next */ useProxy = true;
+        useProxy = true;
 
-        /* istanbul ignore next */ const email = data[0];
+        const email = data[0];
 
-        /* istanbul ignore next */ localStorage.setItem('stacky_temp_mail', email);
+        localStorage.setItem('stacky_temp_mail', email);
 
-        /* istanbul ignore next */ setAndStart(email);
+        setAndStart(email);
 
-        /* istanbul ignore next */ return;
+        return;
       }
     }
-  /* istanbul ignore next */ } catch (e) {
-    /* istanbul ignore next */ console.warn('Proxy unavailable, trying direct API:', e.message);
+  } catch (e) {
+    console.warn('Proxy unavailable, trying direct API:', e.message);
   }
 
   // Strategy 2: Direct 1secmail API
-  /* istanbul ignore next */ try {
+  try {
     const res = await fetchWithTimeout(`${SECMAIL_API}?action=genRandomMailbox&count=1`, 5000);
 
-     /* istanbul ignore next */ if (res.ok) {
+     if (res.ok) {
 
-      /* istanbul ignore next */ const data = await res.json();
+      const data = await res.json();
 
-       /* istanbul ignore next */ if (Array.isArray(data) && data[0]) {
+       if (Array.isArray(data) && data[0]) {
 
-        /* istanbul ignore next */ useProxy = false;
+        useProxy = false;
 
-        /* istanbul ignore next */ const email = data[0];
+        const email = data[0];
 
-        /* istanbul ignore next */ localStorage.setItem('stacky_temp_mail', email);
+        localStorage.setItem('stacky_temp_mail', email);
 
-        /* istanbul ignore next */ setAndStart(email);
+        setAndStart(email);
 
-        /* istanbul ignore next */ return;
+        return;
       }
     }
-  /* istanbul ignore next */ } catch (e) {
-    /* istanbul ignore next */ console.warn('Direct 1secmail failed:', e.message);
+  } catch (e) {
+    console.warn('Direct 1secmail failed:', e.message);
   }
 
   // Strategy 3: Client-generated email (guaranteed to work)
-   /* istanbul ignore next */ const randomStr = Math.random().toString(36).substring(2, 10) + Math.floor(Date.now() / 1000).toString(36);
-   /* istanbul ignore next */ const domain = SECMAIL_DOMAINS[Math.floor(Math.random() * SECMAIL_DOMAINS.length)];
+   const randomStr = Math.random().toString(36).substring(2, 10) + Math.floor(Date.now() / 1000).toString(36);
+   const domain = SECMAIL_DOMAINS[Math.floor(Math.random() * SECMAIL_DOMAINS.length)];
   const email = `${randomStr}@${domain}`;
-  /* istanbul ignore next */ useProxy = true; // Try proxy for mail checking
-  /* istanbul ignore next */ localStorage.setItem('stacky_temp_mail', email);
-  /* istanbul ignore next */ setAndStart(email);
+  useProxy = true; // Try proxy for mail checking
+  localStorage.setItem('stacky_temp_mail', email);
+  setAndStart(email);
 
 
-    /* istanbul ignore next */ if (status) status.textContent = '⚠️ Generated offline address. Mail checking may be limited.';
+    if (status) status.textContent = '⚠️ Generated offline address. Mail checking may be limited.';
 }
 
-  /* istanbul ignore next */ function fetchWithTimeout(url, timeoutMs) {
-   /* istanbul ignore next */ const controller = new AbortController();
+  function fetchWithTimeout(url, timeoutMs) {
+   const controller = new AbortController();
 
    const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
    return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timeout));
 }
 
-  /* istanbul ignore next */ function setAndStart(email) {
-  /* istanbul ignore next */ currentEmail = email;
-   /* istanbul ignore next */ const parts = email.split('@');
+  function setAndStart(email) {
+  currentEmail = email;
+   const parts = email.split('@');
    if (parts.length < 2) return;
-  /* istanbul ignore next */ currentLogin = parts[0];
-  /* istanbul ignore next */ currentDomain = parts[1];
+  currentLogin = parts[0];
+  currentDomain = parts[1];
 
-   /* istanbul ignore next */ const el = document.getElementById('email-address');
+   const el = document.getElementById('email-address');
 
-    /* istanbul ignore next */ if (el) el.value = email;
+    if (el) el.value = email;
 
   // Update provider badge
-   /* istanbul ignore next */ const badge = document.getElementById('provider-badge');
+   const badge = document.getElementById('provider-badge');
 
-    /* istanbul ignore next */ if (badge) {
+    if (badge) {
 
-     /* istanbul ignore next */ badge.textContent = useProxy ? '⚡ 1secMail (Proxy)' : '📡 1secMail (Direct)';
+     badge.textContent = useProxy ? '⚡ 1secMail (Proxy)' : '📡 1secMail (Direct)';
 
-     /* istanbul ignore next */ badge.title = useProxy ? 'Using Cloudflare proxy for reliability' : 'Direct API connection';
+     badge.title = useProxy ? 'Using Cloudflare proxy for reliability' : 'Direct API connection';
   }
 
-  /* istanbul ignore next */ seenMessageIds.clear();
-  /* istanbul ignore next */ allMessages = [];
-  /* istanbul ignore next */ retryCount = 0;
-  /* istanbul ignore next */ renderMessages();
+  seenMessageIds.clear();
+  allMessages = [];
+  retryCount = 0;
+  renderMessages();
 
-  /* istanbul ignore next */ fetchMessages(true);
+  fetchMessages(true);
 
 
-    /* istanbul ignore next */ if (checkInterval) clearInterval(checkInterval);
-    /* istanbul ignore next */ if (countdownInterval) clearInterval(countdownInterval);
+    if (checkInterval) clearInterval(checkInterval);
+    if (countdownInterval) clearInterval(countdownInterval);
 
-  /* istanbul ignore next */ secondsLeft = 10;
-  /* istanbul ignore next */ updateCountdownText();
+  secondsLeft = 10;
+  updateCountdownText();
 
 
    countdownInterval = setInterval(() => {
 
-    /* istanbul ignore next */ secondsLeft--;
+    secondsLeft--;
 
      if (secondsLeft <= 0) {
 
-      /* istanbul ignore next */ secondsLeft = 10;
+      secondsLeft = 10;
 
-      /* istanbul ignore next */ fetchMessages();
+      fetchMessages();
     }
 
-    /* istanbul ignore next */ updateCountdownText();
-  /* istanbul ignore next */ }, 1000);
+    updateCountdownText();
+  }, 1000);
 }
 
-  /* istanbul ignore next */ function updateCountdownText() {
-   /* istanbul ignore next */ const status = document.getElementById('status-text');
+  function updateCountdownText() {
+   const status = document.getElementById('status-text');
 
    if (status) status.textContent = `Auto-refresh in ${secondsLeft}s...`;
 }
@@ -176,64 +176,64 @@
 /**
  * Copy email address to clipboard
  */
-  /* istanbul ignore next */ function copyEmail() {
+  function copyEmail() {
 
-    /* istanbul ignore next */ if (!currentEmail) return;
+    if (!currentEmail) return;
 
    navigator.clipboard.writeText(currentEmail).then(() => {
 
-     /* istanbul ignore next */ const btn = document.getElementById('copy-email-btn');
+     const btn = document.getElementById('copy-email-btn');
 
-     /* istanbul ignore next */ if (btn) {
+     if (btn) {
 
-      /* istanbul ignore next */ btn.textContent = '✅ Copied!';
+      btn.textContent = '✅ Copied!';
 
        setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
     }
 
    }).catch(() => {
 
-     /* istanbul ignore next */ const el = document.getElementById('email-address');
+     const el = document.getElementById('email-address');
 
-     /* istanbul ignore next */ if (el) { el.select(); document.execCommand('copy'); }
-  /* istanbul ignore next */ });
+     if (el) { el.select(); document.execCommand('copy'); }
+  });
 }
 
- /* istanbul ignore next */ async function fetchMessages(isSilent = false) {
+ async function fetchMessages(isSilent = false) {
 
-    /* istanbul ignore next */ if (!currentLogin || !currentDomain) return;
+    if (!currentLogin || !currentDomain) return;
 
-   /* istanbul ignore next */ const loader = document.getElementById('loading-spinner');
+   const loader = document.getElementById('loading-spinner');
 
-    /* istanbul ignore next */ if (!isSilent && loader) loader.classList.remove('hidden');
+    if (!isSilent && loader) loader.classList.remove('hidden');
 
-  /* istanbul ignore next */ try {
-     /* istanbul ignore next */ let messages;
+  try {
+     let messages;
     
-     /* istanbul ignore next */ if (useProxy) {
+     if (useProxy) {
       // Use Cloudflare proxy
-      /* istanbul ignore next */ const res = await fetchWithTimeout(
+      const res = await fetchWithTimeout(
         `${PROXY_API}?action=getMessages&provider=secmail&login=${encodeURIComponent(currentLogin)}&domain=${encodeURIComponent(currentDomain)}`,
-        /* istanbul ignore next */ 8000
+        8000
       );
 
-       /* istanbul ignore next */ if (!res.ok) throw new Error('Proxy error');
+       if (!res.ok) throw new Error('Proxy error');
 
-      /* istanbul ignore next */ messages = await res.json();
-    /* istanbul ignore next */ } else {
+      messages = await res.json();
+    } else {
       // Direct API
-      /* istanbul ignore next */ const res = await fetchWithTimeout(
+      const res = await fetchWithTimeout(
         `${SECMAIL_API}?action=getMessages&login=${encodeURIComponent(currentLogin)}&domain=${encodeURIComponent(currentDomain)}`,
-        /* istanbul ignore next */ 8000
+        8000
       );
 
-       /* istanbul ignore next */ if (!res.ok) throw new Error('API Error');
+       if (!res.ok) throw new Error('API Error');
 
-      /* istanbul ignore next */ messages = await res.json();
+      messages = await res.json();
     }
 
 
-     /* istanbul ignore next */ if (!Array.isArray(messages)) messages = [];
+     if (!Array.isArray(messages)) messages = [];
 
 
      const newMsgs = messages.filter(m => !seenMessageIds.has(m.id));
@@ -242,45 +242,45 @@
 
        newMsgs.forEach(m => seenMessageIds.add(m.id));
 
-      /* istanbul ignore next */ allMessages = [...newMsgs, ...allMessages];
+      allMessages = [...newMsgs, ...allMessages];
 
-      /* istanbul ignore next */ renderMessages();
+      renderMessages();
     }
 
-    /* istanbul ignore next */ retryCount = 0;
-  /* istanbul ignore next */ } catch (e) {
-    /* istanbul ignore next */ console.error('Fetch messages error:', e);
-    /* istanbul ignore next */ retryCount++;
-     /* istanbul ignore next */ const status = document.getElementById('status-text');
+    retryCount = 0;
+  } catch (e) {
+    console.error('Fetch messages error:', e);
+    retryCount++;
+     const status = document.getElementById('status-text');
      if (retryCount >= MAX_RETRIES) {
       // Try switching strategy
-       /* istanbul ignore next */ if (useProxy) {
-        /* istanbul ignore next */ console.warn('Proxy seems down, attempting direct API...');
-        /* istanbul ignore next */ useProxy = false;
-        /* istanbul ignore next */ retryCount = 0;
-      /* istanbul ignore next */ } else {
+       if (useProxy) {
+        console.warn('Proxy seems down, attempting direct API...');
+        useProxy = false;
+        retryCount = 0;
+      } else {
 
-         /* istanbul ignore next */ if (status) status.textContent = '❌ Connection lost. Click refresh to try again.';
+         if (status) status.textContent = '❌ Connection lost. Click refresh to try again.';
       }
-    /* istanbul ignore next */ } else {
+    } else {
 
        if (status) status.textContent = `⚠️ Retry ${retryCount}/${MAX_RETRIES}...`;
     }
-  /* istanbul ignore next */ } finally {
+  } finally {
 
-     /* istanbul ignore next */ if (loader) loader.classList.add('hidden');
+     if (loader) loader.classList.add('hidden');
   }
 }
 
-  /* istanbul ignore next */ function renderMessages(messages) {
-   /* istanbul ignore next */ const list = document.getElementById('inbox-list');
+  function renderMessages(messages) {
+   const list = document.getElementById('inbox-list');
 
-    /* istanbul ignore next */ if (!list) return;
+    if (!list) return;
 
 
-    /* istanbul ignore next */ const msgs = messages || allMessages;
+    const msgs = messages || allMessages;
 
-    /* istanbul ignore next */ if (msgs.length === 0) {
+    if (msgs.length === 0) {
 
     list.innerHTML = `<div class="p-8 text-center text-muted">
       <div style="font-size:2.5rem;margin-bottom:1rem">📭</div>
@@ -288,7 +288,7 @@
       <p class="hint mt-2">Emails sent to your address will appear here automatically.</p>
     </div>`;
 
-     /* istanbul ignore next */ return;
+     return;
   }
 
 
@@ -306,84 +306,84 @@
   `).join('');
 }
 
- /* istanbul ignore next */ async function readMessage(id) {
-   /* istanbul ignore next */ const view = document.getElementById('message-view');
+ async function readMessage(id) {
+   const view = document.getElementById('message-view');
 
-    /* istanbul ignore next */ if (!view) return;
+    if (!view) return;
 
 
-  /* istanbul ignore next */ view.classList.remove('hidden');
+  view.classList.remove('hidden');
 
-   /* istanbul ignore next */ const bodyEl = document.getElementById('msg-body');
+   const bodyEl = document.getElementById('msg-body');
 
    if (bodyEl) bodyEl.innerHTML = '<div style="text-align:center;padding:2rem">Loading...</div>';
 
 
-  /* istanbul ignore next */ try {
-     /* istanbul ignore next */ let msg;
+  try {
+     let msg;
 
-     /* istanbul ignore next */ const apiUrl = useProxy
+     const apiUrl = useProxy
       ? `${PROXY_API}?action=readMessage&provider=secmail&login=${encodeURIComponent(currentLogin)}&domain=${encodeURIComponent(currentDomain)}&id=${id}`
       : `${SECMAIL_API}?action=readMessage&login=${encodeURIComponent(currentLogin)}&domain=${encodeURIComponent(currentDomain)}&id=${id}`;
 
 
-     /* istanbul ignore next */ const res = await fetchWithTimeout(apiUrl, 8000);
+     const res = await fetchWithTimeout(apiUrl, 8000);
 
-    /* istanbul ignore next */ msg = await res.json();
-
-
-     /* istanbul ignore next */ const sub = document.getElementById('msg-subject');
-
-     /* istanbul ignore next */ if (sub) sub.textContent = msg.subject || 'No Subject';
-
-     /* istanbul ignore next */ const from = document.getElementById('msg-from');
-
-     /* istanbul ignore next */ if (from) from.textContent = msg.from || 'Unknown';
+    msg = await res.json();
 
 
-     /* istanbul ignore next */ const safeHtml = msg.htmlBody
-      /* istanbul ignore next */ ? sanitizeHtml(msg.htmlBody)
+     const sub = document.getElementById('msg-subject');
+
+     if (sub) sub.textContent = msg.subject || 'No Subject';
+
+     const from = document.getElementById('msg-from');
+
+     if (from) from.textContent = msg.from || 'Unknown';
+
+
+     const safeHtml = msg.htmlBody
+      ? sanitizeHtml(msg.htmlBody)
 
        : (msg.textBody ? escapeHTML(msg.textBody).replace(/\n/g, '<br>') : 'Empty message');
 
-     /* istanbul ignore next */ if (bodyEl) bodyEl.innerHTML = safeHtml;
-  /* istanbul ignore next */ } catch (e) {
+     if (bodyEl) bodyEl.innerHTML = safeHtml;
+  } catch (e) {
 
      if (bodyEl) bodyEl.innerHTML = '<p style="color:var(--muted)">Error loading message body.</p>';
   }
 }
 
-  /* istanbul ignore next */ function closeMessage() {
-   /* istanbul ignore next */ const view = document.getElementById('message-view');
+  function closeMessage() {
+   const view = document.getElementById('message-view');
 
-    /* istanbul ignore next */ if (view) view.classList.add('hidden');
+    if (view) view.classList.add('hidden');
 }
 
-  /* istanbul ignore next */ function escapeHTML(str) {
-    /* istanbul ignore next */ if (typeof str !== 'string') return '';
+  function escapeHTML(str) {
+    if (typeof str !== 'string') return '';
 
    return str.replace(/[&<>'"]/g, tag => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-  /* istanbul ignore next */ }[tag]));
+  }[tag]));
 }
 
-  /* istanbul ignore next */ function sanitizeHtml(html) {
-   /* istanbul ignore next */ return html
+  function sanitizeHtml(html) {
+   return html
     .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
     .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '');
 }
 
 
-  /* istanbul ignore next */ if (typeof document !== 'undefined') {
-  /* istanbul ignore next */ document.addEventListener('DOMContentLoaded', init);
+  if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
 }
 
 
-  /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-  /* istanbul ignore next */ module.exports = {
-    /* istanbul ignore next */ init, generateNewEmail, fetchMessages, readMessage, closeMessage,
-    /* istanbul ignore next */ renderMessages, setAndStart, copyEmail, escapeHTML, sanitizeHtml,
-    /* istanbul ignore next */ fetchWithTimeout,
+  if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    init, generateNewEmail, fetchMessages, readMessage, closeMessage,
+    renderMessages, setAndStart, copyEmail, escapeHTML, sanitizeHtml,
+    fetchWithTimeout,
      getState: () => ({ currentEmail, currentLogin, currentDomain, useProxy, seenMessageIds, allMessages })
   };
 }

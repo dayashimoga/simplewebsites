@@ -99,6 +99,47 @@
           <h3 class="mb-3">Open Reading Frames (<span id="orf-count">0</span> found)</h3>
           <div id="orf-list"></div>
         </div>
+
+        <!-- Melting Temperature -->
+        <div class="card glass mt-4">
+          <h3 class="mb-3">🌡️ Melting Temperature (Tm)</h3>
+          <div class="stat-value accent" id="melting-temp">—</div>
+        </div>
+
+        <!-- Restriction Enzymes -->
+        <div class="card glass mt-4">
+          <h3 class="mb-3">✂️ Restriction Enzyme Sites</h3>
+          <p class="text-sm text-muted mb-3">Common restriction enzyme recognition sites found in your sequence</p>
+          <div id="restriction-results"></div>
+        </div>
+
+        <!-- Mutation Simulator -->
+        <div class="card glass mt-4">
+          <h3 class="mb-3">🧪 Mutation Simulator</h3>
+          <p class="text-sm text-muted mb-3">Simulate point mutations to see how DNA changes affect the sequence</p>
+          <div class="flex gap-4 items-center mb-3">
+            <select id="mutation-type" class="input" style="max-width:200px">
+              <option value="substitution">Substitution (SNP)</option>
+              <option value="insertion">Insertion</option>
+              <option value="deletion">Deletion</option>
+            </select>
+            <button class="btn btn-primary" onclick="renderMutation()">Mutate! 🎲</button>
+          </div>
+          <div id="mutation-result"></div>
+        </div>
+
+        <!-- Sequence Comparison -->
+        <div class="card glass mt-4">
+          <h3 class="mb-3">🔍 Sequence Comparison</h3>
+          <p class="text-sm text-muted mb-3">Compare your sequence against another to find matches and mismatches</p>
+          <textarea id="compare-input" class="input w-full" placeholder="Paste a second sequence to compare..." rows="3" oninput="renderComparison()"></textarea>
+          <div id="compare-result" class="mt-3"></div>
+        </div>
+
+        <!-- DNA Fact -->
+        <div class="card glass mt-4 text-center" style="border-left:4px solid var(--color-primary)">
+          <p class="text-lg" id="dna-fact">🧬 Click "Analyze" to discover a fun DNA fact!</p>
+        </div>
       </div>
     </div>
   </div>

@@ -1,8 +1,8 @@
 
-  /* istanbul ignore next */ let habits=[];function loadHabits(){try{habits=JSON.parse(localStorage.getItem('habits')||'[]')}catch(e){habits=[]}}
-  /* istanbul ignore next */ function saveHabits(){try{localStorage.setItem('habits',JSON.stringify(habits))}catch(e){}}
+  let habits=[];function loadHabits(){try{habits=JSON.parse(localStorage.getItem('habits')||'[]')}catch(e){habits=[]}}
+  function saveHabits(){try{localStorage.setItem('habits',JSON.stringify(habits))}catch(e){}}
 
-  /* istanbul ignore next */ function addHabit(name){if(typeof document!=='undefined'&&!name){const i=document.getElementById('habit-input');name=i?i.value.trim():'';if(i)i.value=''}if(!name)return;habits.push({id:Date.now(),name,log:{},streak:0});saveHabits();render()}
+  function addHabit(name){if(typeof document!=='undefined'&&!name){const i=document.getElementById('habit-input');name=i?i.value.trim():'';if(i)i.value=''}if(!name)return;habits.push({id:Date.now(),name,log:{},streak:0});saveHabits();render()}
  function removeHabit(id){habits=habits.filter(h=>h.id!==id);saveHabits();render()}
 
  function toggleToday(id){const h=habits.find(x=>x.id===id);if(!h)return;const today=new Date().toISOString().slice(0,10);h.log[today]=!h.log[today];h.streak=calcStreak(h.log);saveHabits();render()}

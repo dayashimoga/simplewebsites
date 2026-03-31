@@ -1,40 +1,40 @@
 /**
  * Resume ATS Checker — Core Logic
  */
- /* istanbul ignore next */ const COMMON_SECTIONS = ['experience', 'education', 'skills', 'summary', 'projects', 'certifications', 'achievements'];
- /* istanbul ignore next */ const STOP_WORDS = new Set(['the','a','an','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','shall','should','may','might','must','can','could','of','in','for','on','with','at','by','to','from','and','but','or','not','no','so','if','as','it','its','this','that','these','those','i','me','my','we','our','you','your','he','she','they','their','them','who','what','which','when','where','how','all','each','every','any','few','more','most','some','such','than','too','very']);
+ const COMMON_SECTIONS = ['experience', 'education', 'skills', 'summary', 'projects', 'certifications', 'achievements'];
+ const STOP_WORDS = new Set(['the','a','an','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','shall','should','may','might','must','can','could','of','in','for','on','with','at','by','to','from','and','but','or','not','no','so','if','as','it','its','this','that','these','those','i','me','my','we','our','you','your','he','she','they','their','them','who','what','which','when','where','how','all','each','every','any','few','more','most','some','such','than','too','very']);
 
- /* istanbul ignore next */ function extractKeywords(text) {
-   /* istanbul ignore next */ if (!text || typeof text !== 'string') return [];
-   /* istanbul ignore next */ const words = text.toLowerCase()
-    /* istanbul ignore next */ .replace(/[^a-z0-9\s\-\+\#\.]/g, ' ')
-    /* istanbul ignore next */ .split(/\s+/)
+ function extractKeywords(text) {
+   if (!text || typeof text !== 'string') return [];
+   const words = text.toLowerCase()
+    .replace(/[^a-z0-9\s\-\+\#\.]/g, ' ')
+    .split(/\s+/)
     .map(w => w.replace(/^[^a-z0-9]+|[^a-z0-9\+\#]+$/g, '').trim())
     .filter(w => w.length > 2 && !STOP_WORDS.has(w));
-   /* istanbul ignore next */ const freq = {};
+   const freq = {};
   words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
 
   return Object.entries(freq).sort((a,b) => b[1] - a[1]).map(([word]) => word);
 }
 
- /* istanbul ignore next */ function findMatches(resumeKeywords, jobKeywords) {
-   /* istanbul ignore next */ const resumeSet = new Set(resumeKeywords);
+ function findMatches(resumeKeywords, jobKeywords) {
+   const resumeSet = new Set(resumeKeywords);
 
   const matched = jobKeywords.filter(k => resumeSet.has(k));
 
   const missing = jobKeywords.filter(k => !resumeSet.has(k));
 
-   /* istanbul ignore next */ return { matched, missing };
+   return { matched, missing };
 }
 
- /* istanbul ignore next */ function checkSections(resumeText) {
-   /* istanbul ignore next */ const lower = resumeText.toLowerCase();
+ function checkSections(resumeText) {
+   const lower = resumeText.toLowerCase();
   return COMMON_SECTIONS.map(s => ({ section: s, found: lower.includes(s) }));
 }
 
 function countWords(text) { if (!text) return 0; return text.trim().split(/\s+/).filter(w => w.length > 0).length; }
 
- /* istanbul ignore next */ function calculateScore(matched, missing, sections, wordCount) {
+ function calculateScore(matched, missing, sections, wordCount) {
 
   const keywordScore = missing.length + matched.length > 0 ? (matched.length / (matched.length + missing.length)) * 50 : 0;
 
@@ -42,21 +42,21 @@ function countWords(text) { if (!text) return 0; return text.trim().split(/\s+/)
 
   const lengthScore = wordCount >= 300 && wordCount <= 800 ? 20 : wordCount >= 200 ? 15 : wordCount >= 100 ? 10 : 5;
 
-   /* istanbul ignore next */ return Math.min(100, Math.round(keywordScore + sectionScore + lengthScore));
+   return Math.min(100, Math.round(keywordScore + sectionScore + lengthScore));
 }
 
- /* istanbul ignore next */ function getScoreClass(score) {
+ function getScoreClass(score) {
 
   if (score >= 80) return 'excellent';
 
   if (score >= 60) return 'good';
 
   if (score >= 40) return 'fair';
-   /* istanbul ignore next */ return 'poor';
+   return 'poor';
 }
 
- /* istanbul ignore next */ function generateTips(matched, missing, sections, wordCount) {
-   /* istanbul ignore next */ const tips = [];
+ function generateTips(matched, missing, sections, wordCount) {
+   const tips = [];
 
   const missingSections = sections.filter(s => !s.found);
 
@@ -72,63 +72,63 @@ function countWords(text) { if (!text) return 0; return text.trim().split(/\s+/)
 
   if (matched.length > 0) tips.push(`Great job! You matched ${matched.length} keywords from the job description.`);
 
-  /* istanbul ignore next */ tips.push('Use standard section headings like "Experience", "Education", "Skills".');
+  tips.push('Use standard section headings like "Experience", "Education", "Skills".');
 
-  /* istanbul ignore next */ tips.push('Avoid images, tables, and special characters — ATS systems often can\'t parse them.');
+  tips.push('Avoid images, tables, and special characters — ATS systems often can\'t parse them.');
 
-  /* istanbul ignore next */ tips.push('Use standard fonts and simple formatting for best ATS compatibility.');
+  tips.push('Use standard fonts and simple formatting for best ATS compatibility.');
 
-   /* istanbul ignore next */ return tips;
+   return tips;
 }
 
- /* istanbul ignore next */ function analyzeResume() {
+ function analyzeResume() {
 
-   /* istanbul ignore next */ if (typeof document === 'undefined') return;
-   /* istanbul ignore next */ const resumeEl = document.getElementById('resume-text');
-   /* istanbul ignore next */ const jobEl = document.getElementById('job-desc');
+   if (typeof document === 'undefined') return;
+   const resumeEl = document.getElementById('resume-text');
+   const jobEl = document.getElementById('job-desc');
 
-   /* istanbul ignore next */ if (!resumeEl || !jobEl) return;
+   if (!resumeEl || !jobEl) return;
   
 
-   /* istanbul ignore next */ const resumeText = resumeEl.value || '';
+   const resumeText = resumeEl.value || '';
 
-   /* istanbul ignore next */ const jobDesc = jobEl.value || '';
+   const jobDesc = jobEl.value || '';
 
-   /* istanbul ignore next */ if (!resumeText.trim() || !jobDesc.trim()) return;
-
-
-   /* istanbul ignore next */ const resumeKeywords = extractKeywords(resumeText);
-
-   /* istanbul ignore next */ const jobKeywords = extractKeywords(jobDesc).slice(0, 30);
-
-   /* istanbul ignore next */ const { matched, missing } = findMatches(resumeKeywords, jobKeywords);
-
-   /* istanbul ignore next */ const sections = checkSections(resumeText);
-
-   /* istanbul ignore next */ const wordCount = countWords(resumeText);
-
-   /* istanbul ignore next */ const score = calculateScore(matched, missing, sections, wordCount);
+   if (!resumeText.trim() || !jobDesc.trim()) return;
 
 
-  /* istanbul ignore next */ renderResults(score, matched, missing, sections, wordCount);
+   const resumeKeywords = extractKeywords(resumeText);
+
+   const jobKeywords = extractKeywords(jobDesc).slice(0, 30);
+
+   const { matched, missing } = findMatches(resumeKeywords, jobKeywords);
+
+   const sections = checkSections(resumeText);
+
+   const wordCount = countWords(resumeText);
+
+   const score = calculateScore(matched, missing, sections, wordCount);
+
+
+  renderResults(score, matched, missing, sections, wordCount);
 }
 
- /* istanbul ignore next */ function renderResults(score, matched, missing, sections, wordCount) {
+ function renderResults(score, matched, missing, sections, wordCount) {
 
-   /* istanbul ignore next */ if (typeof document === 'undefined') return;
-   /* istanbul ignore next */ const results = document.getElementById('results');
+   if (typeof document === 'undefined') return;
+   const results = document.getElementById('results');
 
-   /* istanbul ignore next */ if (results) results.classList.remove('hidden');
-   /* istanbul ignore next */ const circle = document.getElementById('score-circle');
-   /* istanbul ignore next */ const value = document.getElementById('score-value');
+   if (results) results.classList.remove('hidden');
+   const circle = document.getElementById('score-circle');
+   const value = document.getElementById('score-value');
 
-   /* istanbul ignore next */ if (circle) circle.className = 'score-circle ' + getScoreClass(score);
+   if (circle) circle.className = 'score-circle ' + getScoreClass(score);
 
-   /* istanbul ignore next */ if (value) value.textContent = score;
+   if (value) value.textContent = score;
 
-   /* istanbul ignore next */ const statsRow = document.getElementById('stats-row');
+   const statsRow = document.getElementById('stats-row');
 
-   /* istanbul ignore next */ if (statsRow) {
+   if (statsRow) {
 
     const sectionsFound = sections.filter(s => s.found).length;
 
@@ -139,21 +139,21 @@ function countWords(text) { if (!text) return 0; return text.trim().split(/\s+/)
       <div class="card mini-stat"><div class="val">${wordCount}</div><div class="lab">Word Count</div></div>`;
   }
 
-   /* istanbul ignore next */ const matchGrid = document.getElementById('keyword-matches');
+   const matchGrid = document.getElementById('keyword-matches');
 
   if (matchGrid) matchGrid.innerHTML = matched.map(k => `<span class="keyword-chip found">✓ ${k}</span>`).join('');
-   /* istanbul ignore next */ const missGrid = document.getElementById('keyword-missing');
+   const missGrid = document.getElementById('keyword-missing');
 
   if (missGrid) missGrid.innerHTML = missing.map(k => `<span class="keyword-chip missing">✗ ${k}</span>`).join('');
 
-   /* istanbul ignore next */ const tips = generateTips(matched, missing, sections, wordCount);
+   const tips = generateTips(matched, missing, sections, wordCount);
 
-   /* istanbul ignore next */ const tipsList = document.getElementById('tips-list');
+   const tipsList = document.getElementById('tips-list');
 
   if (tipsList) tipsList.innerHTML = tips.map(t => `<li>${t}</li>`).join('');
 }
 
 
- /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-  /* istanbul ignore next */ module.exports = { COMMON_SECTIONS, STOP_WORDS, extractKeywords, findMatches, checkSections, countWords, calculateScore, getScoreClass, generateTips, analyzeResume, renderResults };
+ if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { COMMON_SECTIONS, STOP_WORDS, extractKeywords, findMatches, checkSections, countWords, calculateScore, getScoreClass, generateTips, analyzeResume, renderResults };
 }

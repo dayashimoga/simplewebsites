@@ -45,6 +45,25 @@ batch-create*.js
 gen-*.js
 audit_coverage.js
 analyze_coverage.js
+analyze-cov.js
+apply-ignore.js
+auto-ast.js
+generate-super-fuzzer.js
+*fail.json
+coverage.json
+gaps.json
+jest_*.json
+jest_*.txt
+test_result.json
+test_*.log
+test_output.txt
+fail_summary.txt
+coverage_output.txt
+chem*.log
+errors.log
+fluid_err.txt
+weather*.log
+implementation_plan_simplewebsites.md
 
 # Specialized Artifacts (Gemini/Antigravity)
 .gemini/

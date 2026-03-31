@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Human Body Explorer — Interactive Anatomy & Health</title>
+  <meta name="description" content="Explore the human body interactively. Learn about organs, body systems, nutrition, and health. Fun science for all ages with quizzes and scenarios.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-4">
+      <h1>🔬 <span class="text-gradient">Human Body Explorer</span></h1>
+      <p>Discover the amazing systems, organs, and science inside your body!</p>
+      <div class="hero-controls">
+        <button class="ctrl-pill" id="xray-btn" onclick="toggleXray()">🩻 X-Ray Mode</button>
+        <button class="ctrl-pill" id="heartbeat-btn" onclick="toggleHeartbeat()">
+          <span id="heartbeat-pulse" class="pulse-dot">❤️</span> Heartbeat
+          <span class="pulse-count" id="pulse-counter">0</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <div class="body-tabs card glass mb-4">
+      <button class="body-tab-btn active" onclick="switchBodyTab('systems')">🫀 Body Systems</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('scenarios')">🤔 What Happens When...</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('nutrition')">🥗 Nutrition Guide</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('quiz')">🎯 Body Quiz</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('health')">📊 Health Calculator</button>
+    </div>
+
+    <!-- Tab: Body Systems -->
+    <div class="body-tab-content" id="tab-systems">
+      <div class="systems-grid" id="systems-grid"></div>
+      <div class="organs-section mt-4">
+        <h3 id="organs-title" class="section-title">🫀 All Organs</h3>
+        <div class="organs-grid" id="organs-grid"></div>
+      </div>
+      <div class="organ-detail-panel card glass mt-4" id="organ-detail">
+        <div class="empty-state"><p>👆 Select an organ to explore its details</p></div>
+      </div>
+    </div>
+
+    <!-- Tab: Scenarios -->
+    <div class="body-tab-content hidden" id="tab-scenarios">
+      <div class="scenarios-layout">
+        <div class="scenarios-sidebar" id="scenarios-list"></div>
+        <div class="scenario-detail-panel card glass" id="scenario-detail">
+          <div class="empty-state"><p>👆 Choose a scenario to see what happens inside your body</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Nutrition -->
+    <div class="body-tab-content hidden" id="tab-nutrition">
+      <h3 class="section-title">🍽️ Nutritious Foods & Their Benefits</h3>
+      <div class="foods-grid" id="foods-grid"></div>
+    </div>
+
+    <!-- Tab: Quiz -->
+    <div class="body-tab-content hidden" id="tab-quiz">
+      <div class="quiz-layout">
+        <div class="quiz-panel card glass">
+          <h3>🎯 Test Your Body Knowledge</h3>
+          <div id="quiz-area">
+            <p class="quiz-question" id="quiz-q"></p>
+            <div class="quiz-options" id="quiz-opts"></div>
+            <div id="quiz-fb" class="quiz-feedback hidden"></div>
+            <button class="btn btn-primary mt-3 w-full" onclick="renderQuiz()">Next Question ▶</button>
+          </div>
+          <div class="quiz-stats mt-4">
+            <span>Score: <strong id="body-quiz-score">0</strong></span>
+            <span>Streak: <strong id="body-quiz-streak">0</strong> 🔥</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Health Calculator -->
+    <div class="body-tab-content hidden" id="tab-health">
+      <div class="health-grid">
+        <div class="health-card card glass">
+          <h4>⚖️ BMI Calculator</h4>
+          <div class="health-inputs">
+            <input type="number" id="bmi-weight" class="input" placeholder="Weight (kg)" oninput="renderHealthCalc()">
+            <input type="number" id="bmi-height" class="input" placeholder="Height (cm)" oninput="renderHealthCalc()">
+          </div>
+          <div class="health-result" id="bmi-result"><span class="bmi-placeholder">Enter weight & height</span></div>
+        </div>
+        <div class="health-card card glass">
+          <h4>💧 Water Intake</h4>
+          <div class="health-inputs">
+            <input type="number" id="water-weight" class="input" placeholder="Weight (kg)" oninput="renderHealthCalc()">
+            <select id="water-activity" class="input" onchange="renderHealthCalc()">
+              <option value="sedentary">Sedentary</option>
+              <option value="moderate" selected>Moderate</option>
+              <option value="active">Active</option>
+              <option value="athlete">Athlete</option>
+            </select>
+          </div>
+          <div class="health-result" id="water-result"><span class="bmi-placeholder">Enter your weight</span></div>
+        </div>
+        <div class="health-card card glass">
+          <h4>❤️ Heart Rate Zones</h4>
+          <div class="health-inputs">
+            <input type="number" id="hr-age" class="input" placeholder="Age" oninput="renderHealthCalc()">
+          </div>
+          <div class="health-result" id="hr-result"><span class="bmi-placeholder">Enter your age</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer mt-8"><p>&copy; 2026 Human Body Explorer. Learn science interactively!</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

@@ -1,94 +1,200 @@
-
 const app = require('../app');
 
-describe('chemistry-lab base coverage', () => {
-    beforeEach(() => {
-        document.body.innerHTML = `
-  <div id="container"></div>
-  <canvas id="mandala-canvas" width="500" height="500"></canvas>
-  <canvas id="bg-canvas"></canvas>
-  <canvas id="cursor-canvas"></canvas>
-  <canvas id="guide-canvas"></canvas>
-  <canvas id="game-canvas" width="800" height="600"></canvas>
-  <canvas id="waveformCanvas"></canvas>
-  <div id="canvas-wrapper"></div>
-  <div id="sidebar"></div>
-  <div id="gallery-grid"></div>
-  <div id="split-results"></div>
-  <div id="output-list"></div>
-  <!-- Audio Trimmer -->
-  <input id="trim-start" type="number" value="0" />
-  <input id="trim-end" type="number" value="10" />
-  <span id="duration-display"></span>
-  <div id="upload-ui"></div>
-  <div id="editor-ui"></div>
-  <button id="btn-play-pause"></button>
-  
-  <input id="segments" value="12" />
-  <input id="mirror-lines" type="checkbox" checked />
-  <input id="show-guidelines" type="checkbox" checked />
-  <span id="size-val"></span>
-  <input id="bg-color" value="#000000" />
-  <!-- Other common inputs -->
-  <input type="text" id="status-text" />
-  <div id="processing-status"></div>
-  <button id="btn-hq"></button>
-  <button id="btn-mq"></button>
-  <button id="btn-lq"></button>
-`;
-        
-        // Mock Canvas
-        window.HTMLCanvasElement.prototype.getContext = () => ({
-            fillRect: jest.fn(), clearRect: jest.fn(), getImageData: jest.fn(() => ({ data: new Uint8ClampedArray(400) })),
-            putImageData: jest.fn(), createImageData: jest.fn(() => ({ data: new Uint8ClampedArray(400) })),
-            setTransform: jest.fn(), drawImage: jest.fn(), save: jest.fn(),
-            fillText: jest.fn(), restore: jest.fn(), beginPath: jest.fn(),
-            moveTo: jest.fn(), lineTo: jest.fn(), closePath: jest.fn(),
-            stroke: jest.fn(), translate: jest.fn(), scale: jest.fn(),
-            rotate: jest.fn(), arc: jest.fn(), fill: jest.fn(), measureText: jest.fn(() => ({width: 10})),
-            bezierCurveTo: jest.fn(), setLineDash: jest.fn(), transform: jest.fn(), clip: jest.fn()
-        });
-        window.HTMLCanvasElement.prototype.toDataURL = () => 'data:image/png;base64,';
-        window.HTMLCanvasElement.prototype.toBlob = cb => cb(new Blob([''], {type:'image/png'}));
-        
-        // Mock Audio
-        class AudioContextMock {
-            constructor() { 
-                this.currentTime = 0; 
-                this.state = 'running';
-                this.destination = {};
-            }
-            createOscillator() { return { connect: jest.fn(), start: jest.fn(), stop: jest.fn(), frequency: { value: 0 }, type: '' }; }
-            createGain() { return { connect: jest.fn(), gain: { value: 0, setValueAtTime: jest.fn(), linearRampToValueAtTime: jest.fn(), exponentialRampToValueAtTime: jest.fn() } }; }
-            resume() { return Promise.resolve(); }
-            suspend() { return Promise.resolve(); }
-            close() { return Promise.resolve(); }
-            decodeAudioData(d, res) { res({ duration: 10, numberOfChannels: 1, getChannelData: () => new Float32Array(100) }); }
-        }
-        window.AudioContext = window.webkitAudioContext = AudioContextMock;
-        
-        // Mock requestAnimationFrame
-        window.requestAnimationFrame = cb => setTimeout(cb, 0);
-        window.cancelAnimationFrame = jest.fn();
-        
-        // Mock generic DOM
-        Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, value: 500 });
-        Object.defineProperty(HTMLElement.prototype, 'clientHeight', { configurable: true, value: 500 });
-    });
+describe('Chemistry Lab', () => {
+  beforeEach(() => {
+    document.body.innerHTML = `
+      <div id="elements-grid"></div>
+      <div id="selected-elements"></div>
+      <div id="beaker-liquid"></div>
+      <div id="reaction-result">
+        <div id="result-title"></div>
+        <div id="reaction-type-badge"></div>
+        <div id="result-equation"></div>
+        <div id="products-list"></div>
+        <div id="observation-text"></div>
+        <div id="energy-text"></div>
+        <div id="fact-text"></div>
+        <div id="safety-info"></div>
+      </div>
+      <div id="reaction-history"></div>
+      <div id="element-info"></div>
+      <div id="stat-reactions"></div>
+      <div id="stat-elements"></div>
+      <div id="stat-discoveries"></div>
+      <div id="stat-quiz-score"></div>
+      <div id="quiz-question"></div>
+      <div id="quiz-options"></div>
+      <div id="quiz-feedback"></div>
+      <div id="quiz-streak"></div>
+      
+      <input id="temp-slider" value="20"/>
+      <div id="temperature-value"></div>
+      <div id="vessel-temperature"></div><div id="flame-effect"></div>
+      <div id="reaction-energy"></div>
+      <div id="catalyst-select"></div><div id="pressure-slider"></div><div id="pressure-value"></div>
+      <div id="reaction-rate"></div>
+      <div id="electron-config"></div>
+      <div id="molarity-result"></div>
+      <div id="chemistry-fact"></div>
+      
+      <input id="element-search" value=""/>
+      <button class="cat-btn" data-cat="all"></button>
+      <button class="tab-btn" data-tab="history"></button>
+      <div class="tab-content" id="tab-history"></div>
+      <button id="mix-btn"></button>
+    `;
+    window.requestAnimationFrame = jest.fn(cb => setTimeout(cb, 0));
+    window.cancelAnimationFrame = jest.fn();
+    Object.keys(app).forEach(k => { window[k] = app[k]; global[k] = app[k]; });
+  });
 
-    test('exports functions and handles basic calls', async () => {
-        expect(app).toBeDefined();
-        const funcs = Object.keys(app).filter(k => typeof app[k] === 'function');
-        
-        for (const f of funcs) {
-            try { await app[f](); } catch (e) {}
-            try { await app[f](null); } catch (e) {}
-            try { await app[f](1); } catch (e) {}
-            try { await app[f]('test'); } catch (e) {}
-            try { await app[f]({}); } catch (e) {}
-            try { await app[f]({ clientX: 10, clientY: 10, target: { files: [] } }); } catch (e) {}
-            try { await app[f](true); } catch (e) {}
-        }
-        expect(funcs.length).toBeGreaterThanOrEqual(0);
-    });
+  test('constants exist', () => {
+    expect(app.ELEMENTS).toBeDefined();
+    expect(app.REACTIONS).toBeDefined();
+    expect(app.CHEM_FACTS).toBeDefined();
+  });
+
+  test('renderElements', () => {
+    app.renderElements();
+    expect(document.getElementById('elements-grid').children.length).toBeGreaterThan(0);
+  });
+
+  test('filterByCategory', () => {
+    app.filterByCategory('alkali');
+    expect(app.getState().activeCategory).toBe('alkali');
+  });
+
+  test('toggleElement', () => {
+    app.setSelectedElements([]);
+    app.toggleElement('H');
+    expect(app.getState().selectedElements).toContain('H');
+    app.toggleElement('H');
+    expect(app.getState().selectedElements).not.toContain('H');
+  });
+
+  test('mixElements success', () => {
+    app.setSelectedElements(['H', 'O']);
+    const slider = document.getElementById('temp-slider');
+    if (slider) slider.value = "500";
+    app.updateTemperature(); // Exothermic
+    app.mixElements();
+    expect(document.getElementById('reaction-result').innerHTML).toContain('H₂O');
+  });
+
+  test('mixElements failure', () => {
+    app.setSelectedElements([]);
+    app.toggleElement('H');
+    app.toggleElement('Fe');
+    app.mixElements();
+    expect(document.getElementById('reaction-result').innerHTML).toContain('No Reaction');
+  });
+
+  test('temperature effects', () => {
+    const slider = document.getElementById('temp-slider');
+    if (slider) slider.value = "100";
+    app.updateTemperature();
+    expect(app.getState().currentTemp).toBe(100);
+  });
+
+  test('quiz generation', () => {
+    app.generateQuiz();
+    const q = app.getState().currentQuiz;
+    expect(q).toBeDefined();
+    app.answerQuiz(q.answer);
+    expect(app.getState().quizScore).toBe(1);
+    app.answerQuiz('wrong');
+  });
+
+  test('electron configs', () => {
+    const config = app.getElectronConfig('H');
+    expect(config).toContain('1s');
+  });
+
+  test('molarity calculation', () => {
+    const mol = app.calculateMolarity(58.44, 1.5, 0.5);
+    expect(mol).toBeDefined();
+  });
+
+  test('dilution calculation', () => {
+    app.calculateDilution(2, 0.1, 0.5);
+  });
+
+  test('reaction rate', () => {
+    app.reactionRateMultiplier(350);
+  });
+
+  test('show element info', () => {
+    app.showElementInfo('H');
+    expect(document.getElementById('element-info').innerHTML).toContain('Hydrogen');
+  });
+
+  test('tabs', () => {
+    app.switchTab('history');
+    app.switchTab('info');
+    app.switchTab('quiz'); // will also generate quiz
+  });
+  
+  test('getRandomFact', () => {
+    const fact = app.getChemFact();
+    expect(typeof fact).toBe('string');
+  });
+
+  test('DOM and interaction flows', () => {
+    app.init();
+    
+    // Test toggle Element and UI updates
+    app.toggleElement('He');
+    app.toggleElement('O');
+    app.toggleElement('C');
+    app.toggleElement('N'); // Should not add 4th
+    
+    expect(app.getState().selectedElements.length).toBe(3);
+    
+    // Remove element
+    app.removeElement('He');
+    expect(app.getState().selectedElements.length).toBe(2);
+    
+    // Clear Beaker
+    app.clearBeaker();
+    expect(app.getState().selectedElements.length).toBe(0);
+    
+    // updateTemperature negative and higher
+    const slider = document.getElementById('temp-slider');
+    if(slider) {
+      slider.value = '-10';
+      app.updateTemperature();
+      slider.value = '150';
+      app.updateTemperature();
+    }
+    
+    // Search elements
+    const search = document.getElementById('element-search');
+    if (search) {
+      search.value = 'hydro';
+      app.renderElements();
+    }
+    
+    // Filter
+    app.filterByCategory('metals');
+    app.filterByCategory('all');
+    
+    // Show info
+    app.showElementInfo('invalid_id');
+    app.showElementInfo('H');
+    
+    // History
+    app.addToHistory({ equation: 'A -> B', type: 'exothermic' });
+    app.renderHistory();
+    
+    // Bubbles
+    app.createBubbles();
+    
+    // showNoReaction
+    app.setSelectedElements(['He', 'Ne']);
+    app.showNoReaction();
+  });
+
+  test('init', () => {
+    app.init();
+  });
 });

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ocean & Marine Explorer — Interactive Ocean Science</title>
+  <meta name="description" content="Explore the ocean depths, discover marine creatures, simulate coral reefs, and learn about marine food chains. Fun ocean science for all ages.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-4">
+      <h1>🌊 <span class="text-gradient-ocean">Ocean & Marine Explorer</span></h1>
+      <p>Dive into the deep blue — discover creatures, explore ocean zones, and protect coral reefs!</p>
+    </section>
+
+    <div class="ocean-tabs card glass mb-4">
+      <button class="ocean-tab-btn active" onclick="switchOceanTab('depths')">🌊 Ocean Depths</button>
+      <button class="ocean-tab-btn" onclick="switchOceanTab('creatures')">🐬 Marine Life</button>
+      <button class="ocean-tab-btn" onclick="switchOceanTab('reef')">🪸 Coral Reef Lab</button>
+      <button class="ocean-tab-btn" onclick="switchOceanTab('foodchain')">🔗 Food Chain</button>
+      <button class="ocean-tab-btn" onclick="switchOceanTab('quiz')">🎯 Ocean Quiz</button>
+    </div>
+
+    <!-- Tab: Ocean Depths -->
+    <div class="ocean-tab-content" id="otab-depths">
+      <div class="depth-layout">
+        <div class="depth-chart" id="depth-chart"></div>
+        <div class="zone-detail-panel card glass" id="zone-detail">
+          <div class="empty-state"><p>👆 Click a zone to explore its depths</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Marine Life -->
+    <div class="ocean-tab-content hidden" id="otab-creatures">
+      <div class="creature-filters mb-3">
+        <button class="filter-btn active" data-group="all" onclick="filterCreatures('all')">All</button>
+        <button class="filter-btn" data-group="mammal" onclick="filterCreatures('mammal')">🐬 Mammals</button>
+        <button class="filter-btn" data-group="fish" onclick="filterCreatures('fish')">🐟 Fish</button>
+        <button class="filter-btn" data-group="invertebrate" onclick="filterCreatures('invertebrate')">🐙 Invertebrates</button>
+        <button class="filter-btn" data-group="reptile" onclick="filterCreatures('reptile')">🐢 Reptiles</button>
+      </div>
+      <div class="creatures-layout">
+        <div class="creatures-grid" id="creatures-grid"></div>
+        <div class="creature-detail card glass" id="creature-detail">
+          <div class="empty-state"><p>👆 Select a creature to learn about it</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Coral Reef Lab -->
+    <div class="ocean-tab-content hidden" id="otab-reef">
+      <div class="reef-layout">
+        <div class="reef-controls card glass">
+          <h3>🪸 Coral Reef Health Simulator</h3>
+          <p class="text-dim text-sm mb-3">Adjust environmental factors and observe how they affect reef health</p>
+          <div class="reef-slider">
+            <label>🌡️ Temperature: <strong id="reef-temp-val">26</strong>°C</label>
+            <input type="range" min="10" max="40" value="26" step="0.5" oninput="document.getElementById('reef-temp-val').textContent=this.value; updateReefParam('temp', this.value)">
+          </div>
+          <div class="reef-slider">
+            <label>🧪 pH Level: <strong id="reef-ph-val">8.2</strong></label>
+            <input type="range" min="7.0" max="9.0" value="8.2" step="0.1" oninput="document.getElementById('reef-ph-val').textContent=this.value; updateReefParam('ph', this.value)">
+          </div>
+          <div class="reef-slider">
+            <label>🧂 Salinity: <strong id="reef-sal-val">35</strong> ppt</label>
+            <input type="range" min="20" max="50" value="35" step="1" oninput="document.getElementById('reef-sal-val').textContent=this.value; updateReefParam('salinity', this.value)">
+          </div>
+          <div class="reef-slider">
+            <label>☀️ Light: <strong id="reef-light-val">80</strong>%</label>
+            <input type="range" min="0" max="100" value="80" step="5" oninput="document.getElementById('reef-light-val').textContent=this.value; updateReefParam('light', this.value)">
+          </div>
+        </div>
+        <div class="reef-display card glass" id="reef-display"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Food Chain -->
+    <div class="ocean-tab-content hidden" id="otab-foodchain">
+      <h3 class="section-title">🔗 Marine Food Chain</h3>
+      <p class="text-dim text-sm mb-4">Every creature plays a vital role in the ocean ecosystem</p>
+      <div class="food-chain" id="food-chain"></div>
+    </div>
+
+    <!-- Tab: Quiz -->
+    <div class="ocean-tab-content hidden" id="otab-quiz">
+      <div class="quiz-layout">
+        <div class="quiz-panel card glass">
+          <h3>🎯 Ocean Knowledge Quiz</h3>
+          <p class="quiz-question" id="oq-question"></p>
+          <div class="quiz-options" id="oq-options"></div>
+          <div id="oq-feedback" class="quiz-feedback hidden"></div>
+          <button class="btn btn-primary mt-3 w-full" onclick="renderOceanQuiz()">Next Question ▶</button>
+          <div class="quiz-stats mt-4">
+            <span>Score: <strong id="oq-score">0</strong></span>
+            <span>Streak: <strong id="oq-streak">0</strong> 🔥</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer mt-8"><p>&copy; 2026 Ocean & Marine Explorer. Protect our oceans! 🌊</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

@@ -2,149 +2,149 @@
  * Regex Tester Logic
  */
 
-  /* istanbul ignore next */ function init() {
-  /* istanbul ignore next */ testRegex();
+  function init() {
+  testRegex();
 }
 
 
-  /* istanbul ignore next */ function syncScroll() {
+  function syncScroll() {
 
-   /* istanbul ignore next */ const textarea = document.getElementById('test-string');
+   const textarea = document.getElementById('test-string');
 
-   /* istanbul ignore next */ const layer = document.getElementById('highlight-layer');
+   const layer = document.getElementById('highlight-layer');
 
-    /* istanbul ignore next */ if (textarea && layer) {
+    if (textarea && layer) {
 
-    /* istanbul ignore next */ layer.scrollTop = textarea.scrollTop;
+    layer.scrollTop = textarea.scrollTop;
 
-    /* istanbul ignore next */ layer.scrollLeft = textarea.scrollLeft;
+    layer.scrollLeft = textarea.scrollLeft;
   }
 }
 
-  /* istanbul ignore next */ function testRegex() {
-    /* istanbul ignore next */ const regStr = document.getElementById('regex-input')?.value || '';
-    /* istanbul ignore next */ const flags = document.getElementById('flag-input')?.value || '';
-    /* istanbul ignore next */ const testText = document.getElementById('test-string')?.value || '';
+  function testRegex() {
+    const regStr = document.getElementById('regex-input')?.value || '';
+    const flags = document.getElementById('flag-input')?.value || '';
+    const testText = document.getElementById('test-string')?.value || '';
   
-   /* istanbul ignore next */ const layer = document.getElementById('highlight-layer');
-   /* istanbul ignore next */ const results = document.getElementById('results-area');
-   /* istanbul ignore next */ const countBadge = document.getElementById('match-count');
+   const layer = document.getElementById('highlight-layer');
+   const results = document.getElementById('results-area');
+   const countBadge = document.getElementById('match-count');
   
 
-    /* istanbul ignore next */ if (!layer || !results || !countBadge) return;
+    if (!layer || !results || !countBadge) return;
   
   // Clear if empty or invalid
 
-    /* istanbul ignore next */ if (!regStr) {
+    if (!regStr) {
 
-    /* istanbul ignore next */ layer.innerHTML = escapeHtml(testText);
+    layer.innerHTML = escapeHtml(testText);
 
     results.innerHTML = '<p class="text-dim italic m-0">Enter a pattern to see matches.</p>';
 
-    /* istanbul ignore next */ countBadge.textContent = '0 matches';
+    countBadge.textContent = '0 matches';
 
-    /* istanbul ignore next */ countBadge.className = 'badge bg-surface';
+    countBadge.className = 'badge bg-surface';
 
-     /* istanbul ignore next */ return;
+     return;
   }
   
-   /* istanbul ignore next */ let regex;
+   let regex;
 
-  /* istanbul ignore next */ try {
+  try {
 
-    /* istanbul ignore next */ regex = new RegExp(regStr, flags);
+    regex = new RegExp(regStr, flags);
 
-    /* istanbul ignore next */ document.getElementById('regex-input').classList.remove('border-danger', 'text-danger');
-  /* istanbul ignore next */ } catch (e) {
+    document.getElementById('regex-input').classList.remove('border-danger', 'text-danger');
+  } catch (e) {
 
-    /* istanbul ignore next */ layer.innerHTML = escapeHtml(testText);
+    layer.innerHTML = escapeHtml(testText);
 
-    /* istanbul ignore next */ document.getElementById('regex-input').classList.add('border-danger', 'text-danger');
+    document.getElementById('regex-input').classList.add('border-danger', 'text-danger');
 
     results.innerHTML = `<p class="text-danger m-0"><strong>Invalid Regex:</strong> ${e.message}</p>`;
 
-    /* istanbul ignore next */ countBadge.textContent = 'Error';
+    countBadge.textContent = 'Error';
 
-    /* istanbul ignore next */ countBadge.className = 'badge bg-danger';
+    countBadge.className = 'badge bg-danger';
 
-     /* istanbul ignore next */ return;
+     return;
   }
   
   // Highlighting and evaluating
 
-   /* istanbul ignore next */ let matches = [];
-   /* istanbul ignore next */ let match;
+   let matches = [];
+   let match;
   
   // Need to clone regex if global so we don't mutate state, and handle non-global cleanly
 
-   /* istanbul ignore next */ const isGlobal = regex.global;
+   const isGlobal = regex.global;
   
 
-    /* istanbul ignore next */ if (isGlobal) {
+    if (isGlobal) {
 
-     /* istanbul ignore next */ let loopCount = 0;
+     let loopCount = 0;
 
-     /* istanbul ignore next */ while ((match = regex.exec(testText)) !== null) {
+     while ((match = regex.exec(testText)) !== null) {
       // Prevent infinite loops from 0-length matches
 
-       /* istanbul ignore next */ if (match.index === regex.lastIndex) regex.lastIndex++;
+       if (match.index === regex.lastIndex) regex.lastIndex++;
 
-      /* istanbul ignore next */ matches.push(match);
+      matches.push(match);
 
-      /* istanbul ignore next */ loopCount++;
+      loopCount++;
 
        if (loopCount > 2000) break; // sanity limit
     }
-  /* istanbul ignore next */ } else {
+  } else {
 
-    /* istanbul ignore next */ match = regex.exec(testText);
+    match = regex.exec(testText);
 
-     /* istanbul ignore next */ if (match !== null) matches.push(match);
+     if (match !== null) matches.push(match);
   }
   
   // Render Highlights
 
    if (matches.length > 0) {
 
-     /* istanbul ignore next */ let highlightedHTML = '';
+     let highlightedHTML = '';
 
-     /* istanbul ignore next */ let lastIndex = 0;
+     let lastIndex = 0;
     
 
      matches.forEach((m, idx) => {
 
-      /* istanbul ignore next */ const start = m.index;
+      const start = m.index;
 
-      /* istanbul ignore next */ const end = start + m[0].length;
+      const end = start + m[0].length;
       
 
-      /* istanbul ignore next */ highlightedHTML += escapeHtml(testText.substring(lastIndex, start));
+      highlightedHTML += escapeHtml(testText.substring(lastIndex, start));
       
 
-       /* istanbul ignore next */ const badgeClass = idx % 2 === 0 ? 'match-bg-1' : 'match-bg-2';
+       const badgeClass = idx % 2 === 0 ? 'match-bg-1' : 'match-bg-2';
 
       highlightedHTML += `<mark class="${badgeClass}">${escapeHtml(testText.substring(start, end))}</mark>`;
       
 
-      /* istanbul ignore next */ lastIndex = end;
-    /* istanbul ignore next */ });
+      lastIndex = end;
+    });
     
 
-    /* istanbul ignore next */ highlightedHTML += escapeHtml(testText.substring(lastIndex));
+    highlightedHTML += escapeHtml(testText.substring(lastIndex));
 
-    /* istanbul ignore next */ layer.innerHTML = highlightedHTML;
+    layer.innerHTML = highlightedHTML;
     
 
      countBadge.textContent = `${matches.length} match${matches.length > 1 ? 'es' : ''}`;
 
-    /* istanbul ignore next */ countBadge.className = 'badge bg-success';
-  /* istanbul ignore next */ } else {
+    countBadge.className = 'badge bg-success';
+  } else {
 
-    /* istanbul ignore next */ layer.innerHTML = escapeHtml(testText);
+    layer.innerHTML = escapeHtml(testText);
 
-    /* istanbul ignore next */ countBadge.textContent = '0 matches';
+    countBadge.textContent = '0 matches';
 
-    /* istanbul ignore next */ countBadge.className = 'badge bg-surface';
+    countBadge.className = 'badge bg-surface';
   }
   
   // Render Results List
@@ -153,7 +153,7 @@
 
      results.innerHTML = matches.map((m, idx) => {
 
-      /* istanbul ignore next */ let groupsHtml = '';
+      let groupsHtml = '';
 
        if (m.length > 1) { // has capture groups
 
@@ -170,35 +170,35 @@
           ${groupsHtml}
         </div>
       `;
-    /* istanbul ignore next */ }).join('');
-  /* istanbul ignore next */ } else {
+    }).join('');
+  } else {
 
     results.innerHTML = '<p class="text-dim italic m-0">No matches found.</p>';
   }
 }
 
-  /* istanbul ignore next */ function escapeHtml(unsafe) {
-    /* istanbul ignore next */ if (unsafe === undefined || unsafe === null) return '';
-   /* istanbul ignore next */ return unsafe
-    /* istanbul ignore next */ .replace(/&/g, "&amp;")
+  function escapeHtml(unsafe) {
+    if (unsafe === undefined || unsafe === null) return '';
+   return unsafe
+    .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    /* istanbul ignore next */ .replace(/"/g, "&quot;")
-    /* istanbul ignore next */ .replace(/'/g, "&#039;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 
-  /* istanbul ignore next */ if (typeof window !== 'undefined') {
-  /* istanbul ignore next */ window.testRegex = testRegex;
-  /* istanbul ignore next */ window.syncScroll = syncScroll;
+  if (typeof window !== 'undefined') {
+  window.testRegex = testRegex;
+  window.syncScroll = syncScroll;
 }
 
 
-  /* istanbul ignore next */ if (typeof document !== 'undefined') {
-  /* istanbul ignore next */ document.addEventListener('DOMContentLoaded', init);
+  if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
 }
 
 
-  /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-  /* istanbul ignore next */ module.exports = { init, testRegex, escapeHtml };
+  if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { init, testRegex, escapeHtml };
 }

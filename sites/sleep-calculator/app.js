@@ -3,31 +3,31 @@
  * Based on 90-minute sleep cycles
  */
 
- /* istanbul ignore next */ const CYCLE_DURATION = 90; // minutes
- /* istanbul ignore next */ const FALL_ASLEEP_TIME = 14; // average minutes to fall asleep
- /* istanbul ignore next */ const MAX_CYCLES = 6;
- /* istanbul ignore next */ const MIN_CYCLES = 3;
+ const CYCLE_DURATION = 90; // minutes
+ const FALL_ASLEEP_TIME = 14; // average minutes to fall asleep
+ const MAX_CYCLES = 6;
+ const MIN_CYCLES = 3;
 
- /* istanbul ignore next */ let currentMode = 'wake'; // 'wake' or 'sleep'
+ let currentMode = 'wake'; // 'wake' or 'sleep'
 
 /**
  * Parse time string (HH:MM) into hours and minutes
  * @param {string} timeStr
  * @returns {{hours: number, minutes: number}|null}
  */
- /* istanbul ignore next */ function parseTime(timeStr) {
-   /* istanbul ignore next */ if (typeof timeStr !== 'string') return null;
+ function parseTime(timeStr) {
+   if (typeof timeStr !== 'string') return null;
    const match = timeStr.match(/^(\d{1,2}):(\d{2})$/);
 
-   /* istanbul ignore next */ if (!match) return null;
+   if (!match) return null;
 
-   /* istanbul ignore next */ const hours = parseInt(match[1], 10);
+   const hours = parseInt(match[1], 10);
 
-   /* istanbul ignore next */ const minutes = parseInt(match[2], 10);
+   const minutes = parseInt(match[2], 10);
 
   if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return null;
 
-   /* istanbul ignore next */ return { hours, minutes };
+   return { hours, minutes };
 }
 
 /**
@@ -36,9 +36,9 @@
  * @param {number} minutes
  * @returns {string}
  */
- /* istanbul ignore next */ function formatTime(hours, minutes) {
-   /* istanbul ignore next */ const h = ((hours % 24) + 24) % 24;
-   /* istanbul ignore next */ const m = ((minutes % 60) + 60) % 60;
+ function formatTime(hours, minutes) {
+   const h = ((hours % 24) + 24) % 24;
+   const m = ((minutes % 60) + 60) % 60;
 
   const period = h >= 12 ? 'PM' : 'AM';
 
@@ -51,47 +51,47 @@
  * @param {string} wakeTime - HH:MM format
  * @returns {Array<{time: string, cycles: number, duration: string, recommended: boolean}>}
  */
- /* istanbul ignore next */ function calculateBedtimes(wakeTime) {
-   /* istanbul ignore next */ const parsed = parseTime(wakeTime);
+ function calculateBedtimes(wakeTime) {
+   const parsed = parseTime(wakeTime);
 
-   /* istanbul ignore next */ if (!parsed) return [];
+   if (!parsed) return [];
 
 
-   /* istanbul ignore next */ const results = [];
+   const results = [];
 
   for (let cycles = MAX_CYCLES; cycles >= MIN_CYCLES; cycles--) {
 
-     /* istanbul ignore next */ const totalMinutes = cycles * CYCLE_DURATION + FALL_ASLEEP_TIME;
+     const totalMinutes = cycles * CYCLE_DURATION + FALL_ASLEEP_TIME;
 
-     /* istanbul ignore next */ const wakeMinutes = parsed.hours * 60 + parsed.minutes;
+     const wakeMinutes = parsed.hours * 60 + parsed.minutes;
 
-     /* istanbul ignore next */ let bedMinutes = wakeMinutes - totalMinutes;
+     let bedMinutes = wakeMinutes - totalMinutes;
 
     if (bedMinutes < 0) bedMinutes += 24 * 60;
 
 
-     /* istanbul ignore next */ const bedHours = Math.floor(bedMinutes / 60);
+     const bedHours = Math.floor(bedMinutes / 60);
 
-     /* istanbul ignore next */ const bedMins = bedMinutes % 60;
-
-
-     /* istanbul ignore next */ const durationHours = Math.floor((cycles * CYCLE_DURATION) / 60);
-
-     /* istanbul ignore next */ const durationMins = (cycles * CYCLE_DURATION) % 60;
+     const bedMins = bedMinutes % 60;
 
 
-    /* istanbul ignore next */ results.push({
-      /* istanbul ignore next */ time: formatTime(bedHours, bedMins),
-      /* istanbul ignore next */ cycles: cycles,
+     const durationHours = Math.floor((cycles * CYCLE_DURATION) / 60);
+
+     const durationMins = (cycles * CYCLE_DURATION) % 60;
+
+
+    results.push({
+      time: formatTime(bedHours, bedMins),
+      cycles: cycles,
       duration: `${durationHours}h ${durationMins}m sleep`,
 
-      /* istanbul ignore next */ recommended: cycles === 5 || cycles === 6,
-      /* istanbul ignore next */ rawMinutes: bedMinutes
-    /* istanbul ignore next */ });
+      recommended: cycles === 5 || cycles === 6,
+      rawMinutes: bedMinutes
+    });
   }
 
 
-   /* istanbul ignore next */ return results;
+   return results;
 }
 
 /**
@@ -99,114 +99,114 @@
  * @param {string} sleepTime - HH:MM format
  * @returns {Array<{time: string, cycles: number, duration: string, recommended: boolean}>}
  */
- /* istanbul ignore next */ function calculateWakeTimes(sleepTime) {
-   /* istanbul ignore next */ const parsed = parseTime(sleepTime);
+ function calculateWakeTimes(sleepTime) {
+   const parsed = parseTime(sleepTime);
 
-   /* istanbul ignore next */ if (!parsed) return [];
+   if (!parsed) return [];
 
 
-   /* istanbul ignore next */ const results = [];
+   const results = [];
 
   for (let cycles = MIN_CYCLES; cycles <= MAX_CYCLES; cycles++) {
 
-     /* istanbul ignore next */ const totalMinutes = cycles * CYCLE_DURATION + FALL_ASLEEP_TIME;
+     const totalMinutes = cycles * CYCLE_DURATION + FALL_ASLEEP_TIME;
 
-     /* istanbul ignore next */ const sleepMinutes = parsed.hours * 60 + parsed.minutes;
+     const sleepMinutes = parsed.hours * 60 + parsed.minutes;
 
-     /* istanbul ignore next */ let wakeMinutes = (sleepMinutes + totalMinutes) % (24 * 60);
-
-
-     /* istanbul ignore next */ const wakeHours = Math.floor(wakeMinutes / 60);
-
-     /* istanbul ignore next */ const wakeMins = wakeMinutes % 60;
+     let wakeMinutes = (sleepMinutes + totalMinutes) % (24 * 60);
 
 
-     /* istanbul ignore next */ const durationHours = Math.floor((cycles * CYCLE_DURATION) / 60);
+     const wakeHours = Math.floor(wakeMinutes / 60);
 
-     /* istanbul ignore next */ const durationMins = (cycles * CYCLE_DURATION) % 60;
+     const wakeMins = wakeMinutes % 60;
 
 
-    /* istanbul ignore next */ results.push({
-      /* istanbul ignore next */ time: formatTime(wakeHours, wakeMins),
-      /* istanbul ignore next */ cycles: cycles,
+     const durationHours = Math.floor((cycles * CYCLE_DURATION) / 60);
+
+     const durationMins = (cycles * CYCLE_DURATION) % 60;
+
+
+    results.push({
+      time: formatTime(wakeHours, wakeMins),
+      cycles: cycles,
       duration: `${durationHours}h ${durationMins}m sleep`,
 
-      /* istanbul ignore next */ recommended: cycles === 5 || cycles === 6,
-      /* istanbul ignore next */ rawMinutes: wakeMinutes
-    /* istanbul ignore next */ });
+      recommended: cycles === 5 || cycles === 6,
+      rawMinutes: wakeMinutes
+    });
   }
 
 
-   /* istanbul ignore next */ return results;
+   return results;
 }
 
 /**
  * Set the calculator mode
  * @param {'wake'|'sleep'} mode
  */
- /* istanbul ignore next */ function setMode(mode) {
-  /* istanbul ignore next */ currentMode = mode;
+ function setMode(mode) {
+  currentMode = mode;
 
-   /* istanbul ignore next */ if (typeof document === 'undefined') return;
+   if (typeof document === 'undefined') return;
 
-   /* istanbul ignore next */ const wakeBtn = document.getElementById('mode-wake');
-   /* istanbul ignore next */ const sleepBtn = document.getElementById('mode-sleep');
-   /* istanbul ignore next */ const label = document.getElementById('time-label');
-   /* istanbul ignore next */ const title = document.getElementById('results-title');
+   const wakeBtn = document.getElementById('mode-wake');
+   const sleepBtn = document.getElementById('mode-sleep');
+   const label = document.getElementById('time-label');
+   const title = document.getElementById('results-title');
 
 
-   /* istanbul ignore next */ if (mode === 'wake') {
+   if (mode === 'wake') {
 
-     /* istanbul ignore next */ if (wakeBtn) { wakeBtn.classList.add('active'); wakeBtn.classList.remove('btn-secondary'); wakeBtn.classList.add('btn-primary'); }
+     if (wakeBtn) { wakeBtn.classList.add('active'); wakeBtn.classList.remove('btn-secondary'); wakeBtn.classList.add('btn-primary'); }
 
-     /* istanbul ignore next */ if (sleepBtn) { sleepBtn.classList.remove('active'); sleepBtn.classList.add('btn-secondary'); sleepBtn.classList.remove('btn-primary'); }
+     if (sleepBtn) { sleepBtn.classList.remove('active'); sleepBtn.classList.add('btn-secondary'); sleepBtn.classList.remove('btn-primary'); }
 
-     /* istanbul ignore next */ if (label) label.textContent = 'What time do you need to wake up?';
+     if (label) label.textContent = 'What time do you need to wake up?';
 
-     /* istanbul ignore next */ if (title) title.textContent = 'Recommended Bedtimes';
-  /* istanbul ignore next */ } else {
+     if (title) title.textContent = 'Recommended Bedtimes';
+  } else {
 
-     /* istanbul ignore next */ if (sleepBtn) { sleepBtn.classList.add('active'); sleepBtn.classList.remove('btn-secondary'); sleepBtn.classList.add('btn-primary'); }
+     if (sleepBtn) { sleepBtn.classList.add('active'); sleepBtn.classList.remove('btn-secondary'); sleepBtn.classList.add('btn-primary'); }
 
-     /* istanbul ignore next */ if (wakeBtn) { wakeBtn.classList.remove('active'); wakeBtn.classList.add('btn-secondary'); wakeBtn.classList.remove('btn-primary'); }
+     if (wakeBtn) { wakeBtn.classList.remove('active'); wakeBtn.classList.add('btn-secondary'); wakeBtn.classList.remove('btn-primary'); }
 
-     /* istanbul ignore next */ if (label) label.textContent = 'What time do you want to go to sleep?';
+     if (label) label.textContent = 'What time do you want to go to sleep?';
 
-     /* istanbul ignore next */ if (title) title.textContent = 'Recommended Wake Times';
+     if (title) title.textContent = 'Recommended Wake Times';
   }
 
-  /* istanbul ignore next */ calculateSleep();
+  calculateSleep();
 }
 
 /**
  * Main calculation function
  */
- /* istanbul ignore next */ function calculateSleep() {
+ function calculateSleep() {
 
-   /* istanbul ignore next */ if (typeof document === 'undefined') return;
-   /* istanbul ignore next */ const timeInput = document.getElementById('time-input');
+   if (typeof document === 'undefined') return;
+   const timeInput = document.getElementById('time-input');
 
-   /* istanbul ignore next */ if (!timeInput) return;
-
-
-   /* istanbul ignore next */ const results = currentMode === 'wake'
-    /* istanbul ignore next */ ? calculateBedtimes(timeInput.value)
-    /* istanbul ignore next */ : calculateWakeTimes(timeInput.value);
+   if (!timeInput) return;
 
 
-  /* istanbul ignore next */ renderResults(results);
+   const results = currentMode === 'wake'
+    ? calculateBedtimes(timeInput.value)
+    : calculateWakeTimes(timeInput.value);
+
+
+  renderResults(results);
 }
 
 /**
  * Render results to the grid
  * @param {Array} results
  */
- /* istanbul ignore next */ function renderResults(results) {
+ function renderResults(results) {
 
-   /* istanbul ignore next */ if (typeof document === 'undefined') return;
-   /* istanbul ignore next */ const grid = document.getElementById('cycles-grid');
+   if (typeof document === 'undefined') return;
+   const grid = document.getElementById('cycles-grid');
 
-   /* istanbul ignore next */ if (!grid) return;
+   if (!grid) return;
 
 
   grid.innerHTML = results.map(r =>
@@ -218,21 +218,21 @@
 
       ${r.recommended ? '<div class="badge">Recommended</div>' : ''}
     </div>`
-  /* istanbul ignore next */ ).join('');
+  ).join('');
 }
 
 // Initialize
 
- /* istanbul ignore next */ if (typeof document !== 'undefined') {
-  /* istanbul ignore next */ document.addEventListener('DOMContentLoaded', calculateSleep);
+ if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', calculateSleep);
 }
 
 
- /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-  /* istanbul ignore next */ module.exports = {
-    /* istanbul ignore next */ CYCLE_DURATION, FALL_ASLEEP_TIME, MAX_CYCLES, MIN_CYCLES,
-    /* istanbul ignore next */ parseTime, formatTime, calculateBedtimes, calculateWakeTimes,
-    /* istanbul ignore next */ setMode, calculateSleep, renderResults,
+ if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    CYCLE_DURATION, FALL_ASLEEP_TIME, MAX_CYCLES, MIN_CYCLES,
+    parseTime, formatTime, calculateBedtimes, calculateWakeTimes,
+    setMode, calculateSleep, renderResults,
     getCurrentMode: () => currentMode,
     setCurrentMode: (m) => { currentMode = m; }
   };

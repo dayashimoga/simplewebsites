@@ -119,6 +119,38 @@
             <span class="text-muted">Select two different planets</span>
           </div>
         </div>
+
+        <!-- Gravity Calculator -->
+        <div class="glass sidebar-panel">
+          <h3>⚖️ Weight on Other Planets</h3>
+          <input type="number" id="gravity-weight-input" class="input w-full" placeholder="Your weight (kg)" oninput="renderGravityCalc()">
+          <div id="gravity-results" class="grav-results mt-2"><p class="text-muted">Enter your weight above</p></div>
+        </div>
+
+        <!-- Mission Time Calculator -->
+        <div class="glass sidebar-panel">
+          <h3>🚀 Mission Travel Time</h3>
+          <select id="mission-planet-sel" class="input w-full" onchange="renderMissionCalc()">
+            <option value="">Select destination...</option>
+            <option value="Mercury">Mercury</option>
+            <option value="Venus">Venus</option>
+            <option value="Mars">Mars</option>
+            <option value="Jupiter">Jupiter</option>
+            <option value="Saturn">Saturn</option>
+            <option value="Uranus">Uranus</option>
+            <option value="Neptune">Neptune</option>
+          </select>
+          <div id="mission-results" class="mission-results mt-2"><p class="text-muted">Select a planet</p></div>
+        </div>
+
+        <!-- Planet Quiz -->
+        <div class="glass sidebar-panel">
+          <h3>🎯 Planet Quiz <span class="quiz-score-badge">Score: <strong id="sq-score">0</strong></span></h3>
+          <p class="sq-question" id="sq-question">Click below to start!</p>
+          <div id="sq-options" class="sq-options"></div>
+          <div id="sq-feedback" class="sq-feedback hidden"></div>
+          <button class="ctrl-btn w-full mt-2" onclick="renderSolarQuiz()">Next Question ▶</button>
+        </div>
       </div>
     </div>
   </div>

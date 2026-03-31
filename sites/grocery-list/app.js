@@ -1,8 +1,8 @@
 
-  /* istanbul ignore next */ let items=[];function load(){try{items=JSON.parse(localStorage.getItem('grocery')||'[]')}catch(e){items=[]}}
-  /* istanbul ignore next */ function save(){try{localStorage.setItem('grocery',JSON.stringify(items))}catch(e){}}
+  let items=[];function load(){try{items=JSON.parse(localStorage.getItem('grocery')||'[]')}catch(e){items=[]}}
+  function save(){try{localStorage.setItem('grocery',JSON.stringify(items))}catch(e){}}
 
-  /* istanbul ignore next */ function addItem(name,cat){if(typeof document!=='undefined'&&!name){const i=document.getElementById('item-input');const c=document.getElementById('cat-select');name=i?i.value.trim():'';cat=c?c.value:'Other';if(i)i.value=''}if(!name)return;items.push({id:Date.now(),name,cat:cat||'Other',done:false});save();render()}
+  function addItem(name,cat){if(typeof document!=='undefined'&&!name){const i=document.getElementById('item-input');const c=document.getElementById('cat-select');name=i?i.value.trim():'';cat=c?c.value:'Other';if(i)i.value=''}if(!name)return;items.push({id:Date.now(),name,cat:cat||'Other',done:false});save();render()}
 
  function toggleItem(id){const it=items.find(x=>x.id===id);if(it)it.done=!it.done;save();render()}
  function removeItem(id){items=items.filter(x=>x.id!==id);save();render()}

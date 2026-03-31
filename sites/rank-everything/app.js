@@ -2,182 +2,182 @@
  * Rank Everything Core Logic using TMDB, RAWG, and CoinGecko APIs
  */
 
- /* istanbul ignore next */ let apiKeys = { tmdb: '', rawg: '' };
- /* istanbul ignore next */ let currentCategory = 'crypto';
+ let apiKeys = { tmdb: '', rawg: '' };
+ let currentCategory = 'crypto';
 
-  /* istanbul ignore next */ function checkApiKeys() {
-     /* istanbul ignore next */ apiKeys.tmdb = localStorage.getItem('stacky_tmdb_key') || '';
-     /* istanbul ignore next */ apiKeys.rawg = localStorage.getItem('stacky_rawg_key') || '';
+  function checkApiKeys() {
+     apiKeys.tmdb = localStorage.getItem('stacky_tmdb_key') || '';
+     apiKeys.rawg = localStorage.getItem('stacky_rawg_key') || '';
     
 
-     /* istanbul ignore next */ if (!apiKeys.tmdb || !apiKeys.rawg) {
-        /* istanbul ignore next */ document.getElementById('api-key-banner').classList.remove('hidden');
-    /* istanbul ignore next */ } else {
+     if (!apiKeys.tmdb || !apiKeys.rawg) {
+        document.getElementById('api-key-banner').classList.remove('hidden');
+    } else {
 
-        /* istanbul ignore next */ document.getElementById('api-key-banner').classList.add('hidden');
+        document.getElementById('api-key-banner').classList.add('hidden');
     }
 }
 
-  /* istanbul ignore next */ function saveApiKeys() {
-     /* istanbul ignore next */ const tmdb = document.getElementById('tmdb-key').value.trim();
+  function saveApiKeys() {
+     const tmdb = document.getElementById('tmdb-key').value.trim();
 
-     /* istanbul ignore next */ const rawg = document.getElementById('rawg-key').value.trim();
+     const rawg = document.getElementById('rawg-key').value.trim();
 
-     /* istanbul ignore next */ if (tmdb) localStorage.setItem('stacky_tmdb_key', tmdb);
+     if (tmdb) localStorage.setItem('stacky_tmdb_key', tmdb);
 
-     /* istanbul ignore next */ if (rawg) localStorage.setItem('stacky_rawg_key', rawg);
+     if (rawg) localStorage.setItem('stacky_rawg_key', rawg);
 
-    /* istanbul ignore next */ checkApiKeys();
+    checkApiKeys();
     
     // Reload if stuck
 
-     /* istanbul ignore next */ if (['movies', 'games'].includes(currentCategory)) {
+     if (['movies', 'games'].includes(currentCategory)) {
 
-        /* istanbul ignore next */ loadCategory(currentCategory);
+        loadCategory(currentCategory);
     }
 }
 
- /* istanbul ignore next */ async function loadCategory(cat) {
-    /* istanbul ignore next */ currentCategory = cat;
+ async function loadCategory(cat) {
+    currentCategory = cat;
      ['crypto', 'movies', 'games', 'community', 'creators'].forEach(c => {
         const btn = document.getElementById(`tab-${c}`);
 
-         /* istanbul ignore next */ if (btn) {
+         if (btn) {
 
-            /* istanbul ignore next */ btn.classList.toggle('active', c === cat);
+            btn.classList.toggle('active', c === cat);
 
-            /* istanbul ignore next */ btn.classList.toggle('bg-primary/20', c === cat);
+            btn.classList.toggle('bg-primary/20', c === cat);
 
-            /* istanbul ignore next */ btn.classList.toggle('border-primary', c === cat);
+            btn.classList.toggle('border-primary', c === cat);
         }
-    /* istanbul ignore next */ });
+    });
     
-     /* istanbul ignore next */ const list = document.getElementById('rank-list');
-     /* istanbul ignore next */ const loader = document.getElementById('loading-spinner');
-     /* istanbul ignore next */ const errorEl = document.getElementById('error-msg');
-     /* istanbul ignore next */ const communityActions = document.getElementById('community-actions');
-     /* istanbul ignore next */ const createListUI = document.getElementById('create-list-ui');
+     const list = document.getElementById('rank-list');
+     const loader = document.getElementById('loading-spinner');
+     const errorEl = document.getElementById('error-msg');
+     const communityActions = document.getElementById('community-actions');
+     const createListUI = document.getElementById('create-list-ui');
     
-    /* istanbul ignore next */ list.innerHTML = '';
+    list.innerHTML = '';
 
-    /* istanbul ignore next */ errorEl.classList.add('hidden');
+    errorEl.classList.add('hidden');
 
-    /* istanbul ignore next */ loader.classList.remove('hidden');
+    loader.classList.remove('hidden');
 
-     /* istanbul ignore next */ if (communityActions) communityActions.classList.toggle('hidden', cat !== 'community');
+     if (communityActions) communityActions.classList.toggle('hidden', cat !== 'community');
 
-     /* istanbul ignore next */ if (createListUI) createListUI.classList.add('hidden');
+     if (createListUI) createListUI.classList.add('hidden');
 
 
-    /* istanbul ignore next */ try {
+    try {
 
-        /* istanbul ignore next */ let items = [];
+        let items = [];
 
-         /* istanbul ignore next */ if (cat === 'crypto') {
+         if (cat === 'crypto') {
 
-            /* istanbul ignore next */ items = await fetchCrypto();
+            items = await fetchCrypto();
 
-         /* istanbul ignore next */ } else if (cat === 'movies') {
+         } else if (cat === 'movies') {
 
-             /* istanbul ignore next */ if (!apiKeys.tmdb) throw new Error("TMDB API Key required");
+             if (!apiKeys.tmdb) throw new Error("TMDB API Key required");
 
-            /* istanbul ignore next */ items = await fetchMovies();
+            items = await fetchMovies();
 
-         /* istanbul ignore next */ } else if (cat === 'games') {
+         } else if (cat === 'games') {
 
-             /* istanbul ignore next */ if (!apiKeys.rawg) throw new Error("RAWG API Key required");
+             if (!apiKeys.rawg) throw new Error("RAWG API Key required");
 
-            /* istanbul ignore next */ items = await fetchGames();
+            items = await fetchGames();
 
-         /* istanbul ignore next */ } else if (cat === 'community') {
+         } else if (cat === 'community') {
 
-            /* istanbul ignore next */ await syncListsFromCloudflare();
+            await syncListsFromCloudflare();
 
-            /* istanbul ignore next */ renderCommunityLists();
+            renderCommunityLists();
 
-            /* istanbul ignore next */ loader.classList.add('hidden');
+            loader.classList.add('hidden');
 
-         /* istanbul ignore next */ } else if (cat === 'creators') {
+         } else if (cat === 'creators') {
 
-            /* istanbul ignore next */ const users = await fetchTopUsers();
+            const users = await fetchTopUsers();
 
-            /* istanbul ignore next */ renderUsers(users);
+            renderUsers(users);
 
-            /* istanbul ignore next */ loader.classList.add('hidden');
+            loader.classList.add('hidden');
 
-            /* istanbul ignore next */ return;
+            return;
         }
         
 
-        /* istanbul ignore next */ renderList(items);
-    /* istanbul ignore next */ } catch (e) {
+        renderList(items);
+    } catch (e) {
 
-        /* istanbul ignore next */ console.log('CATCHING ERROR:', e.message);
+        console.log('CATCHING ERROR:', e.message);
 
         errorEl.textContent = `❌ Error loading ${cat}: ${e.message}`;
 
-        /* istanbul ignore next */ errorEl.classList.remove('hidden');
-    /* istanbul ignore next */ } finally {
+        errorEl.classList.remove('hidden');
+    } finally {
 
-        /* istanbul ignore next */ loader.classList.add('hidden');
+        loader.classList.add('hidden');
     }
 }
 
- /* istanbul ignore next */ async function fetchCrypto() {
+ async function fetchCrypto() {
     // CoinGecko open API
-     /* istanbul ignore next */ const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false');
+     const res = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&page=1&sparkline=false');
 
-     /* istanbul ignore next */ if(!res.ok) throw new Error("Rate limited by CoinGecko. Try again later.");
+     if(!res.ok) throw new Error("Rate limited by CoinGecko. Try again later.");
 
-     /* istanbul ignore next */ const data = await res.json();
+     const data = await res.json();
 
      return data.map((c, i) => ({
-        /* istanbul ignore next */ rank: i + 1,
+        rank: i + 1,
         title: `${c.name} (${c.symbol.toUpperCase()})`,
-        /* istanbul ignore next */ image: c.image,
+        image: c.image,
         stat: `$${c.current_price.toLocaleString()}`,
         desc: `Market Cap: $${c.market_cap.toLocaleString()}`
-    /* istanbul ignore next */ }));
+    }));
 }
 
- /* istanbul ignore next */ async function fetchMovies() {
+ async function fetchMovies() {
     const res = await fetch(`https://api.themoviedb.org/3/movie/top_rated?api_key=${apiKeys.tmdb}&language=en-US&page=1`);
 
-     /* istanbul ignore next */ if(!res.ok) throw new Error("Invalid TMDB API Key");
+     if(!res.ok) throw new Error("Invalid TMDB API Key");
 
-     /* istanbul ignore next */ const data = await res.json();
+     const data = await res.json();
 
      return data.results.slice(0, 20).map((m, i) => ({
-        /* istanbul ignore next */ rank: i + 1,
-        /* istanbul ignore next */ title: m.title,
+        rank: i + 1,
+        title: m.title,
         image: `https://image.tmdb.org/t/p/w200${m.poster_path}`,
         stat: `⭐ ${m.vote_average}`,
         desc: `Released: ${m.release_date}`
-    /* istanbul ignore next */ }));
+    }));
 }
 
- /* istanbul ignore next */ async function fetchGames() {
+ async function fetchGames() {
     const res = await fetch(`https://api.rawg.io/api/games?key=${apiKeys.rawg}&ordering=-rating&page_size=20`);
 
-     /* istanbul ignore next */ if(!res.ok) throw new Error("Invalid RAWG API Key");
+     if(!res.ok) throw new Error("Invalid RAWG API Key");
 
-     /* istanbul ignore next */ const data = await res.json();
+     const data = await res.json();
 
      return data.results.map((g, i) => ({
-        /* istanbul ignore next */ rank: i + 1,
-        /* istanbul ignore next */ title: g.name,
-        /* istanbul ignore next */ image: g.background_image,
+        rank: i + 1,
+        title: g.name,
+        image: g.background_image,
         stat: `⭐ ${g.rating}`,
         desc: `Released: ${g.released}`
-    /* istanbul ignore next */ }));
+    }));
 }
 
-  /* istanbul ignore next */ function renderList(items) {
-     /* istanbul ignore next */ const list = document.getElementById('rank-list');
+  function renderList(items) {
+     const list = document.getElementById('rank-list');
 
      list.innerHTML = items.map((item, i) => {
 
-        /* istanbul ignore next */ const medalColors = ['#fbbf24', '#cbd5e1', '#b45309'];
+        const medalColors = ['#fbbf24', '#cbd5e1', '#b45309'];
 
          const numColor = i < 3 ? medalColors[i] : 'var(--color-text-muted)';
 
@@ -199,28 +199,28 @@
     `}).join('');
 }
 
- /* istanbul ignore next */ async function fetchTopUsers() {
-    /* istanbul ignore next */ try {
-        /* istanbul ignore next */ const res = await fetch('/api/lists?users=true');
+ async function fetchTopUsers() {
+    try {
+        const res = await fetch('/api/lists?users=true');
 
-         /* istanbul ignore next */ if (!res.ok) return [];
+         if (!res.ok) return [];
 
-        /* istanbul ignore next */ const users = await res.json();
+        const users = await res.json();
 
          return users.sort((a,b) => b.listsCreated - a.listsCreated);
-    /* istanbul ignore next */ } catch {
-        /* istanbul ignore next */ return [];
+    } catch {
+        return [];
     }
 }
 
-  /* istanbul ignore next */ function renderUsers(users) {
-     /* istanbul ignore next */ const list = document.getElementById('rank-list');
+  function renderUsers(users) {
+     const list = document.getElementById('rank-list');
 
-     /* istanbul ignore next */ if (users.length === 0) {
+     if (users.length === 0) {
 
         list.innerHTML = `<p class="text-center text-muted col-span-full py-8">No community creators yet. Go create a list!</p>`;
 
-        /* istanbul ignore next */ return;
+        return;
     }
 
      list.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">` + users.map((u, i) => `
@@ -236,196 +236,196 @@
 
 // ── Community Lists — localStorage + optional KV backend ──────────
 
- /* istanbul ignore next */ const STORAGE_KEY = 'stacky_rank_lists';
+ const STORAGE_KEY = 'stacky_rank_lists';
 
-  /* istanbul ignore next */ function loadListsFromStorage() {
-    /* istanbul ignore next */ try {
-         /* istanbul ignore next */ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  function loadListsFromStorage() {
+    try {
+         return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 
-    /* istanbul ignore next */ } catch { return []; }
+    } catch { return []; }
 }
 
-  /* istanbul ignore next */ function saveListsToStorage(lists) {
-    /* istanbul ignore next */ localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
+  function saveListsToStorage(lists) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(lists));
 }
 
 
-  /* istanbul ignore next */ function getUserId() {
+  function getUserId() {
 
-     /* istanbul ignore next */ if (typeof localStorage === 'undefined') return 'anon';
+     if (typeof localStorage === 'undefined') return 'anon';
 
-     /* istanbul ignore next */ let uid = localStorage.getItem('stacky_rank_user_id');
+     let uid = localStorage.getItem('stacky_rank_user_id');
 
-     /* istanbul ignore next */ if (!uid) {
+     if (!uid) {
 
-        /* istanbul ignore next */ uid = 'user_' + Date.now().toString(36) + Math.random().toString(36).substring(2);
+        uid = 'user_' + Date.now().toString(36) + Math.random().toString(36).substring(2);
 
-        /* istanbul ignore next */ localStorage.setItem('stacky_rank_user_id', uid);
+        localStorage.setItem('stacky_rank_user_id', uid);
     }
 
-     /* istanbul ignore next */ return uid;
+     return uid;
 }
 
-  /* istanbul ignore next */ function createList(name, itemNames, authorName = 'Anonymous') {
+  function createList(name, itemNames, authorName = 'Anonymous') {
 
-     /* istanbul ignore next */ if (!name || !itemNames || itemNames.length === 0) return null;
+     if (!name || !itemNames || itemNames.length === 0) return null;
 
-     /* istanbul ignore next */ const lists = loadListsFromStorage();
+     const lists = loadListsFromStorage();
 
-     /* istanbul ignore next */ const newList = {
-        /* istanbul ignore next */ id: Date.now().toString(36) + Math.random().toString(36).substring(2),
-        /* istanbul ignore next */ name: name.trim(),
-        /* istanbul ignore next */ authorId: getUserId(),
+     const newList = {
+        id: Date.now().toString(36) + Math.random().toString(36).substring(2),
+        name: name.trim(),
+        authorId: getUserId(),
 
-         /* istanbul ignore next */ authorName: authorName.trim() || 'Anonymous',
+         authorName: authorName.trim() || 'Anonymous',
 
          items: itemNames.filter(n => n.trim()).map((n, i) => ({
             id: `${i}_${Date.now().toString(36)}`,
-            /* istanbul ignore next */ name: n.trim(),
-            /* istanbul ignore next */ score: 0
-        /* istanbul ignore next */ }))
+            name: n.trim(),
+            score: 0
+        }))
     };
 
-    /* istanbul ignore next */ lists.push(newList);
+    lists.push(newList);
 
-    /* istanbul ignore next */ saveListsToStorage(lists);
+    saveListsToStorage(lists);
     
     // Background sync
 
-    /* istanbul ignore next */ fetch('/api/lists', {
-        /* istanbul ignore next */ method: 'POST', body: JSON.stringify({ action: 'create', name: newList.name, items: itemNames, authorId: newList.authorId, authorName: newList.authorName }), headers: { 'Content-Type': 'application/json' }
+    fetch('/api/lists', {
+        method: 'POST', body: JSON.stringify({ action: 'create', name: newList.name, items: itemNames, authorId: newList.authorId, authorName: newList.authorName }), headers: { 'Content-Type': 'application/json' }
 
      }).catch(e => console.error('Cloudflare sync error', e));
 
 
-     /* istanbul ignore next */ return newList;
+     return newList;
 }
 
-  /* istanbul ignore next */ function rateItem(listId, itemId, score) {
-     /* istanbul ignore next */ const lists = loadListsFromStorage();
+  function rateItem(listId, itemId, score) {
+     const lists = loadListsFromStorage();
 
      const list = lists.find(l => l.id === listId);
 
-     /* istanbul ignore next */ if (!list) return null;
+     if (!list) return null;
 
      const item = list.items.find(i => i.id === itemId);
 
-     /* istanbul ignore next */ if (!item) return null;
+     if (!item) return null;
     
     // Set new score
 
-    /* istanbul ignore next */ item.score = score;
+    item.score = score;
     
     // Sort descending by score
 
      list.items.sort((a, b) => (b.score || 0) - (a.score || 0));
 
-    /* istanbul ignore next */ saveListsToStorage(lists);
+    saveListsToStorage(lists);
 
     // Background sync
 
-    /* istanbul ignore next */ fetch('/api/lists', {
-        /* istanbul ignore next */ method: 'POST', body: JSON.stringify({ action: 'rate', listId, itemId, score, userId: getUserId() }), headers: { 'Content-Type': 'application/json' }
+    fetch('/api/lists', {
+        method: 'POST', body: JSON.stringify({ action: 'rate', listId, itemId, score, userId: getUserId() }), headers: { 'Content-Type': 'application/json' }
 
      }).catch(e => console.error('Cloudflare sync error', e));
 
 
-     /* istanbul ignore next */ return list;
+     return list;
 }
 
-  /* istanbul ignore next */ function deleteList(listId) {
-     /* istanbul ignore next */ let lists = loadListsFromStorage();
+  function deleteList(listId) {
+     let lists = loadListsFromStorage();
 
      lists = lists.filter(l => l.id !== listId);
 
-    /* istanbul ignore next */ saveListsToStorage(lists);
+    saveListsToStorage(lists);
 }
 
-  /* istanbul ignore next */ function exportList(listId) {
-     /* istanbul ignore next */ const lists = loadListsFromStorage();
+  function exportList(listId) {
+     const lists = loadListsFromStorage();
 
      const list = lists.find(l => l.id === listId);
 
-     /* istanbul ignore next */ return list ? JSON.stringify(list, null, 2) : null;
+     return list ? JSON.stringify(list, null, 2) : null;
 }
 
-  /* istanbul ignore next */ function importList(jsonString) {
-    /* istanbul ignore next */ try {
-        /* istanbul ignore next */ const parsed = JSON.parse(jsonString);
+  function importList(jsonString) {
+    try {
+        const parsed = JSON.parse(jsonString);
 
-         /* istanbul ignore next */ if (!parsed.name || !Array.isArray(parsed.items)) return null;
+         if (!parsed.name || !Array.isArray(parsed.items)) return null;
 
-        /* istanbul ignore next */ const lists = loadListsFromStorage();
+        const lists = loadListsFromStorage();
 
-        /* istanbul ignore next */ parsed.id = Date.now().toString(36) + Math.random().toString(36).substring(2);
+        parsed.id = Date.now().toString(36) + Math.random().toString(36).substring(2);
 
-        /* istanbul ignore next */ lists.push(parsed);
+        lists.push(parsed);
 
-        /* istanbul ignore next */ saveListsToStorage(lists);
+        saveListsToStorage(lists);
 
-        /* istanbul ignore next */ return parsed;
-    /* istanbul ignore next */ } catch { return null; }
+        return parsed;
+    } catch { return null; }
 }
 
-  /* istanbul ignore next */ function toggleCreateList(show) {
-     /* istanbul ignore next */ const ui = document.getElementById('create-list-ui');
+  function toggleCreateList(show) {
+     const ui = document.getElementById('create-list-ui');
 
-     /* istanbul ignore next */ if (ui) {
+     if (ui) {
 
-        /* istanbul ignore next */ ui.classList.toggle('hidden', !show);
+        ui.classList.toggle('hidden', !show);
 
-         /* istanbul ignore next */ if (show) ui.style.display = 'flex';
+         if (show) ui.style.display = 'flex';
 
-        /* istanbul ignore next */ else ui.style.display = '';
+        else ui.style.display = '';
     }
 }
 
-  /* istanbul ignore next */ function submitNewList() {
-     /* istanbul ignore next */ const nameEl = document.getElementById('new-list-name');
-     /* istanbul ignore next */ const authorEl = document.getElementById('new-list-author');
-     /* istanbul ignore next */ const itemsEl = document.getElementById('new-list-items');
+  function submitNewList() {
+     const nameEl = document.getElementById('new-list-name');
+     const authorEl = document.getElementById('new-list-author');
+     const itemsEl = document.getElementById('new-list-items');
 
-     /* istanbul ignore next */ if (!nameEl || !itemsEl) return;
+     if (!nameEl || !itemsEl) return;
 
-     /* istanbul ignore next */ const name = nameEl.value.trim();
+     const name = nameEl.value.trim();
 
-     /* istanbul ignore next */ const authorName = authorEl ? authorEl.value.trim() : 'Anonymous';
+     const authorName = authorEl ? authorEl.value.trim() : 'Anonymous';
 
      const items = itemsEl.value.split('\n').map(s => s.trim()).filter(Boolean);
 
-     /* istanbul ignore next */ if (!name) { alert('Please enter a list name.'); return; }
+     if (!name) { alert('Please enter a list name.'); return; }
 
      if (items.length < 2) { alert('Please enter at least 2 items (one per line).'); return; }
 
-    /* istanbul ignore next */ createList(name, items, authorName);
+    createList(name, items, authorName);
 
-    /* istanbul ignore next */ nameEl.value = '';
+    nameEl.value = '';
 
-     /* istanbul ignore next */ if (authorEl) authorEl.value = '';
+     if (authorEl) authorEl.value = '';
 
-    /* istanbul ignore next */ itemsEl.value = '';
+    itemsEl.value = '';
 
-    /* istanbul ignore next */ toggleCreateList(false);
+    toggleCreateList(false);
 
-    /* istanbul ignore next */ renderCommunityLists();
+    renderCommunityLists();
 }
 
-  /* istanbul ignore next */ function renderCommunityLists() {
-     /* istanbul ignore next */ const list = document.getElementById('rank-list');
+  function renderCommunityLists() {
+     const list = document.getElementById('rank-list');
 
-     /* istanbul ignore next */ if (!list) return;
+     if (!list) return;
 
-     /* istanbul ignore next */ const communityLists = loadListsFromStorage();
+     const communityLists = loadListsFromStorage();
     
 
-     /* istanbul ignore next */ if (communityLists.length === 0) {
+     if (communityLists.length === 0) {
 
         list.innerHTML = `<div class="text-center p-8 text-muted">
             <div style="font-size:3rem;margin-bottom:1rem">📝</div>
             <p>No community lists yet. Click "➕ Create New List" to get started!</p>
         </div>`;
 
-        /* istanbul ignore next */ return;
+        return;
     }
     
 
@@ -450,16 +450,16 @@
 
              ${cl.items.map((item, i) => {
 
-                 /* istanbul ignore next */ const score = item.score || 0;
+                 const score = item.score || 0;
 
-                /* istanbul ignore next */ let starsHTML = '';
+                let starsHTML = '';
 
                  for (let s = 1; s <= 10; s++) {
 
                     const isFilled = s <= score;
 
                     starsHTML += `<button 
-                        /* istanbul ignore next */ class="text-xl leading-none px-0.5 hover:scale-125 transition-transform" 
+                        class="text-xl leading-none px-0.5 hover:scale-125 transition-transform" 
 
                          style="color: ${isFilled ? '#f59e0b' : 'var(--color-border)'}; background: none; border: none; cursor: pointer;"
                         onclick="rateItem('${cl.id}','${item.id}', ${s});renderCommunityLists();"
@@ -480,70 +480,70 @@
                         <div class="score-pill font-black whitespace-nowrap bg-primary/10 px-4 py-1.5 rounded-full text-primary border border-primary/20 text-md shadow-sm min-w-[5ch] text-center tracking-wide flex-shrink-0">${score} <span class="text-xs opacity-70">/ 10</span></div>
                     </div>
                 </div>`;
-            /* istanbul ignore next */ }).join('')}
+            }).join('')}
             </div>
         </div>
     `).join('');
 }
 
-  /* istanbul ignore next */ function handleExportList(listId) {
-     /* istanbul ignore next */ const json = exportList(listId);
+  function handleExportList(listId) {
+     const json = exportList(listId);
 
-     /* istanbul ignore next */ if (!json) return;
+     if (!json) return;
 
-     /* istanbul ignore next */ if (typeof navigator !== 'undefined' && navigator.clipboard) {
+     if (typeof navigator !== 'undefined' && navigator.clipboard) {
 
          navigator.clipboard.writeText(json).then(() => alert('List JSON copied to clipboard!'));
-    /* istanbul ignore next */ } else {
+    } else {
 
-        /* istanbul ignore next */ prompt('Copy this JSON to share:', json);
+        prompt('Copy this JSON to share:', json);
     }
 }
 
- /* istanbul ignore next */ async function syncListsFromCloudflare() {
-    /* istanbul ignore next */ try {
-        /* istanbul ignore next */ const res = await fetch('/api/lists');
+ async function syncListsFromCloudflare() {
+    try {
+        const res = await fetch('/api/lists');
 
-         /* istanbul ignore next */ if (res.ok) {
+         if (res.ok) {
 
-            /* istanbul ignore next */ const data = await res.json();
+            const data = await res.json();
 
              if (Array.isArray(data) && data.length > 0) {
                 // Merge data (CF overrides local to prevent stale items)
 
-                /* istanbul ignore next */ const local = loadListsFromStorage();
+                const local = loadListsFromStorage();
 
-                /* istanbul ignore next */ const merged = [...data];
+                const merged = [...data];
 
-                /* istanbul ignore next */ for (const l of local) {
+                for (const l of local) {
 
                      if (!merged.find(ml => ml.id === l.id)) merged.push(l);
                 }
 
-                /* istanbul ignore next */ saveListsToStorage(merged);
+                saveListsToStorage(merged);
             }
         }
-    /* istanbul ignore next */ } catch (e) { console.log('Serving from local cache only.'); }
+    } catch (e) { console.log('Serving from local cache only.'); }
 }
 
 
-  /* istanbul ignore next */ if (typeof document !== 'undefined') {
+  if (typeof document !== 'undefined') {
 
      document.addEventListener('DOMContentLoaded', () => {
 
-        /* istanbul ignore next */ checkApiKeys();
+        checkApiKeys();
 
-        /* istanbul ignore next */ loadCategory('crypto'); 
-    /* istanbul ignore next */ });
+        loadCategory('crypto'); 
+    });
 }
 
 
-  /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-    /* istanbul ignore next */ module.exports = {
-        /* istanbul ignore next */ saveApiKeys, fetchCrypto, fetchMovies, fetchGames, loadCategory, renderList, checkApiKeys,
-        /* istanbul ignore next */ loadListsFromStorage, saveListsToStorage, createList, rateItem, deleteList,
-        /* istanbul ignore next */ exportList, importList, toggleCreateList, submitNewList, renderCommunityLists,
-        /* istanbul ignore next */ handleExportList, STORAGE_KEY, syncListsFromCloudflare, fetchTopUsers, renderUsers,
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        saveApiKeys, fetchCrypto, fetchMovies, fetchGames, loadCategory, renderList, checkApiKeys,
+        loadListsFromStorage, saveListsToStorage, createList, rateItem, deleteList,
+        exportList, importList, toggleCreateList, submitNewList, renderCommunityLists,
+        handleExportList, STORAGE_KEY, syncListsFromCloudflare, fetchTopUsers, renderUsers,
          getState: () => ({ apiKeys, currentCategory }),
          setApiKeys: k => { apiKeys = k; }, setCurrentCategory: c => { currentCategory = c; }
     };

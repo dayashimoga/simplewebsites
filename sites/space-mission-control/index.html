@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Space Mission Control — Plan & Launch Virtual Missions</title>
+  <meta name="description" content="Plan virtual space missions, calculate trajectories, manage fuel budgets, and explore historical missions. Interactive space science for all ages.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-4">
+      <h1>🔭 <span class="text-gradient">Space Mission Control</span></h1>
+      <p>Plan missions, calculate trajectories, and launch rockets to explore the solar system!</p>
+    </section>
+
+    <div class="space-nav card glass mb-4">
+      <button class="space-nav-btn active" onclick="switchView('planner')">🚀 Mission Planner</button>
+      <button class="space-nav-btn" onclick="switchView('launch')">🎯 Launch Pad</button>
+      <button class="space-nav-btn" onclick="switchView('history')">📜 Historical Missions</button>
+      <button class="space-nav-btn" onclick="switchView('log')">📋 Mission Log</button>
+    </div>
+
+    <!-- View: Mission Planner -->
+    <div class="space-view" id="view-planner">
+      <div class="planner-layout">
+        <div class="planner-left">
+          <h3 class="section-title">🎯 Choose Destination</h3>
+          <div class="dest-grid" id="dest-grid"></div>
+
+          <h3 class="section-title mt-4">🚀 Choose Propulsion</h3>
+          <div class="rocket-grid" id="rocket-grid"></div>
+
+          <div class="mission-config card glass mt-4">
+            <h4>⚙️ Mission Configuration</h4>
+            <div class="config-grid">
+              <div>
+                <label>Mission Name</label>
+                <input type="text" id="mission-name-input" class="input w-full" value="Mission Alpha" oninput="updateMissionName()">
+              </div>
+              <div>
+                <label>Payload (kg)</label>
+                <input type="number" id="payload-input" class="input w-full" value="5000" min="0" oninput="updatePayload()">
+              </div>
+              <div>
+                <label>Crew Size</label>
+                <input type="number" id="crew-input" class="input w-full" value="0" min="0" max="12" oninput="updateCrew()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="planner-right">
+          <h3 class="section-title">📊 Mission Dashboard</h3>
+          <div class="mission-dashboard card glass" id="mission-panel">
+            <div class="mission-empty"><p>🚀 Select a destination and rocket to plan your mission</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View: Launch Pad -->
+    <div class="space-view hidden" id="view-launch">
+      <div class="launch-pad card glass" id="launch-view">
+        <div class="mission-empty"><p>🚀 Plan a mission first, then come back to launch!</p></div>
+      </div>
+    </div>
+
+    <!-- View: Historical Missions -->
+    <div class="space-view hidden" id="view-history">
+      <h3 class="section-title">📜 Real Space Missions Throughout History</h3>
+      <div class="history-grid" id="history-grid"></div>
+    </div>
+
+    <!-- View: Mission Log -->
+    <div class="space-view hidden" id="view-log">
+      <h3 class="section-title">📋 Your Completed Missions</h3>
+      <div class="card glass" id="mission-log">
+        <p class="text-dim text-center">No missions completed yet. Launch your first mission!</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer mt-8"><p>&copy; 2026 Space Mission Control. Explore the cosmos!</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

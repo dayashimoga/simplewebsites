@@ -1,22 +1,22 @@
 /**
  * Decision Matrix
  */
- /* istanbul ignore next */ let options = ['Option A','Option B','Option C'];
- /* istanbul ignore next */ let criteria = ['Cost','Quality','Speed'];
- /* istanbul ignore next */ let weights = {};
- /* istanbul ignore next */ let scores = {};
+ let options = ['Option A','Option B','Option C'];
+ let criteria = ['Cost','Quality','Speed'];
+ let weights = {};
+ let scores = {};
 
  function parseList(str) { return str.split(',').map(s => s.trim()).filter(Boolean); }
 
-  /* istanbul ignore next */ function buildMatrix() {
+  function buildMatrix() {
 
-    /* istanbul ignore next */ if (typeof document === 'undefined') return;
-   /* istanbul ignore next */ const optInput = document.getElementById('options-input');
-   /* istanbul ignore next */ const critInput = document.getElementById('criteria-input');
+    if (typeof document === 'undefined') return;
+   const optInput = document.getElementById('options-input');
+   const critInput = document.getElementById('criteria-input');
 
-   /* istanbul ignore next */ options = parseList(optInput ? optInput.value : '');
+   options = parseList(optInput ? optInput.value : '');
 
-   /* istanbul ignore next */ criteria = parseList(critInput ? critInput.value : '');
+   criteria = parseList(critInput ? critInput.value : '');
   
   // Preserve existing weights/scores
 
@@ -24,16 +24,16 @@
 
    options.forEach(o => { if (!scores[o]) scores[o] = {}; criteria.forEach(c => { if (!scores[o][c]) scores[o][c] = 5; }); });
   
-  /* istanbul ignore next */ renderTable();
-  /* istanbul ignore next */ calcResults();
+  renderTable();
+  calcResults();
 }
 
-  /* istanbul ignore next */ function renderTable() {
+  function renderTable() {
 
-    /* istanbul ignore next */ if (typeof document === 'undefined') return;
-   /* istanbul ignore next */ const table = document.getElementById('matrix-table');
+    if (typeof document === 'undefined') return;
+   const table = document.getElementById('matrix-table');
 
-    /* istanbul ignore next */ if (!table || !options.length || !criteria.length) return;
+    if (!table || !options.length || !criteria.length) return;
 
   var html = '<thead><tr><th>Criteria</th><th>Weight</th>';
 
@@ -41,91 +41,91 @@
 
   html += '</tr></thead><tbody>';
 
-   /* istanbul ignore next */ criteria.forEach(function(c, ci) {
+   criteria.forEach(function(c, ci) {
 
     html += '<tr><td style="text-align:left;font-weight:600">'+c+'</td>';
 
      html += '<td><input type="number" min="1" max="10" value="'+(weights[c]||5)+'" data-crit="'+ci+'" onchange="setWeightByIdx('+ci+',this.value)"></td>';
 
-     /* istanbul ignore next */ options.forEach(function(o, oi) {
+     options.forEach(function(o, oi) {
 
-       /* istanbul ignore next */ var sv = scores[o] ? (scores[o][c] || 5) : 5;
+       var sv = scores[o] ? (scores[o][c] || 5) : 5;
 
       html += '<td><input type="number" min="1" max="10" value="'+sv+'" onchange="setScoreByIdx('+oi+','+ci+',this.value)"></td>';
-    /* istanbul ignore next */ });
+    });
 
     html += '</tr>';
-  /* istanbul ignore next */ });
+  });
 
   html += '</tbody>';
 
-  /* istanbul ignore next */ table.innerHTML = html;
+  table.innerHTML = html;
 }
 
-  /* istanbul ignore next */ function setWeight(criterion, val) { weights[criterion] = parseInt(val)||1; calcResults(); }
-  /* istanbul ignore next */ function setScore(option, criterion, val) { if (!scores[option]) scores[option] = {}; scores[option][criterion] = parseInt(val)||1; calcResults(); }
+  function setWeight(criterion, val) { weights[criterion] = parseInt(val)||1; calcResults(); }
+  function setScore(option, criterion, val) { if (!scores[option]) scores[option] = {}; scores[option][criterion] = parseInt(val)||1; calcResults(); }
 
-  /* istanbul ignore next */ function setWeightByIdx(ci, val) { if (criteria[ci]) setWeight(criteria[ci], val); }
+  function setWeightByIdx(ci, val) { if (criteria[ci]) setWeight(criteria[ci], val); }
 
-  /* istanbul ignore next */ function setScoreByIdx(oi, ci, val) { if (options[oi] && criteria[ci]) setScore(options[oi], criteria[ci], val); }
+  function setScoreByIdx(oi, ci, val) { if (options[oi] && criteria[ci]) setScore(options[oi], criteria[ci], val); }
 
-  /* istanbul ignore next */ function calcResults() {
+  function calcResults() {
 
-    /* istanbul ignore next */ if (typeof document === 'undefined') return;
-   /* istanbul ignore next */ const card = document.getElementById('results-card');
-   /* istanbul ignore next */ const el = document.getElementById('ranking');
+    if (typeof document === 'undefined') return;
+   const card = document.getElementById('results-card');
+   const el = document.getElementById('ranking');
 
-    /* istanbul ignore next */ if (!card || !el || !options.length || !criteria.length) return;
+    if (!card || !el || !options.length || !criteria.length) return;
 
-  /* istanbul ignore next */ card.style.display = 'block';
+  card.style.display = 'block';
   
 
    const results = options.map(o => {
 
-     /* istanbul ignore next */ let total = 0;
+     let total = 0;
 
      criteria.forEach(c => { total += ((scores[o] && scores[o][c]) || 5) * (weights[c] || 5); });
 
-     /* istanbul ignore next */ return { name: o, score: total };
+     return { name: o, score: total };
 
    }).sort((a,b) => b.score - a.score);
 
 
-    /* istanbul ignore next */ const maxScore = (results[0] && results[0].score) || 1;
+    const maxScore = (results[0] && results[0].score) || 1;
 
-   /* istanbul ignore next */ const medals = ['🥇','🥈','🥉'];
+   const medals = ['🥇','🥈','🥉'];
 
    el.innerHTML = results.map((r, i) => {
 
-     /* istanbul ignore next */ const pct = (r.score / maxScore * 100).toFixed(0);
+     const pct = (r.score / maxScore * 100).toFixed(0);
 
      return '<div class="rank-bar"><span class="rank-pos">'+(medals[i]||'#'+(i+1))+'</span><span class="rank-name">'+r.name+'</span><span class="rank-score">'+r.score+' pts</span></div><div style="padding:0 12px 12px"><div class="rank-fill" style="width:'+pct+'%"></div></div>';
-  /* istanbul ignore next */ }).join('');
+  }).join('');
 }
 
-  /* istanbul ignore next */ function exportCSV() {
-   /* istanbul ignore next */ let csv = 'Criteria,Weight,' + options.join(',') + '\n';
+  function exportCSV() {
+   let csv = 'Criteria,Weight,' + options.join(',') + '\n';
 
    criteria.forEach(c => {
 
      csv += c + ',' + (weights[c]||5) + ',' + options.map(o => (scores[o] && scores[o][c]) || 5).join(',') + '\n';
-  /* istanbul ignore next */ });
-   /* istanbul ignore next */ const blob = new Blob([csv], { type: 'text/csv' });
-   /* istanbul ignore next */ const url = URL.createObjectURL(blob);
+  });
+   const blob = new Blob([csv], { type: 'text/csv' });
+   const url = URL.createObjectURL(blob);
 
-   /* istanbul ignore next */ const a = document.createElement('a'); a.href = url; a.download = 'decision-matrix.csv'; a.click();
+   const a = document.createElement('a'); a.href = url; a.download = 'decision-matrix.csv'; a.click();
 
-  /* istanbul ignore next */ URL.revokeObjectURL(url);
+  URL.revokeObjectURL(url);
 }
 
 
-  /* istanbul ignore next */ if (typeof document !== 'undefined') {
-  /* istanbul ignore next */ document.addEventListener('DOMContentLoaded', buildMatrix);
+  if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', buildMatrix);
 }
 
 
-  /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-  /* istanbul ignore next */ module.exports = { parseList, buildMatrix, renderTable, setWeight, setScore, calcResults, exportCSV,
+  if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { parseList, buildMatrix, renderTable, setWeight, setScore, calcResults, exportCSV,
      getOptions: () => options, getCriteria: () => criteria, getWeights: () => weights, getScores: () => scores,
      setOptions: o => { options = o; }, setCriteria: c => { criteria = c; }, setWeights: w => { weights = w; }, setScores: s => { scores = s; } };
 }

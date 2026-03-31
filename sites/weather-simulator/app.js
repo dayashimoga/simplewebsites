@@ -1,70 +1,70 @@
 /* ===== Weather Simulator ===== */
 
 // --- Weather Classification ---
- /* istanbul ignore next */ const WEATHER_TYPES = {
-  /* istanbul ignore next */ clear: { icon: '☀️', name: 'Clear Sky', sky: ['#1e3a5f', '#4a90d9', '#87ceeb'] },
-  /* istanbul ignore next */ partlyCloudy: { icon: '⛅', name: 'Partly Cloudy', sky: ['#2c4a6e', '#5a9ad4', '#a0c4e8'] },
-  /* istanbul ignore next */ cloudy: { icon: '☁️', name: 'Overcast', sky: ['#3d4f5f', '#6a7d8e', '#8e9eab'] },
-  /* istanbul ignore next */ lightRain: { icon: '🌦️', name: 'Light Rain', sky: ['#2c3e50', '#4a6572', '#6b8ea0'] },
-  /* istanbul ignore next */ heavyRain: { icon: '🌧️', name: 'Heavy Rain', sky: ['#1a2530', '#2c3e4a', '#3d5060'] },
-  /* istanbul ignore next */ thunderstorm: { icon: '⛈️', name: 'Thunderstorm', sky: ['#0d1117', '#1a2332', '#2a3545'] },
-  /* istanbul ignore next */ lightSnow: { icon: '🌨️', name: 'Light Snow', sky: ['#4a5568', '#718096', '#a0aec0'] },
-  /* istanbul ignore next */ heavySnow: { icon: '❄️', name: 'Blizzard', sky: ['#e2e8f0', '#cbd5e0', '#a0aec0'] },
-  /* istanbul ignore next */ fog: { icon: '🌫️', name: 'Fog', sky: ['#4a5568', '#718096', '#a0aec0'] },
-  /* istanbul ignore next */ tornado: { icon: '🌪️', name: 'Tornado', sky: ['#1a1a2e', '#16213e', '#0f3460'] },
-  /* istanbul ignore next */ heatwave: { icon: '🔥', name: 'Heat Wave', sky: ['#7f1d1d', '#b91c1c', '#f59e0b'] },
-  /* istanbul ignore next */ freezing: { icon: '🥶', name: 'Freezing Cold', sky: ['#1e3a5f', '#2563eb', '#93c5fd'] },
+ const WEATHER_TYPES = {
+  clear: { icon: '☀️', name: 'Clear Sky', sky: ['#1e3a5f', '#4a90d9', '#87ceeb'] },
+  partlyCloudy: { icon: '⛅', name: 'Partly Cloudy', sky: ['#2c4a6e', '#5a9ad4', '#a0c4e8'] },
+  cloudy: { icon: '☁️', name: 'Overcast', sky: ['#3d4f5f', '#6a7d8e', '#8e9eab'] },
+  lightRain: { icon: '🌦️', name: 'Light Rain', sky: ['#2c3e50', '#4a6572', '#6b8ea0'] },
+  heavyRain: { icon: '🌧️', name: 'Heavy Rain', sky: ['#1a2530', '#2c3e4a', '#3d5060'] },
+  thunderstorm: { icon: '⛈️', name: 'Thunderstorm', sky: ['#0d1117', '#1a2332', '#2a3545'] },
+  lightSnow: { icon: '🌨️', name: 'Light Snow', sky: ['#4a5568', '#718096', '#a0aec0'] },
+  heavySnow: { icon: '❄️', name: 'Blizzard', sky: ['#e2e8f0', '#cbd5e0', '#a0aec0'] },
+  fog: { icon: '🌫️', name: 'Fog', sky: ['#4a5568', '#718096', '#a0aec0'] },
+  tornado: { icon: '🌪️', name: 'Tornado', sky: ['#1a1a2e', '#16213e', '#0f3460'] },
+  heatwave: { icon: '🔥', name: 'Heat Wave', sky: ['#7f1d1d', '#b91c1c', '#f59e0b'] },
+  freezing: { icon: '🥶', name: 'Freezing Cold', sky: ['#1e3a5f', '#2563eb', '#93c5fd'] },
 };
 
- /* istanbul ignore next */ const PRESETS = {
-  /* istanbul ignore next */ sunny:    { temp: 28, humidity: 30, pressure: 1020, wind: 5, altitude: 0 },
-  /* istanbul ignore next */ cloudy:   { temp: 18, humidity: 70, pressure: 1005, wind: 15, altitude: 0 },
-  /* istanbul ignore next */ rain:     { temp: 15, humidity: 90, pressure: 990, wind: 25, altitude: 0 },
-  /* istanbul ignore next */ snow:     { temp: -5, humidity: 85, pressure: 1000, wind: 20, altitude: 500 },
-  /* istanbul ignore next */ storm:    { temp: 22, humidity: 95, pressure: 970, wind: 80, altitude: 0 },
-  /* istanbul ignore next */ fog:      { temp: 8, humidity: 98, pressure: 1015, wind: 2, altitude: 0 },
-  /* istanbul ignore next */ tornado:  { temp: 30, humidity: 90, pressure: 960, wind: 180, altitude: 0 },
-  /* istanbul ignore next */ heatwave: { temp: 45, humidity: 15, pressure: 1025, wind: 5, altitude: 0 },
+ const PRESETS = {
+  sunny:    { temp: 28, humidity: 30, pressure: 1020, wind: 5, altitude: 0 },
+  cloudy:   { temp: 18, humidity: 70, pressure: 1005, wind: 15, altitude: 0 },
+  rain:     { temp: 15, humidity: 90, pressure: 990, wind: 25, altitude: 0 },
+  snow:     { temp: -5, humidity: 85, pressure: 1000, wind: 20, altitude: 500 },
+  storm:    { temp: 22, humidity: 95, pressure: 970, wind: 80, altitude: 0 },
+  fog:      { temp: 8, humidity: 98, pressure: 1015, wind: 2, altitude: 0 },
+  tornado:  { temp: 30, humidity: 90, pressure: 960, wind: 180, altitude: 0 },
+  heatwave: { temp: 45, humidity: 15, pressure: 1025, wind: 5, altitude: 0 },
 };
 
- /* istanbul ignore next */ const SCIENCE_EXPLANATIONS = {
-  /* istanbul ignore next */ clear: { title: '☀️ Clear Sky Conditions', text: 'With low humidity and standard or high pressure, air is too dry for clouds to form. The blue sky is caused by Rayleigh scattering — shorter blue wavelengths scatter more than longer red ones.' },
-  /* istanbul ignore next */ partlyCloudy: { title: '⛅ Partial Cloud Cover', text: 'Moderate humidity allows some water vapor to condense at high altitude, forming scattered cumulus clouds. These "fair weather" clouds indicate stable atmospheric conditions.' },
-  /* istanbul ignore next */ cloudy: { title: '☁️ Overcast Skies', text: 'High humidity and cooling air causes widespread condensation. Stratus clouds form a uniform gray layer. Often precedes precipitation as moisture accumulates.' },
+ const SCIENCE_EXPLANATIONS = {
+  clear: { title: '☀️ Clear Sky Conditions', text: 'With low humidity and standard or high pressure, air is too dry for clouds to form. The blue sky is caused by Rayleigh scattering — shorter blue wavelengths scatter more than longer red ones.' },
+  partlyCloudy: { title: '⛅ Partial Cloud Cover', text: 'Moderate humidity allows some water vapor to condense at high altitude, forming scattered cumulus clouds. These "fair weather" clouds indicate stable atmospheric conditions.' },
+  cloudy: { title: '☁️ Overcast Skies', text: 'High humidity and cooling air causes widespread condensation. Stratus clouds form a uniform gray layer. Often precedes precipitation as moisture accumulates.' },
   lightRain: { title: '🌦️ Light Precipitation', text: 'When cloud droplets grow heavy enough (>0.5mm), gravity pulls them down as rain. Low pressure systems lift warm moist air, causing condensation and precipitation.' },
-  /* istanbul ignore next */ heavyRain: { title: '🌧️ Heavy Rainfall', text: 'Very low pressure creates strong updrafts. Warm air rapidly rises and cools, releasing massive amounts of moisture. Can produce 50mm+ per hour of rainfall.' },
-  /* istanbul ignore next */ thunderstorm: { title: '⛈️ Thunderstorm Formation', text: 'Extreme instability! Strong updrafts create towering cumulonimbus clouds reaching 12km+. Ice crystals collide creating electrical charge separation — lightning occurs when the potential difference exceeds 100 million volts!' },
-  /* istanbul ignore next */ lightSnow: { title: '🌨️ Snow Formation', text: 'When temperature is below 0°C throughout the atmosphere, water vapor deposits directly onto ice nuclei, forming hexagonal ice crystals. Each snowflake is unique!' },
-  /* istanbul ignore next */ heavySnow: { title: '❄️ Blizzard Conditions', text: 'Intense cold, high humidity, and strong winds combine to create blizzard conditions. Snow forms rapidly and wind creates whiteout conditions with near-zero visibility.' },
-  /* istanbul ignore next */ fog: { title: '🌫️ Fog Formation', text: 'When air temperature equals the dew point, water vapor condenses near ground level. Radiation fog forms on clear nights as ground cools rapidly. Visibility drops below 1km.' },
-  /* istanbul ignore next */ tornado: { title: '🌪️ Tornado Genesis', text: 'Wind shear (changing speed/direction with altitude) creates a rotating horizontal cylinder of air. Strong updrafts tilt it vertical, forming a mesocyclone. The funnel descends with winds up to 500 km/h!' },
-  /* istanbul ignore next */ heatwave: { title: '🔥 Extreme Heat', text: 'A dome of high pressure traps hot air at the surface. The heat index combines temperature and humidity — at 40°C with 50% humidity, it feels like 55°C! Dangerous for human health.' },
-  /* istanbul ignore next */ freezing: { title: '🥶 Extreme Cold', text: 'Arctic air masses bring temperatures far below freezing. At -40°C, exposed skin can get frostbite in minutes. Fun fact: -40° is the same in both Celsius and Fahrenheit!' },
+  heavyRain: { title: '🌧️ Heavy Rainfall', text: 'Very low pressure creates strong updrafts. Warm air rapidly rises and cools, releasing massive amounts of moisture. Can produce 50mm+ per hour of rainfall.' },
+  thunderstorm: { title: '⛈️ Thunderstorm Formation', text: 'Extreme instability! Strong updrafts create towering cumulonimbus clouds reaching 12km+. Ice crystals collide creating electrical charge separation — lightning occurs when the potential difference exceeds 100 million volts!' },
+  lightSnow: { title: '🌨️ Snow Formation', text: 'When temperature is below 0°C throughout the atmosphere, water vapor deposits directly onto ice nuclei, forming hexagonal ice crystals. Each snowflake is unique!' },
+  heavySnow: { title: '❄️ Blizzard Conditions', text: 'Intense cold, high humidity, and strong winds combine to create blizzard conditions. Snow forms rapidly and wind creates whiteout conditions with near-zero visibility.' },
+  fog: { title: '🌫️ Fog Formation', text: 'When air temperature equals the dew point, water vapor condenses near ground level. Radiation fog forms on clear nights as ground cools rapidly. Visibility drops below 1km.' },
+  tornado: { title: '🌪️ Tornado Genesis', text: 'Wind shear (changing speed/direction with altitude) creates a rotating horizontal cylinder of air. Strong updrafts tilt it vertical, forming a mesocyclone. The funnel descends with winds up to 500 km/h!' },
+  heatwave: { title: '🔥 Extreme Heat', text: 'A dome of high pressure traps hot air at the surface. The heat index combines temperature and humidity — at 40°C with 50% humidity, it feels like 55°C! Dangerous for human health.' },
+  freezing: { title: '🥶 Extreme Cold', text: 'Arctic air masses bring temperatures far below freezing. At -40°C, exposed skin can get frostbite in minutes. Fun fact: -40° is the same in both Celsius and Fahrenheit!' },
 };
 
- /* istanbul ignore next */ const WEATHER_FACTS = [
-  /* istanbul ignore next */ '💡 A single lightning bolt can heat air to 30,000°C — 5x hotter than the sun\'s surface!',
-  /* istanbul ignore next */ '💡 Snowflakes fall at about 5 km/h. Rain drops fall at 20-30 km/h!',
-  /* istanbul ignore next */ '💡 The highest temperature ever recorded was 56.7°C (134°F) in Death Valley!',
-  /* istanbul ignore next */ '💡 Clouds can weigh over 500,000 kg — they float because they\'re spread over a huge area!',
-  /* istanbul ignore next */ '💡 A hurricane releases energy equivalent to 10 atomic bombs per second!',
-  /* istanbul ignore next */ '💡 The coldest natural temperature ever recorded was -89.2°C in Antarctica!',
-  /* istanbul ignore next */ '💡 Tornadoes can pick up debris weighing over 300 tons!',
-  /* istanbul ignore next */ '💡 The driest place on Earth is the Atacama Desert — some areas haven\'t seen rain in 500 years!',
-  /* istanbul ignore next */ '💡 About 1,800 thunderstorms occur on Earth at any given moment!',
-  /* istanbul ignore next */ '💡 Fog is technically a cloud that touches the ground!',
+ const WEATHER_FACTS = [
+  '💡 A single lightning bolt can heat air to 30,000°C — 5x hotter than the sun\'s surface!',
+  '💡 Snowflakes fall at about 5 km/h. Rain drops fall at 20-30 km/h!',
+  '💡 The highest temperature ever recorded was 56.7°C (134°F) in Death Valley!',
+  '💡 Clouds can weigh over 500,000 kg — they float because they\'re spread over a huge area!',
+  '💡 A hurricane releases energy equivalent to 10 atomic bombs per second!',
+  '💡 The coldest natural temperature ever recorded was -89.2°C in Antarctica!',
+  '💡 Tornadoes can pick up debris weighing over 300 tons!',
+  '💡 The driest place on Earth is the Atacama Desert — some areas haven\'t seen rain in 500 years!',
+  '💡 About 1,800 thunderstorms occur on Earth at any given moment!',
+  '💡 Fog is technically a cloud that touches the ground!',
 ];
 
 // --- State ---
- /* istanbul ignore next */ let currentWeather = 'clear';
- /* istanbul ignore next */ let animationFrameId = null;
- /* istanbul ignore next */ let lightningTimer = null;
- /* istanbul ignore next */ let particles = [];
+ let currentWeather = 'clear';
+ let animationFrameId = null;
+ let lightningTimer = null;
+ let particles = [];
 
 // --- Weather Calculation ---
- /* istanbul ignore next */ function classifyWeather(temp, humidity, pressure, wind, altitude) {
+ function classifyWeather(temp, humidity, pressure, wind, altitude) {
   // Temperature adjusted for altitude (lapse rate: ~6.5°C per 1000m)
-   /* istanbul ignore next */ const adjTemp = temp - (altitude * 0.0065);
+   const adjTemp = temp - (altitude * 0.0065);
 
 
   if (wind >= 150 && pressure < 970) return 'tornado';
@@ -94,347 +94,347 @@
 
   if (humidity > 60) return humidity > 75 ? 'cloudy' : 'partlyCloudy';
 
-   /* istanbul ignore next */ return 'clear';
+   return 'clear';
 }
 
- /* istanbul ignore next */ function getDewPoint(temp, humidity) {
+ function getDewPoint(temp, humidity) {
   // Magnus formula approximation
-   /* istanbul ignore next */ const a = 17.27, b = 237.7;
-   /* istanbul ignore next */ const gamma = (a * temp) / (b + temp) + Math.log(humidity / 100);
-   /* istanbul ignore next */ return (b * gamma) / (a - gamma);
+   const a = 17.27, b = 237.7;
+   const gamma = (a * temp) / (b + temp) + Math.log(humidity / 100);
+   return (b * gamma) / (a - gamma);
 }
 
- /* istanbul ignore next */ function getFeelsLike(temp, humidity, wind) {
+ function getFeelsLike(temp, humidity, wind) {
 
   if (temp > 27 && humidity > 40) {
     // Heat index
 
-     /* istanbul ignore next */ return Math.round(temp + 0.33 * humidity / 10 - 0.7 * wind / 10 - 4);
+     return Math.round(temp + 0.33 * humidity / 10 - 0.7 * wind / 10 - 4);
   }
 
   if (temp < 10 && wind > 5) {
     // Wind chill
 
-     /* istanbul ignore next */ return Math.round(13.12 + 0.6215 * temp - 11.37 * Math.pow(wind, 0.16) + 0.3965 * temp * Math.pow(wind, 0.16));
+     return Math.round(13.12 + 0.6215 * temp - 11.37 * Math.pow(wind, 0.16) + 0.3965 * temp * Math.pow(wind, 0.16));
   }
-   /* istanbul ignore next */ return temp;
+   return temp;
 }
 
- /* istanbul ignore next */ function getVisibility(humidity, weather) {
+ function getVisibility(humidity, weather) {
 
-   /* istanbul ignore next */ if (weather === 'fog') return 0.2;
+   if (weather === 'fog') return 0.2;
 
-   /* istanbul ignore next */ if (weather === 'heavySnow') return 0.5;
+   if (weather === 'heavySnow') return 0.5;
 
-   /* istanbul ignore next */ if (weather === 'thunderstorm') return 2;
+   if (weather === 'thunderstorm') return 2;
 
-   /* istanbul ignore next */ if (weather === 'heavyRain') return 3;
+   if (weather === 'heavyRain') return 3;
 
-   /* istanbul ignore next */ if (weather === 'lightRain' || weather === 'lightSnow') return 6;
+   if (weather === 'lightRain' || weather === 'lightSnow') return 6;
 
   if (humidity > 80) return 8;
-   /* istanbul ignore next */ return 10 + (100 - humidity) / 10;
+   return 10 + (100 - humidity) / 10;
 }
 
- /* istanbul ignore next */ function getUVIndex(weather, temp) {
+ function getUVIndex(weather, temp) {
 
-   /* istanbul ignore next */ if (['thunderstorm', 'heavyRain', 'heavySnow'].includes(weather)) return 0;
+   if (['thunderstorm', 'heavyRain', 'heavySnow'].includes(weather)) return 0;
 
-   /* istanbul ignore next */ if (['cloudy', 'fog'].includes(weather)) return 1;
+   if (['cloudy', 'fog'].includes(weather)) return 1;
 
-   /* istanbul ignore next */ if (['lightRain', 'lightSnow', 'partlyCloudy'].includes(weather)) return 3;
+   if (['lightRain', 'lightSnow', 'partlyCloudy'].includes(weather)) return 3;
 
-   /* istanbul ignore next */ if (weather === 'heatwave') return 11;
-   /* istanbul ignore next */ return Math.min(11, Math.max(1, Math.round(temp / 5)));
+   if (weather === 'heatwave') return 11;
+   return Math.min(11, Math.max(1, Math.round(temp / 5)));
 }
 
 // --- UI Update ---
- /* istanbul ignore next */ function updateWeather() {
-   /* istanbul ignore next */ const temp = parseInt(document.getElementById('temp-slider')?.value || 20);
-   /* istanbul ignore next */ const humidity = parseInt(document.getElementById('humidity-slider')?.value || 50);
-   /* istanbul ignore next */ const pressure = parseInt(document.getElementById('pressure-slider')?.value || 1013);
-   /* istanbul ignore next */ const wind = parseInt(document.getElementById('wind-slider')?.value || 10);
-   /* istanbul ignore next */ const altitude = parseInt(document.getElementById('altitude-slider')?.value || 0);
+ function updateWeather() {
+   const temp = parseInt(document.getElementById('temp-slider')?.value || 20);
+   const humidity = parseInt(document.getElementById('humidity-slider')?.value || 50);
+   const pressure = parseInt(document.getElementById('pressure-slider')?.value || 1013);
+   const wind = parseInt(document.getElementById('wind-slider')?.value || 10);
+   const altitude = parseInt(document.getElementById('altitude-slider')?.value || 0);
 
   // Update value displays
-   /* istanbul ignore next */ const tempVal = document.getElementById('temp-value');
-   /* istanbul ignore next */ const tempF = document.getElementById('temp-f');
-   /* istanbul ignore next */ const humVal = document.getElementById('humidity-value');
-   /* istanbul ignore next */ const pressVal = document.getElementById('pressure-value');
-   /* istanbul ignore next */ const windVal = document.getElementById('wind-value');
-   /* istanbul ignore next */ const altVal = document.getElementById('altitude-value');
+   const tempVal = document.getElementById('temp-value');
+   const tempF = document.getElementById('temp-f');
+   const humVal = document.getElementById('humidity-value');
+   const pressVal = document.getElementById('pressure-value');
+   const windVal = document.getElementById('wind-value');
+   const altVal = document.getElementById('altitude-value');
 
 
-   /* istanbul ignore next */ if (tempVal) tempVal.textContent = temp;
+   if (tempVal) tempVal.textContent = temp;
 
-   /* istanbul ignore next */ if (tempF) tempF.textContent = Math.round(temp * 9/5 + 32);
+   if (tempF) tempF.textContent = Math.round(temp * 9/5 + 32);
 
-   /* istanbul ignore next */ if (humVal) humVal.textContent = humidity;
+   if (humVal) humVal.textContent = humidity;
 
-   /* istanbul ignore next */ if (pressVal) pressVal.textContent = pressure;
+   if (pressVal) pressVal.textContent = pressure;
 
-   /* istanbul ignore next */ if (windVal) windVal.textContent = wind;
+   if (windVal) windVal.textContent = wind;
 
-   /* istanbul ignore next */ if (altVal) altVal.textContent = altitude;
+   if (altVal) altVal.textContent = altitude;
 
   // Classify
-   /* istanbul ignore next */ const weather = classifyWeather(temp, humidity, pressure, wind, altitude);
-  /* istanbul ignore next */ currentWeather = weather;
+   const weather = classifyWeather(temp, humidity, pressure, wind, altitude);
+  currentWeather = weather;
 
   // Apply visuals
-  /* istanbul ignore next */ applyWeatherVisuals(weather, temp, humidity, wind);
+  applyWeatherVisuals(weather, temp, humidity, wind);
 
   // Update info cards
-   /* istanbul ignore next */ const feelsLike = getFeelsLike(temp, humidity, wind);
-   /* istanbul ignore next */ const dewPoint = Math.round(getDewPoint(temp, humidity));
-   /* istanbul ignore next */ const vis = getVisibility(humidity, weather);
-   /* istanbul ignore next */ const uv = getUVIndex(weather, temp);
+   const feelsLike = getFeelsLike(temp, humidity, wind);
+   const dewPoint = Math.round(getDewPoint(temp, humidity));
+   const vis = getVisibility(humidity, weather);
+   const uv = getUVIndex(weather, temp);
 
-   /* istanbul ignore next */ const flEl = document.getElementById('feels-like');
-   /* istanbul ignore next */ const dpEl = document.getElementById('dew-point');
-   /* istanbul ignore next */ const visEl = document.getElementById('visibility');
-   /* istanbul ignore next */ const uvEl = document.getElementById('uv-index');
+   const flEl = document.getElementById('feels-like');
+   const dpEl = document.getElementById('dew-point');
+   const visEl = document.getElementById('visibility');
+   const uvEl = document.getElementById('uv-index');
 
 
-   /* istanbul ignore next */ if (flEl) flEl.textContent = feelsLike + '°C';
+   if (flEl) flEl.textContent = feelsLike + '°C';
 
-   /* istanbul ignore next */ if (dpEl) dpEl.textContent = dewPoint + '°C';
+   if (dpEl) dpEl.textContent = dewPoint + '°C';
 
   if (visEl) visEl.textContent = vis >= 10 ? vis.toFixed(0) + ' km' : vis.toFixed(1) + ' km';
 
-   /* istanbul ignore next */ if (uvEl) uvEl.textContent = uv;
+   if (uvEl) uvEl.textContent = uv;
 
   // Update science
-  /* istanbul ignore next */ updateScience(weather);
+  updateScience(weather);
 
   // Update atmosphere layer highlight
-  /* istanbul ignore next */ updateAtmosphereHighlight(altitude);
+  updateAtmosphereHighlight(altitude);
 }
 
- /* istanbul ignore next */ function applyWeatherVisuals(weather, temp, humidity, wind) {
-   /* istanbul ignore next */ const wType = WEATHER_TYPES[weather];
-   /* istanbul ignore next */ if (!wType) return;
+ function applyWeatherVisuals(weather, temp, humidity, wind) {
+   const wType = WEATHER_TYPES[weather];
+   if (!wType) return;
 
   // Weather label
-   /* istanbul ignore next */ const icon = document.getElementById('weather-icon');
-   /* istanbul ignore next */ const name = document.getElementById('weather-name');
+   const icon = document.getElementById('weather-icon');
+   const name = document.getElementById('weather-name');
 
-   /* istanbul ignore next */ if (icon) icon.textContent = wType.icon;
+   if (icon) icon.textContent = wType.icon;
 
-   /* istanbul ignore next */ if (name) name.textContent = wType.name;
+   if (name) name.textContent = wType.name;
 
   // Sky gradient
-   /* istanbul ignore next */ const sky = document.getElementById('sky-gradient');
+   const sky = document.getElementById('sky-gradient');
 
-   /* istanbul ignore next */ if (sky) {
+   if (sky) {
 
     sky.style.background = `linear-gradient(180deg, ${wType.sky[0]} 0%, ${wType.sky[1]} 50%, ${wType.sky[2]} 100%)`;
   }
 
   // Sun/Moon
-   /* istanbul ignore next */ const sun = document.getElementById('sun');
-   /* istanbul ignore next */ const moon = document.getElementById('moon');
-   /* istanbul ignore next */ const isSunny = ['clear', 'partlyCloudy', 'heatwave'].includes(weather);
+   const sun = document.getElementById('sun');
+   const moon = document.getElementById('moon');
+   const isSunny = ['clear', 'partlyCloudy', 'heatwave'].includes(weather);
 
-   /* istanbul ignore next */ if (sun) sun.style.opacity = isSunny ? '1' : '0.2';
+   if (sun) sun.style.opacity = isSunny ? '1' : '0.2';
 
-   /* istanbul ignore next */ if (moon) moon.style.opacity = weather === 'freezing' ? '0.8' : '0';
+   if (moon) moon.style.opacity = weather === 'freezing' ? '0.8' : '0';
 
   // Clouds
-  /* istanbul ignore next */ renderClouds(weather, wind);
+  renderClouds(weather, wind);
 
   // Precipitation
-  /* istanbul ignore next */ renderPrecipitation(weather, wind);
+  renderPrecipitation(weather, wind);
 
   // Lightning
 
-   /* istanbul ignore next */ if (weather === 'thunderstorm') {
+   if (weather === 'thunderstorm') {
 
-    /* istanbul ignore next */ startLightning();
-  /* istanbul ignore next */ } else {
-    /* istanbul ignore next */ stopLightning();
+    startLightning();
+  } else {
+    stopLightning();
   }
 
   // Fog
-   /* istanbul ignore next */ const fogLayer = document.getElementById('fog-layer');
+   const fogLayer = document.getElementById('fog-layer');
 
-   /* istanbul ignore next */ if (fogLayer) fogLayer.style.opacity = weather === 'fog' ? '0.8' : '0';
+   if (fogLayer) fogLayer.style.opacity = weather === 'fog' ? '0.8' : '0';
 
   // Ground
-   /* istanbul ignore next */ const ground = document.getElementById('ground');
-   /* istanbul ignore next */ const groundCover = document.getElementById('ground-cover');
+   const ground = document.getElementById('ground');
+   const groundCover = document.getElementById('ground-cover');
 
-   /* istanbul ignore next */ if (ground) {
+   if (ground) {
 
     if (temp <= 0) ground.style.background = 'linear-gradient(180deg, #94a3b8, #cbd5e0)';
 
     else if (temp > 40) ground.style.background = 'linear-gradient(180deg, #92400e, #78350f)';
 
-    /* istanbul ignore next */ else ground.style.background = 'linear-gradient(180deg, #2d5a27, #1a3518)';
+    else ground.style.background = 'linear-gradient(180deg, #2d5a27, #1a3518)';
   }
 
   if (groundCover) groundCover.style.opacity = temp <= 0 ? '0.6' : '0';
 
   // Wind indicator
-   /* istanbul ignore next */ const windInd = document.getElementById('wind-indicator');
+   const windInd = document.getElementById('wind-indicator');
 
-   /* istanbul ignore next */ if (windInd) {
+   if (windInd) {
 
-    /* istanbul ignore next */ windInd.style.fontSize = Math.min(3, 1 + wind / 50) + 'rem';
+    windInd.style.fontSize = Math.min(3, 1 + wind / 50) + 'rem';
 
     windInd.style.animation = wind > 60 ? 'windShake .2s ease infinite alternate' : 'none';
   }
 }
 
- /* istanbul ignore next */ function renderClouds(weather, wind) {
-   /* istanbul ignore next */ const layer = document.getElementById('clouds-layer');
+ function renderClouds(weather, wind) {
+   const layer = document.getElementById('clouds-layer');
 
-   /* istanbul ignore next */ if (!layer) return;
+   if (!layer) return;
 
-  /* istanbul ignore next */ layer.innerHTML = '';
+  layer.innerHTML = '';
 
 
-   /* istanbul ignore next */ const cloudCounts = {
-    /* istanbul ignore next */ clear: 0, partlyCloudy: 3, cloudy: 8, lightRain: 6,
-    /* istanbul ignore next */ heavyRain: 10, thunderstorm: 12, lightSnow: 5,
-    /* istanbul ignore next */ heavySnow: 10, fog: 0, tornado: 8, heatwave: 0, freezing: 2
+   const cloudCounts = {
+    clear: 0, partlyCloudy: 3, cloudy: 8, lightRain: 6,
+    heavyRain: 10, thunderstorm: 12, lightSnow: 5,
+    heavySnow: 10, fog: 0, tornado: 8, heatwave: 0, freezing: 2
   };
 
 
-   /* istanbul ignore next */ const count = cloudCounts[weather] || 0;
+   const count = cloudCounts[weather] || 0;
 
-   /* istanbul ignore next */ const emoji = ['thunderstorm', 'heavyRain'].includes(weather) ? '🌩️' :
+   const emoji = ['thunderstorm', 'heavyRain'].includes(weather) ? '🌩️' :
 
-                /* istanbul ignore next */ weather === 'tornado' ? '🌪️' : '☁️';
+                weather === 'tornado' ? '🌪️' : '☁️';
 
 
   for (let i = 0; i < count; i++) {
 
-     /* istanbul ignore next */ const cloud = document.createElement('div');
+     const cloud = document.createElement('div');
 
-    /* istanbul ignore next */ cloud.className = 'cloud';
+    cloud.className = 'cloud';
 
-    /* istanbul ignore next */ cloud.textContent = emoji;
+    cloud.textContent = emoji;
 
-    /* istanbul ignore next */ cloud.style.top = (5 + Math.random() * 35) + '%';
+    cloud.style.top = (5 + Math.random() * 35) + '%';
 
-    /* istanbul ignore next */ cloud.style.fontSize = (1.5 + Math.random() * 2) + 'rem';
+    cloud.style.fontSize = (1.5 + Math.random() * 2) + 'rem';
 
-    /* istanbul ignore next */ cloud.style.animationDuration = Math.max(3, 20 - wind / 10 + Math.random() * 10) + 's';
+    cloud.style.animationDuration = Math.max(3, 20 - wind / 10 + Math.random() * 10) + 's';
 
-    /* istanbul ignore next */ cloud.style.animationDelay = -(Math.random() * 20) + 's';
+    cloud.style.animationDelay = -(Math.random() * 20) + 's';
 
-    /* istanbul ignore next */ cloud.style.opacity = 0.6 + Math.random() * 0.4;
+    cloud.style.opacity = 0.6 + Math.random() * 0.4;
 
-    /* istanbul ignore next */ layer.appendChild(cloud);
+    layer.appendChild(cloud);
   }
 }
 
- /* istanbul ignore next */ function renderPrecipitation(weather, wind) {
-   /* istanbul ignore next */ const layer = document.getElementById('precipitation-layer');
+ function renderPrecipitation(weather, wind) {
+   const layer = document.getElementById('precipitation-layer');
 
-   /* istanbul ignore next */ if (!layer) return;
+   if (!layer) return;
 
-  /* istanbul ignore next */ layer.innerHTML = '';
-
-
-   /* istanbul ignore next */ const isRain = ['lightRain', 'heavyRain', 'thunderstorm'].includes(weather);
-
-   /* istanbul ignore next */ const isSnow = ['lightSnow', 'heavySnow'].includes(weather);
+  layer.innerHTML = '';
 
 
-   /* istanbul ignore next */ if (!isRain && !isSnow) return;
+   const isRain = ['lightRain', 'heavyRain', 'thunderstorm'].includes(weather);
+
+   const isSnow = ['lightSnow', 'heavySnow'].includes(weather);
 
 
-   /* istanbul ignore next */ const count = weather.startsWith('heavy') || weather === 'thunderstorm' ? 80 : 30;
+   if (!isRain && !isSnow) return;
 
-   /* istanbul ignore next */ const windAngle = Math.min(30, wind / 3);
+
+   const count = weather.startsWith('heavy') || weather === 'thunderstorm' ? 80 : 30;
+
+   const windAngle = Math.min(30, wind / 3);
 
 
   for (let i = 0; i < count; i++) {
 
-     /* istanbul ignore next */ const p = document.createElement('div');
+     const p = document.createElement('div');
 
-     /* istanbul ignore next */ if (isRain) {
+     if (isRain) {
 
-      /* istanbul ignore next */ p.className = 'raindrop';
+      p.className = 'raindrop';
 
-      /* istanbul ignore next */ p.style.height = (15 + Math.random() * 15) + 'px';
+      p.style.height = (15 + Math.random() * 15) + 'px';
 
-      /* istanbul ignore next */ p.style.left = Math.random() * 100 + '%';
+      p.style.left = Math.random() * 100 + '%';
 
-      /* istanbul ignore next */ p.style.animationDuration = (0.3 + Math.random() * 0.5) + 's';
+      p.style.animationDuration = (0.3 + Math.random() * 0.5) + 's';
 
-      /* istanbul ignore next */ p.style.animationDelay = -(Math.random() * 2) + 's';
+      p.style.animationDelay = -(Math.random() * 2) + 's';
 
       p.style.transform = `rotate(${windAngle}deg)`;
-    /* istanbul ignore next */ } else {
+    } else {
 
-      /* istanbul ignore next */ p.className = 'snowflake';
+      p.className = 'snowflake';
 
-      /* istanbul ignore next */ p.textContent = ['❄', '❅', '❆', '•'][Math.floor(Math.random() * 4)];
+      p.textContent = ['❄', '❅', '❆', '•'][Math.floor(Math.random() * 4)];
 
-      /* istanbul ignore next */ p.style.left = Math.random() * 100 + '%';
+      p.style.left = Math.random() * 100 + '%';
 
-      /* istanbul ignore next */ p.style.animationDuration = (2 + Math.random() * 3) + 's';
+      p.style.animationDuration = (2 + Math.random() * 3) + 's';
 
-      /* istanbul ignore next */ p.style.animationDelay = -(Math.random() * 5) + 's';
+      p.style.animationDelay = -(Math.random() * 5) + 's';
 
-      /* istanbul ignore next */ p.style.fontSize = (0.5 + Math.random() * 0.8) + 'rem';
+      p.style.fontSize = (0.5 + Math.random() * 0.8) + 'rem';
     }
 
-    /* istanbul ignore next */ layer.appendChild(p);
+    layer.appendChild(p);
   }
 }
 
- /* istanbul ignore next */ function startLightning() {
-   /* istanbul ignore next */ if (lightningTimer) return;
+ function startLightning() {
+   if (lightningTimer) return;
 
   lightningTimer = setInterval(() => {
 
     if (Math.random() > 0.5) {
 
-      /* istanbul ignore next */ const layer = document.getElementById('lightning-layer');
+      const layer = document.getElementById('lightning-layer');
 
-      /* istanbul ignore next */ if (!layer) return;
+      if (!layer) return;
 
-      /* istanbul ignore next */ const flash = document.createElement('div');
+      const flash = document.createElement('div');
 
-      /* istanbul ignore next */ flash.className = 'lightning-flash';
+      flash.className = 'lightning-flash';
 
-      /* istanbul ignore next */ layer.appendChild(flash);
+      layer.appendChild(flash);
 
       setTimeout(() => flash.remove(), 200);
     }
-  /* istanbul ignore next */ }, 2000);
+  }, 2000);
 }
 
- /* istanbul ignore next */ function stopLightning() {
-   /* istanbul ignore next */ if (lightningTimer) {
-    /* istanbul ignore next */ clearInterval(lightningTimer);
-    /* istanbul ignore next */ lightningTimer = null;
+ function stopLightning() {
+   if (lightningTimer) {
+    clearInterval(lightningTimer);
+    lightningTimer = null;
   }
-   /* istanbul ignore next */ const layer = document.getElementById('lightning-layer');
+   const layer = document.getElementById('lightning-layer');
 
-   /* istanbul ignore next */ if (layer) layer.innerHTML = '';
+   if (layer) layer.innerHTML = '';
 }
 
- /* istanbul ignore next */ function updateScience(weather) {
-   /* istanbul ignore next */ const container = document.getElementById('science-explanation');
-   /* istanbul ignore next */ const factsContainer = document.getElementById('weather-facts');
+ function updateScience(weather) {
+   const container = document.getElementById('science-explanation');
+   const factsContainer = document.getElementById('weather-facts');
 
-   /* istanbul ignore next */ if (!container) return;
+   if (!container) return;
 
 
-   /* istanbul ignore next */ const explanation = SCIENCE_EXPLANATIONS[weather];
+   const explanation = SCIENCE_EXPLANATIONS[weather];
 
-   /* istanbul ignore next */ if (explanation) {
+   if (explanation) {
 
     container.innerHTML = `<div class="science-card"><h4>${explanation.title}</h4><p>${explanation.text}</p></div>`;
   }
 
 
-   /* istanbul ignore next */ if (factsContainer) {
+   if (factsContainer) {
 
     const randomFacts = WEATHER_FACTS.sort(() => Math.random() - 0.5).slice(0, 3);
 
@@ -442,11 +442,11 @@
   }
 }
 
- /* istanbul ignore next */ function updateAtmosphereHighlight(altitude) {
-   /* istanbul ignore next */ const layers = document.querySelectorAll('.layer-bar');
+ function updateAtmosphereHighlight(altitude) {
+   const layers = document.querySelectorAll('.layer-bar');
 
   layers.forEach(l => l.classList.remove('active'));
-   /* istanbul ignore next */ let activeLayer;
+   let activeLayer;
   if (altitude < 12000) activeLayer = 'Troposphere';
 
   else if (altitude < 50000) activeLayer = 'Stratosphere';
@@ -454,61 +454,126 @@
   else if (altitude < 80000) activeLayer = 'Mesosphere';
 
   else if (altitude < 500000) activeLayer = 'Thermosphere';
-  /* istanbul ignore next */ else activeLayer = 'Exosphere';
+  else activeLayer = 'Exosphere';
 
   layers.forEach(l => {
 
-     /* istanbul ignore next */ if (l.dataset.layer === activeLayer) l.classList.add('active');
-  /* istanbul ignore next */ });
+     if (l.dataset.layer === activeLayer) l.classList.add('active');
+  });
 }
 
 // --- Presets ---
- /* istanbul ignore next */ function applyPreset(name) {
-   /* istanbul ignore next */ const preset = PRESETS[name];
+ function applyPreset(name) {
+   const preset = PRESETS[name];
 
-   /* istanbul ignore next */ if (!preset) return;
+   if (!preset) return;
 
 
-   /* istanbul ignore next */ const sliders = {
-    /* istanbul ignore next */ 'temp-slider': preset.temp,
-    /* istanbul ignore next */ 'humidity-slider': preset.humidity,
-    /* istanbul ignore next */ 'pressure-slider': preset.pressure,
-    /* istanbul ignore next */ 'wind-slider': preset.wind,
-    /* istanbul ignore next */ 'altitude-slider': preset.altitude
+   const sliders = {
+    'temp-slider': preset.temp,
+    'humidity-slider': preset.humidity,
+    'pressure-slider': preset.pressure,
+    'wind-slider': preset.wind,
+    'altitude-slider': preset.altitude
   };
 
 
-   /* istanbul ignore next */ for (const [id, val] of Object.entries(sliders)) {
+   for (const [id, val] of Object.entries(sliders)) {
 
-     /* istanbul ignore next */ const el = document.getElementById(id);
+     const el = document.getElementById(id);
 
-     /* istanbul ignore next */ if (el) el.value = val;
+     if (el) el.value = val;
   }
 
 
-  /* istanbul ignore next */ updateWeather();
+  updateWeather();
 }
 
 // --- Init ---
- /* istanbul ignore next */ function init() {
-  /* istanbul ignore next */ updateWeather();
+ function init() {
+  updateWeather();
 }
 
 
- /* istanbul ignore next */ if (typeof document !== 'undefined') {
-  /* istanbul ignore next */ document.addEventListener('DOMContentLoaded', init);
+ if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
 }
 
 
- /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-  /* istanbul ignore next */ module.exports = {
-    /* istanbul ignore next */ WEATHER_TYPES, PRESETS, SCIENCE_EXPLANATIONS, WEATHER_FACTS,
-    /* istanbul ignore next */ classifyWeather, getDewPoint, getFeelsLike, getVisibility, getUVIndex,
-    /* istanbul ignore next */ updateWeather, applyWeatherVisuals, renderClouds, renderPrecipitation,
-    /* istanbul ignore next */ startLightning, stopLightning, updateScience, updateAtmosphereHighlight,
-    /* istanbul ignore next */ applyPreset, init,
+ if (typeof module !== 'undefined' && module.exports) {
+
+// ===== NEW FEATURES =====
+
+const BEAUFORT_SCALE = [
+  { force: 0, name: 'Calm', minSpeed: 0, maxSpeed: 1, effect: 'Smoke rises vertically', sea: 'Mirror-like' },
+  { force: 1, name: 'Light Air', minSpeed: 1, maxSpeed: 5, effect: 'Smoke drifts', sea: 'Ripples' },
+  { force: 2, name: 'Light Breeze', minSpeed: 6, maxSpeed: 11, effect: 'Leaves rustle', sea: 'Small wavelets' },
+  { force: 3, name: 'Gentle Breeze', minSpeed: 12, maxSpeed: 19, effect: 'Flags flutter', sea: 'Large wavelets' },
+  { force: 4, name: 'Moderate Breeze', minSpeed: 20, maxSpeed: 28, effect: 'Small branches sway', sea: 'Small waves' },
+  { force: 5, name: 'Fresh Breeze', minSpeed: 29, maxSpeed: 38, effect: 'Small trees sway', sea: 'Moderate waves' },
+  { force: 6, name: 'Strong Breeze', minSpeed: 39, maxSpeed: 49, effect: 'Large branches sway', sea: 'Large waves' },
+  { force: 7, name: 'Near Gale', minSpeed: 50, maxSpeed: 61, effect: 'Whole trees sway', sea: 'Sea heaps up' },
+  { force: 8, name: 'Gale', minSpeed: 62, maxSpeed: 74, effect: 'Twigs break off', sea: 'Moderately high waves' },
+  { force: 9, name: 'Strong Gale', minSpeed: 75, maxSpeed: 88, effect: 'Roof tiles fly off', sea: 'High waves' },
+  { force: 10, name: 'Storm', minSpeed: 89, maxSpeed: 102, effect: 'Trees uprooted', sea: 'Very high waves' },
+  { force: 11, name: 'Violent Storm', minSpeed: 103, maxSpeed: 117, effect: 'Widespread destruction', sea: 'Exceptionally high waves' },
+  { force: 12, name: 'Hurricane', minSpeed: 118, maxSpeed: 999, effect: 'Devastating damage', sea: 'Air filled with spray' },
+];
+
+function getBeaufortForce(windSpeed) {
+  for (let i = BEAUFORT_SCALE.length - 1; i >= 0; i--) {
+    if (windSpeed >= BEAUFORT_SCALE[i].minSpeed) return BEAUFORT_SCALE[i];
+  }
+  return BEAUFORT_SCALE[0];
+}
+
+function generate7DayForecast(baseTemp, baseHumidity, basePressure, baseWind, altitude) {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const today = new Date().getDay();
+  const forecast = [];
+  for (let i = 0; i < 7; i++) {
+    const dayVar = Math.sin(i * 0.8) * 5;
+    const temp = Math.round(baseTemp + dayVar + (Math.random() - 0.5) * 4);
+    const humidity = Math.max(5, Math.min(100, Math.round(baseHumidity + (Math.random() - 0.5) * 20)));
+    const pressure = Math.round(basePressure + (Math.random() - 0.5) * 15);
+    const wind = Math.max(0, Math.round(baseWind + (Math.random() - 0.5) * 15));
+    const weather = classifyWeather(temp, humidity, pressure, wind, altitude);
+    const wType = WEATHER_TYPES[weather];
+    forecast.push({ day: days[(today + i) % 7], temp, humidity, weather, icon: wType ? wType.icon : '?', name: wType ? wType.name : 'Unknown' });
+  }
+  return forecast;
+}
+
+const CLIMATE_ZONES = [
+  { name: 'Tropical Rainforest', code: 'Af', emoji: '🌴', temp: '25-28°C', rain: '2000-4000mm/yr', desc: 'Hot and wet year-round. Home to 50% of Earth\'s species.' },
+  { name: 'Desert', code: 'BWh', emoji: '🏜️', temp: '30-50°C peak', rain: '<250mm/yr', desc: 'Extremely dry with large day-night temperature swings.' },
+  { name: 'Mediterranean', code: 'Csa', emoji: '🫒', temp: '15-25°C', rain: '400-900mm/yr', desc: 'Warm dry summers and mild wet winters.' },
+  { name: 'Continental', code: 'Dfb', emoji: '🌲', temp: '-10 to 25°C', rain: '500-1000mm/yr', desc: 'Hot summers and cold winters.' },
+  { name: 'Polar Ice Cap', code: 'EF', emoji: '🧊', temp: '-50 to 0°C', rain: '<200mm/yr', desc: 'Permanently frozen, no month above 0°C.' },
+];
+
+const WEATHER_EXPERIMENTS = [
+  { title: 'What if Earth had no atmosphere?', desc: 'Avg temp would be -18°C. No weather, no wind, no clouds. Sky would be black even during daytime.' },
+  { title: 'What if all ice melted?', desc: 'Sea levels would rise ~65m. London, New York, Shanghai would be underwater.' },
+  { title: 'What if Earth spun backwards?', desc: 'Deserts and forests would swap! The Sahara would become lush forest, the Amazon would dry up.' },
+];
+
+const HISTORICAL_EVENTS = [
+  { year: 1816, title: 'Year Without a Summer', desc: 'Tambora eruption caused global cooling. Snow fell in June in New England.' },
+  { year: 2005, title: 'Hurricane Katrina', desc: 'Category 5, $125 billion damage. 80% of New Orleans flooded.' },
+];
+
+  module.exports = {
+    WEATHER_TYPES, PRESETS, SCIENCE_EXPLANATIONS, WEATHER_FACTS,
+    BEAUFORT_SCALE, CLIMATE_ZONES, WEATHER_EXPERIMENTS, HISTORICAL_EVENTS,
+    classifyWeather, getDewPoint, getFeelsLike, getVisibility, getUVIndex,
+    getBeaufortForce, generate7DayForecast,
+    updateWeather, applyWeatherVisuals, renderClouds, renderPrecipitation,
+    startLightning, stopLightning, updateScience, updateAtmosphereHighlight,
+    applyPreset, init,
     getState: () => ({ currentWeather, lightningTimer }),
     setCurrentWeather: v => { currentWeather = v; },
     cleanup: () => { stopLightning(); }
   };
 }
+

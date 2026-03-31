@@ -1,9 +1,9 @@
- /* istanbul ignore next */ const PRESET_TASKS=[{name:'HVAC Filter',freq:90},{name:'Smoke Detector Batteries',freq:180},{name:'Gutter Cleaning',freq:180},{name:'Water Heater Flush',freq:365},{name:'Dryer Vent Clean',freq:365},{name:'Lawn Mower Service',freq:365},{name:'Fridge Coil Clean',freq:180},{name:'Caulk Inspection',freq:365}];
+ const PRESET_TASKS=[{name:'HVAC Filter',freq:90},{name:'Smoke Detector Batteries',freq:180},{name:'Gutter Cleaning',freq:180},{name:'Water Heater Flush',freq:365},{name:'Dryer Vent Clean',freq:365},{name:'Lawn Mower Service',freq:365},{name:'Fridge Coil Clean',freq:180},{name:'Caulk Inspection',freq:365}];
 
-  /* istanbul ignore next */ let tasks=[];function loadTasks(){try{tasks=JSON.parse(localStorage.getItem('homeTasks')||'[]')}catch(e){tasks=[]}}
-  /* istanbul ignore next */ function saveTasks(){try{localStorage.setItem('homeTasks',JSON.stringify(tasks))}catch(e){}}
+  let tasks=[];function loadTasks(){try{tasks=JSON.parse(localStorage.getItem('homeTasks')||'[]')}catch(e){tasks=[]}}
+  function saveTasks(){try{localStorage.setItem('homeTasks',JSON.stringify(tasks))}catch(e){}}
 
-  /* istanbul ignore next */ function addTask(name,freq){if(typeof document!=='undefined'&&!name){const i=document.getElementById('task-input');const f=document.getElementById('freq-select');name=i?i.value.trim():'';freq=f?parseInt(f.value):90;if(i)i.value=''}if(!name)return;tasks.push({id:Date.now(),name,freqDays:freq||90,lastDone:null});saveTasks();render()}
+  function addTask(name,freq){if(typeof document!=='undefined'&&!name){const i=document.getElementById('task-input');const f=document.getElementById('freq-select');name=i?i.value.trim():'';freq=f?parseInt(f.value):90;if(i)i.value=''}if(!name)return;tasks.push({id:Date.now(),name,freqDays:freq||90,lastDone:null});saveTasks();render()}
 
  function markDone(id){const t=tasks.find(x=>x.id===id);if(t)t.lastDone=new Date().toISOString().slice(0,10);saveTasks();render()}
  function removeTask(id){tasks=tasks.filter(x=>x.id!==id);saveTasks();render()}

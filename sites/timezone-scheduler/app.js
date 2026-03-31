@@ -2,61 +2,61 @@
  * Timezone Scheduler Logic
  */
 
- /* istanbul ignore next */ let selectedZones = [];
- /* istanbul ignore next */ const DEFAULT_ZONES = [
-  /* istanbul ignore next */ Intl.DateTimeFormat().resolvedOptions().timeZone,
-  /* istanbul ignore next */ 'America/New_York',
-  /* istanbul ignore next */ 'Europe/London'
+ let selectedZones = [];
+ const DEFAULT_ZONES = [
+  Intl.DateTimeFormat().resolvedOptions().timeZone,
+  'America/New_York',
+  'Europe/London'
 ];
 
-  /* istanbul ignore next */ function init() {
-  /* istanbul ignore next */ populateSelect();
+  function init() {
+  populateSelect();
   
   // Initialize with some default zones, ensure unique
    selectedZones = [...new Set(DEFAULT_ZONES)].filter(z => isValidZone(z));
 
-    /* istanbul ignore next */ if (selectedZones.length === 0) selectedZones.push('UTC');
+    if (selectedZones.length === 0) selectedZones.push('UTC');
   
-  /* istanbul ignore next */ updateDateDisplay();
-  /* istanbul ignore next */ renderZones();
+  updateDateDisplay();
+  renderZones();
   
-  /* istanbul ignore next */ setInterval(renderZones, 60000); // update every minute (for exact real-time display)
+  setInterval(renderZones, 60000); // update every minute (for exact real-time display)
 }
 
-  /* istanbul ignore next */ function isValidZone(tz) {
-  /* istanbul ignore next */ try {
-    /* istanbul ignore next */ Intl.DateTimeFormat(undefined, { timeZone: tz });
-     /* istanbul ignore next */ return true;
-  /* istanbul ignore next */ } catch (e) {
-     /* istanbul ignore next */ return false;
+  function isValidZone(tz) {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+     return true;
+  } catch (e) {
+     return false;
   }
 }
 
-  /* istanbul ignore next */ function populateSelect() {
-   /* istanbul ignore next */ const select = document.getElementById('tz-select');
+  function populateSelect() {
+   const select = document.getElementById('tz-select');
 
-    /* istanbul ignore next */ if (!select) return;
+    if (!select) return;
   
   // Standard list of useful timezones
 
-   /* istanbul ignore next */ const commonZones = [
-    /* istanbul ignore next */ 'Pacific/Honolulu', 'America/Anchorage', 'America/Los_Angeles', 'America/Denver', 
-    /* istanbul ignore next */ 'America/Chicago', 'America/New_York', 'America/Sao_Paulo', 'UTC', 'Europe/London', 
-    /* istanbul ignore next */ 'Europe/Paris', 'Europe/Moscow', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 
-    /* istanbul ignore next */ 'Asia/Hong_Kong', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland'
+   const commonZones = [
+    'Pacific/Honolulu', 'America/Anchorage', 'America/Los_Angeles', 'America/Denver', 
+    'America/Chicago', 'America/New_York', 'America/Sao_Paulo', 'UTC', 'Europe/London', 
+    'Europe/Paris', 'Europe/Moscow', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 
+    'Asia/Hong_Kong', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland'
   ];
   
   // Attempt to get all if supported, fallback to common
 
-   /* istanbul ignore next */ let allZones = commonZones;
+   let allZones = commonZones;
 
-  /* istanbul ignore next */ try {
+  try {
 
-     /* istanbul ignore next */ if (Intl.supportedValuesOf) {
+     if (Intl.supportedValuesOf) {
 
-      /* istanbul ignore next */ allZones = Intl.supportedValuesOf('timeZone');
+      allZones = Intl.supportedValuesOf('timeZone');
     }
-  /* istanbul ignore next */ } catch(e) {}
+  } catch(e) {}
   
 
   select.innerHTML = '<option value="">-- Select Timezone to Add --</option>' + 
@@ -64,63 +64,63 @@
      allZones.map(z => `<option value="${z}">${z.replace(/_/g, ' ')}</option>`).join('');
 }
 
-  /* istanbul ignore next */ function updateDateDisplay() {
-   /* istanbul ignore next */ const el = document.getElementById('current-date-display');
+  function updateDateDisplay() {
+   const el = document.getElementById('current-date-display');
 
-    /* istanbul ignore next */ if (el) {
+    if (el) {
 
-    /* istanbul ignore next */ el.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    el.textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   }
 }
 
-  /* istanbul ignore next */ function addTimezone() {
-   /* istanbul ignore next */ const select = document.getElementById('tz-select');
+  function addTimezone() {
+   const select = document.getElementById('tz-select');
 
-    /* istanbul ignore next */ if (!select) return;
+    if (!select) return;
 
-   /* istanbul ignore next */ const tz = select.value;
+   const tz = select.value;
 
-    /* istanbul ignore next */ if (!tz) return;
+    if (!tz) return;
   
 
-    /* istanbul ignore next */ if (!selectedZones.includes(tz)) {
+    if (!selectedZones.includes(tz)) {
 
-    /* istanbul ignore next */ selectedZones.push(tz);
+    selectedZones.push(tz);
 
-    /* istanbul ignore next */ renderZones();
+    renderZones();
   }
 
-  /* istanbul ignore next */ select.value = '';
+  select.value = '';
 }
 
-  /* istanbul ignore next */ function removeTimezone(index) {
-  /* istanbul ignore next */ selectedZones.splice(index, 1);
-  /* istanbul ignore next */ renderZones();
+  function removeTimezone(index) {
+  selectedZones.splice(index, 1);
+  renderZones();
 }
 
-  /* istanbul ignore next */ function getLocalTimeStr(tz) {
-   /* istanbul ignore next */ return new Intl.DateTimeFormat('en-US', {
-    /* istanbul ignore next */ timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true
-  /* istanbul ignore next */ }).format(new Date());
+  function getLocalTimeStr(tz) {
+   return new Intl.DateTimeFormat('en-US', {
+    timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true
+  }).format(new Date());
 }
 
-  /* istanbul ignore next */ function getOffsetHours(tz) {
+  function getOffsetHours(tz) {
   // Hack to get approximate offset by parsing string
-   /* istanbul ignore next */ const dateStr = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).format(new Date());
-   /* istanbul ignore next */ const match = dateStr.match(/GMT([+-]\d+)/);
+   const dateStr = new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' }).format(new Date());
+   const match = dateStr.match(/GMT([+-]\d+)/);
 
-    /* istanbul ignore next */ if (match) return parseInt(match[1], 10);
+    if (match) return parseInt(match[1], 10);
 
-   /* istanbul ignore next */ return 0; // fallback
+   return 0; // fallback
 }
 
-  /* istanbul ignore next */ function renderZones() {
+  function renderZones() {
 
-    /* istanbul ignore next */ if (typeof document === 'undefined') return;
-   /* istanbul ignore next */ const listEl = document.getElementById('tz-list');
-   /* istanbul ignore next */ const gridEl = document.getElementById('schedule-grid');
+    if (typeof document === 'undefined') return;
+   const listEl = document.getElementById('tz-list');
+   const gridEl = document.getElementById('schedule-grid');
 
-    /* istanbul ignore next */ if (!listEl || !gridEl) return;
+    if (!listEl || !gridEl) return;
   
   // Render List
 
@@ -136,9 +136,9 @@
   
   // Render Grid
 
-   /* istanbul ignore next */ const baseDate = new Date();
+   const baseDate = new Date();
 
-  /* istanbul ignore next */ baseDate.setHours(0, 0, 0, 0); // Start of local day
+  baseDate.setHours(0, 0, 0, 0); // Start of local day
   
 
   let gridHTML = '<thead><tr><th class="text-left p-2">Timezone</th>';
@@ -158,47 +158,47 @@
 
      for (let h = 0; h < 24; h++) {
 
-      /* istanbul ignore next */ const d = new Date(baseDate.getTime() + h * 3600000);
+      const d = new Date(baseDate.getTime() + h * 3600000);
 
-      /* istanbul ignore next */ const tzHourStr = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', hourCycle: 'h23' }).format(d);
+      const tzHourStr = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', hourCycle: 'h23' }).format(d);
 
-      /* istanbul ignore next */ const tzHour = parseInt(tzHourStr, 10);
+      const tzHour = parseInt(tzHourStr, 10);
       
 
-      /* istanbul ignore next */ let cssClass = 'hour-cell ';
+      let cssClass = 'hour-cell ';
 
        if (tzHour >= 9 && tzHour <= 17) cssClass += 'bg-success text-success-content font-bold shadow-inset';
 
        else if (tzHour >= 7 && tzHour <= 21) cssClass += 'bg-warning text-warning-content';
 
-      /* istanbul ignore next */ else cssClass += 'bg-surface text-dim';
+      else cssClass += 'bg-surface text-dim';
       
 
       gridHTML += `<td class="${cssClass} p-2 text-xs border border-border">${tzHour}</td>`;
     }
 
     gridHTML += '</tr>';
-  /* istanbul ignore next */ });
+  });
   
 
   gridHTML += '</tbody>';
 
-  /* istanbul ignore next */ gridEl.innerHTML = gridHTML;
+  gridEl.innerHTML = gridHTML;
 }
 
 
-  /* istanbul ignore next */ if (typeof window !== 'undefined') {
-  /* istanbul ignore next */ window.addTimezone = addTimezone;
-  /* istanbul ignore next */ window.removeTimezone = removeTimezone;
+  if (typeof window !== 'undefined') {
+  window.addTimezone = addTimezone;
+  window.removeTimezone = removeTimezone;
 }
 
 
-  /* istanbul ignore next */ if (typeof document !== 'undefined') {
-  /* istanbul ignore next */ document.addEventListener('DOMContentLoaded', init);
+  if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', init);
 }
 
 // Export for tests
 
-  /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
+  if (typeof module !== 'undefined' && module.exports) {
    module.exports = { init, isValidZone, addTimezone, removeTimezone, getLocalTimeStr, populateSelect, updateDateDisplay, getOffsetHours, renderZones, getSelectedZones: () => selectedZones, setSelectedZones: (z) => selectedZones = z };
 }

@@ -1,15 +1,15 @@
- /* istanbul ignore next */ var ROMAN_MAP=[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
- /* istanbul ignore next */ var mode='d2r';
+ var ROMAN_MAP=[[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']];
+ var mode='d2r';
 
-  /* istanbul ignore next */ function setMode(m){mode=m;if(typeof document==='undefined')return;var btns=document.querySelectorAll('.tab-btn');if(btns[0])btns[0].classList.toggle('active',m==='d2r');if(btns[1])btns[1].classList.toggle('active',m==='r2d');var inp=document.getElementById('input');if(inp){inp.placeholder=m==='d2r'?'Enter a number (1-3999)...':'Enter Roman numeral...';inp.value=''}convert()}
+  function setMode(m){mode=m;if(typeof document==='undefined')return;var btns=document.querySelectorAll('.tab-btn');if(btns[0])btns[0].classList.toggle('active',m==='d2r');if(btns[1])btns[1].classList.toggle('active',m==='r2d');var inp=document.getElementById('input');if(inp){inp.placeholder=m==='d2r'?'Enter a number (1-3999)...':'Enter Roman numeral...';inp.value=''}convert()}
  function toRoman(num){if(num<1||num>3999)return'Invalid (1-3999)';var result='';for(var i=0;i<ROMAN_MAP.length;i++){while(num>=ROMAN_MAP[i][0]){result+=ROMAN_MAP[i][1];num-=ROMAN_MAP[i][0]}}return result}
 
  function toDecimal(roman){var map={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};var result=0;var s=roman.toUpperCase();for(var i=0;i<s.length;i++){if(!map[s[i]])return'Invalid';if(i+1<s.length&&map[s[i]]<map[s[i+1]])result-=map[s[i]];else result+=map[s[i]]}return result>0&&result<=3999?result:'Invalid'}
 
-  /* istanbul ignore next */ function convert(){if(typeof document==='undefined')return;var inp=document.getElementById('input');var el=document.getElementById('result');if(!el)return;var val=inp?inp.value:'';if(!val){el.textContent='';return}if(mode==='d2r'){var num=parseInt(val);el.textContent=isNaN(num)?'Invalid':toRoman(num)}else{el.textContent=String(toDecimal(val))}}
+  function convert(){if(typeof document==='undefined')return;var inp=document.getElementById('input');var el=document.getElementById('result');if(!el)return;var val=inp?inp.value:'';if(!val){el.textContent='';return}if(mode==='d2r'){var num=parseInt(val);el.textContent=isNaN(num)?'Invalid':toRoman(num)}else{el.textContent=String(toDecimal(val))}}
 
  function init(){if(typeof document==='undefined')return;document.getElementById('app').innerHTML='<div class="card glass"><div style="display:flex;gap:8px;margin-bottom:16px"><button class="tab-btn active" onclick="setMode(\'d2r\')">Decimal → Roman</button><button class="tab-btn" onclick="setMode(\'r2d\')">Roman → Decimal</button></div><input type="text" id="input" class="input w-full" style="font-size:1.2rem;text-align:center" placeholder="Enter a number (1-3999)..." oninput="convert()"><div id="result" style="text-align:center;font-size:3rem;font-weight:800;padding:30px;background:var(--color-surface-alt);margin-top:16px;background:linear-gradient(135deg,var(--color-primary),var(--color-accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;min-height:80px"></div></div>'}
 
- /* istanbul ignore next */ if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',init);
+ if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',init);
 
- /* istanbul ignore next */ if(typeof module!=='undefined'&&module.exports)module.exports={ROMAN_MAP,toRoman,toDecimal,convert,setMode,init,getMode:function(){return mode}};
+ if(typeof module!=='undefined'&&module.exports)module.exports={ROMAN_MAP,toRoman,toDecimal,convert,setMode,init,getMode:function(){return mode}};

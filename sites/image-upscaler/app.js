@@ -4,19 +4,19 @@
  * Pure canvas-based processing — no external AI dependencies
  */
 
- /* istanbul ignore next */ let originalImage = null;
- /* istanbul ignore next */ let currentCanvas = null;
- /* istanbul ignore next */ let cropState = { active: false, startX: 0, startY: 0, endX: 0, endY: 0, dragging: false };
- /* istanbul ignore next */ let mergeImages = [];
- /* istanbul ignore next */ let activeTab = 'resize';
+ let originalImage = null;
+ let currentCanvas = null;
+ let cropState = { active: false, startX: 0, startY: 0, endX: 0, endY: 0, dragging: false };
+ let mergeImages = [];
+ let activeTab = 'resize';
 
- /* istanbul ignore next */ function createCanvas(w, h) {
+ function createCanvas(w, h) {
 
-   /* istanbul ignore next */ if (typeof document !== 'undefined') {
-     /* istanbul ignore next */ const c = document.createElement('canvas');
-    /* istanbul ignore next */ c.width = w || 1;
-    /* istanbul ignore next */ c.height = h || 1;
-     /* istanbul ignore next */ return c;
+   if (typeof document !== 'undefined') {
+     const c = document.createElement('canvas');
+    c.width = w || 1;
+    c.height = h || 1;
+     return c;
   }
 
   return { width: w, height: h, getContext: () => ({ drawImage: () => {}, fillRect: () => {} , scale: () => {}, translate: () => {}, rotate: () => {} }) };
@@ -33,28 +33,28 @@
  * @param {number} maxDim
  * @returns {{ valid: boolean, message: string }}
  */
- /* istanbul ignore next */ function validateImageSize(width, height, maxDim = 4000) {
+ function validateImageSize(width, height, maxDim = 4000) {
 
   if (width > maxDim || height > maxDim) {
 
     return { valid: false, message: `Image too large (${width}×${height}). Max: ${maxDim}×${maxDim}px` };
   }
-   /* istanbul ignore next */ return { valid: true, message: '' };
+   return { valid: true, message: '' };
 }
 
 /**
  * Format display dimensions
  */
- /* istanbul ignore next */ function formatDimensions(w, h, scale = 1) {
+ function formatDimensions(w, h, scale = 1) {
   return `${Math.round(w * scale)} × ${Math.round(h * scale)} px`;
 }
 
 /**
  * Parse scale factor
  */
- /* istanbul ignore next */ function parseScale(scale) {
-   /* istanbul ignore next */ const n = parseFloat(scale);
-   /* istanbul ignore next */ return isNaN(n) ? 1 : Math.min(Math.max(n, 0.1), 8);
+ function parseScale(scale) {
+   const n = parseFloat(scale);
+   return isNaN(n) ? 1 : Math.min(Math.max(n, 0.1), 8);
 }
 
 /**
@@ -65,40 +65,40 @@
  * @param {number} targetH
  * @returns {HTMLCanvasElement}
  */
- /* istanbul ignore next */ function bicubicResize(source, targetW, targetH) {
-   /* istanbul ignore next */ const tw = Math.round(targetW);
-   /* istanbul ignore next */ const th = Math.round(targetH);
+ function bicubicResize(source, targetW, targetH) {
+   const tw = Math.round(targetW);
+   const th = Math.round(targetH);
   
   // Calculate how many steps are needed (incrementing max 2x at a time for upscaling)
-   /* istanbul ignore next */ let steps = 1;
+   let steps = 1;
 
   if (tw > source.width * 2 || th > source.height * 2) {
 
-    /* istanbul ignore next */ steps = Math.ceil(Math.log2(Math.max(tw / source.width, th / source.height)));
+    steps = Math.ceil(Math.log2(Math.max(tw / source.width, th / source.height)));
   }
 
-   /* istanbul ignore next */ let currentSource = source;
+   let currentSource = source;
   
   for (let i = 1; i <= steps; i++) {
-     /* istanbul ignore next */ const isLastStep = i === steps;
+     const isLastStep = i === steps;
 
-     /* istanbul ignore next */ const stepW = isLastStep ? tw : Math.round(source.width * Math.pow(2, i));
+     const stepW = isLastStep ? tw : Math.round(source.width * Math.pow(2, i));
 
-     /* istanbul ignore next */ const stepH = isLastStep ? th : Math.round(source.height * Math.pow(2, i));
+     const stepH = isLastStep ? th : Math.round(source.height * Math.pow(2, i));
     
     // Explicit limit to avoid browser crash
 
     if (stepW > 8000 || stepH > 8000) break;
 
-     /* istanbul ignore next */ const out = createCanvas(Math.round(stepW), Math.round(stepH));
-     /* istanbul ignore next */ const ctx = out.getContext('2d');
-    /* istanbul ignore next */ ctx.imageSmoothingEnabled = true;
-    /* istanbul ignore next */ ctx.imageSmoothingQuality = 'high';
-    /* istanbul ignore next */ ctx.drawImage(currentSource, 0, 0, stepW, stepH);
-    /* istanbul ignore next */ currentSource = out;
+     const out = createCanvas(Math.round(stepW), Math.round(stepH));
+     const ctx = out.getContext('2d');
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(currentSource, 0, 0, stepW, stepH);
+    currentSource = out;
   }
   
-   /* istanbul ignore next */ return currentSource;
+   return currentSource;
 }
 
 /**
@@ -107,19 +107,19 @@
  * @param {number} degrees
  * @returns {HTMLCanvasElement}
  */
- /* istanbul ignore next */ function rotateCanvas(source, degrees) {
-   /* istanbul ignore next */ const rad = (degrees * Math.PI) / 180;
-   /* istanbul ignore next */ const sin = Math.abs(Math.sin(rad));
-   /* istanbul ignore next */ const cos = Math.abs(Math.cos(rad));
-   /* istanbul ignore next */ const newW = Math.round(source.width * cos + source.height * sin);
-   /* istanbul ignore next */ const newH = Math.round(source.width * sin + source.height * cos);
+ function rotateCanvas(source, degrees) {
+   const rad = (degrees * Math.PI) / 180;
+   const sin = Math.abs(Math.sin(rad));
+   const cos = Math.abs(Math.cos(rad));
+   const newW = Math.round(source.width * cos + source.height * sin);
+   const newH = Math.round(source.width * sin + source.height * cos);
 
-   /* istanbul ignore next */ const out = createCanvas(newW, newH);
-   /* istanbul ignore next */ const ctx = out.getContext('2d');
-  /* istanbul ignore next */ ctx.translate(newW / 2, newH / 2);
-  /* istanbul ignore next */ ctx.rotate(rad);
-  /* istanbul ignore next */ ctx.drawImage(source, -source.width / 2, -source.height / 2);
-   /* istanbul ignore next */ return out;
+   const out = createCanvas(newW, newH);
+   const ctx = out.getContext('2d');
+  ctx.translate(newW / 2, newH / 2);
+  ctx.rotate(rad);
+  ctx.drawImage(source, -source.width / 2, -source.height / 2);
+   return out;
 }
 
 /**
@@ -128,20 +128,20 @@
  * @param {'horizontal'|'vertical'} direction
  * @returns {HTMLCanvasElement}
  */
- /* istanbul ignore next */ function flipCanvas(source, direction) {
-   /* istanbul ignore next */ const out = createCanvas(source.width, source.height);
-   /* istanbul ignore next */ const ctx = out.getContext('2d');
+ function flipCanvas(source, direction) {
+   const out = createCanvas(source.width, source.height);
+   const ctx = out.getContext('2d');
 
-   /* istanbul ignore next */ if (direction === 'horizontal') {
+   if (direction === 'horizontal') {
 
-    /* istanbul ignore next */ ctx.scale(-1, 1);
+    ctx.scale(-1, 1);
 
-    /* istanbul ignore next */ ctx.drawImage(source, -source.width, 0);
-  /* istanbul ignore next */ } else {
-    /* istanbul ignore next */ ctx.scale(1, -1);
-    /* istanbul ignore next */ ctx.drawImage(source, 0, -source.height);
+    ctx.drawImage(source, -source.width, 0);
+  } else {
+    ctx.scale(1, -1);
+    ctx.drawImage(source, 0, -source.height);
   }
-   /* istanbul ignore next */ return out;
+   return out;
 }
 
 /**
@@ -153,15 +153,15 @@
  * @param {number} h
  * @returns {HTMLCanvasElement}
  */
- /* istanbul ignore next */ function cropCanvas(source, x, y, w, h) {
-   /* istanbul ignore next */ const cw = Math.min(w, source.width - x);
-   /* istanbul ignore next */ const ch = Math.min(h, source.height - y);
+ function cropCanvas(source, x, y, w, h) {
+   const cw = Math.min(w, source.width - x);
+   const ch = Math.min(h, source.height - y);
 
   if (cw <= 0 || ch <= 0) return source;
-   /* istanbul ignore next */ const out = createCanvas(cw, ch);
-   /* istanbul ignore next */ const ctx = out.getContext('2d');
-  /* istanbul ignore next */ ctx.drawImage(source, x, y, cw, ch, 0, 0, cw, ch);
-   /* istanbul ignore next */ return out;
+   const out = createCanvas(cw, ch);
+   const ctx = out.getContext('2d');
+  ctx.drawImage(source, x, y, cw, ch, 0, 0, cw, ch);
+   return out;
 }
 
 /**
@@ -170,22 +170,22 @@
  * @param {{ brightness, contrast, saturation, hue, sepia, grayscale, invert }} opts
  * @returns {HTMLCanvasElement}
  */
- /* istanbul ignore next */ function applyColorAdjustments(source, opts = {}) {
-   /* istanbul ignore next */ const {
-    /* istanbul ignore next */ brightness = 100,
-    /* istanbul ignore next */ contrast = 100,
-    /* istanbul ignore next */ saturation = 100,
-    /* istanbul ignore next */ hue = 0,
-    /* istanbul ignore next */ sepia = 0,
-    /* istanbul ignore next */ grayscale = 0,
-    /* istanbul ignore next */ invert = 0
-  /* istanbul ignore next */ } = opts;
+ function applyColorAdjustments(source, opts = {}) {
+   const {
+    brightness = 100,
+    contrast = 100,
+    saturation = 100,
+    hue = 0,
+    sepia = 0,
+    grayscale = 0,
+    invert = 0
+  } = opts;
 
-   /* istanbul ignore next */ const out = createCanvas(source.width, source.height);
-   /* istanbul ignore next */ const ctx = out.getContext('2d');
+   const out = createCanvas(source.width, source.height);
+   const ctx = out.getContext('2d');
 
   // Build CSS filter string
-   /* istanbul ignore next */ const filters = [
+   const filters = [
     `brightness(${brightness}%)`,
     `contrast(${contrast}%)`,
     `saturate(${saturation}%)`,
@@ -193,12 +193,12 @@
     `sepia(${sepia}%)`,
     `grayscale(${grayscale}%)`,
     `invert(${invert}%)`
-  /* istanbul ignore next */ ].join(' ');
+  ].join(' ');
 
-  /* istanbul ignore next */ ctx.filter = filters;
-  /* istanbul ignore next */ ctx.drawImage(source, 0, 0);
-  /* istanbul ignore next */ ctx.filter = 'none';
-   /* istanbul ignore next */ return out;
+  ctx.filter = filters;
+  ctx.drawImage(source, 0, 0);
+  ctx.filter = 'none';
+   return out;
 }
 
 /**
@@ -208,21 +208,21 @@
  * @param {number} rows
  * @returns {HTMLCanvasElement[]} array of tile canvases
  */
- /* istanbul ignore next */ function splitImageGrid(source, cols, rows) {
-   /* istanbul ignore next */ const tileW = Math.floor(source.width / cols);
-   /* istanbul ignore next */ const tileH = Math.floor(source.height / rows);
-   /* istanbul ignore next */ const tiles = [];
+ function splitImageGrid(source, cols, rows) {
+   const tileW = Math.floor(source.width / cols);
+   const tileH = Math.floor(source.height / rows);
+   const tiles = [];
 
   for (let row = 0; row < rows; row++) {
 
     for (let col = 0; col < cols; col++) {
 
-      /* istanbul ignore next */ const tile = cropCanvas(source, col * tileW, row * tileH, tileW, tileH);
+      const tile = cropCanvas(source, col * tileW, row * tileH, tileW, tileH);
 
-      /* istanbul ignore next */ tiles.push({ canvas: tile, col, row });
+      tiles.push({ canvas: tile, col, row });
     }
   }
-   /* istanbul ignore next */ return tiles;
+   return tiles;
 }
 
 /**
@@ -232,77 +232,77 @@
  * @param {number} cols - used when layout is 'grid'
  * @returns {HTMLCanvasElement}
  */
- /* istanbul ignore next */ function mergeImageLayout(images, layout = 'horizontal', cols = 2) {
-   /* istanbul ignore next */ if (!images || images.length === 0) return createCanvas(1, 1);
+ function mergeImageLayout(images, layout = 'horizontal', cols = 2) {
+   if (!images || images.length === 0) return createCanvas(1, 1);
 
 
-   /* istanbul ignore next */ if (layout === 'horizontal') {
+   if (layout === 'horizontal') {
 
     const totalW = images.reduce((s, img) => s + img.width, 0);
 
     const maxH = Math.max(...images.map(img => img.height));
 
-     /* istanbul ignore next */ const out = createCanvas(totalW, maxH);
+     const out = createCanvas(totalW, maxH);
 
-     /* istanbul ignore next */ const ctx = out.getContext('2d');
+     const ctx = out.getContext('2d');
 
-     /* istanbul ignore next */ let x = 0;
+     let x = 0;
 
     images.forEach(img => {
 
-      /* istanbul ignore next */ ctx.drawImage(img, x, (maxH - img.height) / 2);
+      ctx.drawImage(img, x, (maxH - img.height) / 2);
 
-      /* istanbul ignore next */ x += img.width;
-    /* istanbul ignore next */ });
+      x += img.width;
+    });
 
-     /* istanbul ignore next */ return out;
+     return out;
   }
 
 
-   /* istanbul ignore next */ if (layout === 'vertical') {
+   if (layout === 'vertical') {
 
     const maxW = Math.max(...images.map(img => img.width));
 
     const totalH = images.reduce((s, img) => s + img.height, 0);
 
-     /* istanbul ignore next */ const out = createCanvas(maxW, totalH);
+     const out = createCanvas(maxW, totalH);
 
-     /* istanbul ignore next */ const ctx = out.getContext('2d');
+     const ctx = out.getContext('2d');
 
-     /* istanbul ignore next */ let y = 0;
+     let y = 0;
 
     images.forEach(img => {
 
-      /* istanbul ignore next */ ctx.drawImage(img, (maxW - img.width) / 2, y);
+      ctx.drawImage(img, (maxW - img.width) / 2, y);
 
-      /* istanbul ignore next */ y += img.height;
-    /* istanbul ignore next */ });
+      y += img.height;
+    });
 
-     /* istanbul ignore next */ return out;
+     return out;
   }
 
   // Grid layout
 
-   /* istanbul ignore next */ const rows = Math.ceil(images.length / cols);
+   const rows = Math.ceil(images.length / cols);
 
   const cellW = Math.max(...images.map(img => img.width));
 
   const cellH = Math.max(...images.map(img => img.height));
 
-   /* istanbul ignore next */ const out = createCanvas(cellW * cols, cellH * rows);
+   const out = createCanvas(cellW * cols, cellH * rows);
 
-   /* istanbul ignore next */ const ctx = out.getContext('2d');
+   const ctx = out.getContext('2d');
 
   images.forEach((img, i) => {
 
-     /* istanbul ignore next */ const col = i % cols;
+     const col = i % cols;
 
-     /* istanbul ignore next */ const row = Math.floor(i / cols);
+     const row = Math.floor(i / cols);
 
-    /* istanbul ignore next */ ctx.drawImage(img, col * cellW + (cellW - img.width) / 2, row * cellH + (cellH - img.height) / 2);
-  /* istanbul ignore next */ });
+    ctx.drawImage(img, col * cellW + (cellW - img.width) / 2, row * cellH + (cellH - img.height) / 2);
+  });
 
-   /* istanbul ignore next */ return out;
+   return out;
 }
 
 
@@ -311,383 +311,383 @@
 // DOM Functions
 // ─────────────────────────────────────────────
 
- /* istanbul ignore next */ function handleUpload(event) {
-   /* istanbul ignore next */ const file = event?.target?.files?.[0];
+ function handleUpload(event) {
+   const file = event?.target?.files?.[0];
 
-   /* istanbul ignore next */ if (!file || !file.type.startsWith('image/')) return;
+   if (!file || !file.type.startsWith('image/')) return;
 
   // Show loading state immediately
 
-   /* istanbul ignore next */ const uploadArea = document.getElementById('upload-area');
+   const uploadArea = document.getElementById('upload-area');
 
-   /* istanbul ignore next */ if (uploadArea) {
+   if (uploadArea) {
 
-     /* istanbul ignore next */ const dz = uploadArea.querySelector('.drop-zone');
+     const dz = uploadArea.querySelector('.drop-zone');
 
     if (dz) dz.innerHTML = '<div style="padding:2rem;text-align:center"><div class="animate-pulse text-accent font-bold">⏳ Loading image...</div></div>';
   }
 
 
-   /* istanbul ignore next */ const reader = new FileReader();
+   const reader = new FileReader();
 
   reader.onload = (e) => {
 
-     /* istanbul ignore next */ const img = new Image();
+     const img = new Image();
 
     img.onload = () => {
 
-      /* istanbul ignore next */ const { valid, message } = validateImageSize(img.width, img.height);
+      const { valid, message } = validateImageSize(img.width, img.height);
 
-      /* istanbul ignore next */ if (!valid) { showStatus(message, 'error'); return; }
+      if (!valid) { showStatus(message, 'error'); return; }
 
-      /* istanbul ignore next */ originalImage = img;
+      originalImage = img;
 
-      /* istanbul ignore next */ initWorkspace(img);
+      initWorkspace(img);
     };
 
     img.onerror = () => showStatus('Failed to load image. Try a different file.', 'error');
 
-    /* istanbul ignore next */ img.src = e.target.result;
+    img.src = e.target.result;
   };
 
   reader.onerror = () => showStatus('Failed to read file.', 'error');
 
-  /* istanbul ignore next */ reader.readAsDataURL(file);
+  reader.readAsDataURL(file);
 }
 
- /* istanbul ignore next */ function initWorkspace(img) {
+ function initWorkspace(img) {
   // Draw to working canvas
-  /* istanbul ignore next */ currentCanvas = createCanvas(img.width, img.height);
-   /* istanbul ignore next */ const ctx = currentCanvas.getContext('2d');
+  currentCanvas = createCanvas(img.width, img.height);
+   const ctx = currentCanvas.getContext('2d');
 
-   /* istanbul ignore next */ if (ctx.drawImage) ctx.drawImage(img, 0, 0);
+   if (ctx.drawImage) ctx.drawImage(img, 0, 0);
 
   // Show workspace — use both classList and explicit style for reliability
-   /* istanbul ignore next */ const uploadArea = document.getElementById('upload-area');
-   /* istanbul ignore next */ const workspace = document.getElementById('workspace');
+   const uploadArea = document.getElementById('upload-area');
+   const workspace = document.getElementById('workspace');
 
-   /* istanbul ignore next */ if (uploadArea) { uploadArea.classList.add('hidden'); uploadArea.style.display = 'none'; }
+   if (uploadArea) { uploadArea.classList.add('hidden'); uploadArea.style.display = 'none'; }
 
-   /* istanbul ignore next */ if (workspace) { workspace.classList.remove('hidden'); workspace.style.display = ''; }
+   if (workspace) { workspace.classList.remove('hidden'); workspace.style.display = ''; }
 
-  /* istanbul ignore next */ updatePreview();
-  /* istanbul ignore next */ updateDimensionDisplays();
+  updatePreview();
+  updateDimensionDisplays();
   showStatus(`Loaded: ${img.width}×${img.height}px`, 'success');
 }
 
- /* istanbul ignore next */ function updatePreview() {
+ function updatePreview() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
-   /* istanbul ignore next */ const preview = document.getElementById('img-preview');
+   if (!currentCanvas) return;
+   const preview = document.getElementById('img-preview');
 
-   /* istanbul ignore next */ if (preview) {
+   if (preview) {
 
-    /* istanbul ignore next */ try {
+    try {
 
-      /* istanbul ignore next */ const dataUrl = currentCanvas.toDataURL();
+      const dataUrl = currentCanvas.toDataURL();
 
-      /* istanbul ignore next */ preview.src = (dataUrl === 'data:,' && originalImage) ? originalImage.src : dataUrl;
-    /* istanbul ignore next */ } catch (e) {
+      preview.src = (dataUrl === 'data:,' && originalImage) ? originalImage.src : dataUrl;
+    } catch (e) {
 
-      /* istanbul ignore next */ console.warn('Canvas toDataURL failed', e);
+      console.warn('Canvas toDataURL failed', e);
 
-      /* istanbul ignore next */ if (originalImage) preview.src = originalImage.src;
+      if (originalImage) preview.src = originalImage.src;
     }
   }
 
-   /* istanbul ignore next */ const dimsEl = document.getElementById('current-dims');
+   const dimsEl = document.getElementById('current-dims');
 
   if (dimsEl) dimsEl.textContent = `${currentCanvas.width} × ${currentCanvas.height} px`;
 }
 
- /* istanbul ignore next */ function updateDimensionDisplays() {
+ function updateDimensionDisplays() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
-   /* istanbul ignore next */ const wEl = document.getElementById('resize-w');
-   /* istanbul ignore next */ const hEl = document.getElementById('resize-h');
-   /* istanbul ignore next */ const upWEl = document.getElementById('upscale-w');
-   /* istanbul ignore next */ const upHEl = document.getElementById('upscale-h');
+   if (!currentCanvas) return;
+   const wEl = document.getElementById('resize-w');
+   const hEl = document.getElementById('resize-h');
+   const upWEl = document.getElementById('upscale-w');
+   const upHEl = document.getElementById('upscale-h');
 
-   /* istanbul ignore next */ if (wEl) wEl.value = currentCanvas.width;
+   if (wEl) wEl.value = currentCanvas.width;
 
-   /* istanbul ignore next */ if (hEl) hEl.value = currentCanvas.height;
+   if (hEl) hEl.value = currentCanvas.height;
 
-   /* istanbul ignore next */ if (upWEl) upWEl.value = currentCanvas.width;
+   if (upWEl) upWEl.value = currentCanvas.width;
 
-   /* istanbul ignore next */ if (upHEl) upHEl.value = currentCanvas.height;
+   if (upHEl) upHEl.value = currentCanvas.height;
 }
 
 // ── Upscale ─────────────────────────────────
 
- /* istanbul ignore next */ function applyUpscale(scaleFactor) {
+ function applyUpscale(scaleFactor) {
 
-   /* istanbul ignore next */ if (!currentCanvas) {
-    /* istanbul ignore next */ showStatus('Please upload an image first', 'error');
-     /* istanbul ignore next */ return;
+   if (!currentCanvas) {
+    showStatus('Please upload an image first', 'error');
+     return;
   }
   
 
-   /* istanbul ignore next */ const targetW = Math.round(currentCanvas.width * scaleFactor);
+   const targetW = Math.round(currentCanvas.width * scaleFactor);
 
-   /* istanbul ignore next */ const targetH = Math.round(currentCanvas.height * scaleFactor);
+   const targetH = Math.round(currentCanvas.height * scaleFactor);
 
 
   if (targetW > 8000 || targetH > 8000) { 
 
-    /* istanbul ignore next */ showStatus('Result too large (' + targetW + '×' + targetH + '). Max 8000px per side.', 'error'); 
+    showStatus('Result too large (' + targetW + '×' + targetH + '). Max 8000px per side.', 'error'); 
 
-     /* istanbul ignore next */ return; 
+     return; 
   }
   
 
-  /* istanbul ignore next */ showStatus('🚀 AI Upscaling ' + scaleFactor + 'x... (' + targetW + '×' + targetH + ')', 'info');
+  showStatus('🚀 AI Upscaling ' + scaleFactor + 'x... (' + targetW + '×' + targetH + ')', 'info');
 
   // Use requestAnimationFrame instead of setTimeout for more reliable UI update
 
   requestAnimationFrame(() => {
 
-    /* istanbul ignore next */ try {
+    try {
 
-      /* istanbul ignore next */ currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
+      currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
 
-      /* istanbul ignore next */ updatePreview();
+      updatePreview();
 
-      /* istanbul ignore next */ updateDimensionDisplays();
+      updateDimensionDisplays();
 
-      /* istanbul ignore next */ showStatus('✅ Upscaled ' + scaleFactor + 'x to ' + currentCanvas.width + '×' + currentCanvas.height + 'px', 'success');
-    /* istanbul ignore next */ } catch(e) {
+      showStatus('✅ Upscaled ' + scaleFactor + 'x to ' + currentCanvas.width + '×' + currentCanvas.height + 'px', 'success');
+    } catch(e) {
 
-      /* istanbul ignore next */ console.error('Upscale error:', e);
+      console.error('Upscale error:', e);
 
-      /* istanbul ignore next */ showStatus('Upscale failed: ' + e.message, 'error');
+      showStatus('Upscale failed: ' + e.message, 'error');
     }
-  /* istanbul ignore next */ });
+  });
 }
 
- /* istanbul ignore next */ function applyCustomUpscale() {
+ function applyCustomUpscale() {
 
-   /* istanbul ignore next */ if (!currentCanvas) {
-    /* istanbul ignore next */ showStatus('Please upload an image first', 'error');
-     /* istanbul ignore next */ return;
+   if (!currentCanvas) {
+    showStatus('Please upload an image first', 'error');
+     return;
   }
 
-   /* istanbul ignore next */ const upWEl = document.getElementById('upscale-w');
+   const upWEl = document.getElementById('upscale-w');
 
-   /* istanbul ignore next */ const upHEl = document.getElementById('upscale-h');
+   const upHEl = document.getElementById('upscale-h');
   
 
-   /* istanbul ignore next */ const targetW = parseInt(upWEl?.value);
+   const targetW = parseInt(upWEl?.value);
 
-   /* istanbul ignore next */ const targetH = parseInt(upHEl?.value);
+   const targetH = parseInt(upHEl?.value);
   
 
   if (!targetW || !targetH || targetW <= 0 || targetH <= 0) {
 
-    /* istanbul ignore next */ showStatus('Please enter valid width and height', 'error');
+    showStatus('Please enter valid width and height', 'error');
 
-     /* istanbul ignore next */ return;
+     return;
   }
   
 
   if (targetW > 8000 || targetH > 8000) { 
 
-    /* istanbul ignore next */ showStatus('Dimensions exceed safe browser limits (8000px).', 'error'); 
+    showStatus('Dimensions exceed safe browser limits (8000px).', 'error'); 
 
-     /* istanbul ignore next */ return; 
+     return; 
   }
 
 
-  /* istanbul ignore next */ showStatus('🚀 Upscaling to ' + targetW + '×' + targetH + '...', 'info');
+  showStatus('🚀 Upscaling to ' + targetW + '×' + targetH + '...', 'info');
   
 
   requestAnimationFrame(() => {
 
-    /* istanbul ignore next */ try {
+    try {
 
-      /* istanbul ignore next */ currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
+      currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
 
-      /* istanbul ignore next */ updatePreview();
+      updatePreview();
 
-      /* istanbul ignore next */ updateDimensionDisplays();
+      updateDimensionDisplays();
 
-      /* istanbul ignore next */ showStatus('✅ Upscaled to ' + currentCanvas.width + '×' + currentCanvas.height + 'px', 'success');
-    /* istanbul ignore next */ } catch(e) {
+      showStatus('✅ Upscaled to ' + currentCanvas.width + '×' + currentCanvas.height + 'px', 'success');
+    } catch(e) {
 
-      /* istanbul ignore next */ console.error('Custom upscale error:', e);
+      console.error('Custom upscale error:', e);
 
-      /* istanbul ignore next */ showStatus('Upscale failed: ' + e.message, 'error');
+      showStatus('Upscale failed: ' + e.message, 'error');
     }
-  /* istanbul ignore next */ });
+  });
 }
 
 // ── Resize ──────────────────────────────────
 
- /* istanbul ignore next */ function applyResize() {
+ function applyResize() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ const wEl = document.getElementById('resize-w');
+   const wEl = document.getElementById('resize-w');
 
-   /* istanbul ignore next */ const hEl = document.getElementById('resize-h');
+   const hEl = document.getElementById('resize-h');
 
-   /* istanbul ignore next */ const maintainEl = document.getElementById('maintain-ratio');
-
-
-   /* istanbul ignore next */ let targetW = parseInt(wEl?.value) || currentCanvas.width;
-
-   /* istanbul ignore next */ let targetH = parseInt(hEl?.value) || currentCanvas.height;
+   const maintainEl = document.getElementById('maintain-ratio');
 
 
-   /* istanbul ignore next */ if (maintainEl?.checked) {
+   let targetW = parseInt(wEl?.value) || currentCanvas.width;
 
-     /* istanbul ignore next */ const ratio = currentCanvas.width / currentCanvas.height;
+   let targetH = parseInt(hEl?.value) || currentCanvas.height;
+
+
+   if (maintainEl?.checked) {
+
+     const ratio = currentCanvas.width / currentCanvas.height;
     // Determine which dimension was changed
 
-     /* istanbul ignore next */ if (document.activeElement === wEl) {
+     if (document.activeElement === wEl) {
 
-      /* istanbul ignore next */ targetH = Math.round(targetW / ratio);
-    /* istanbul ignore next */ } else {
+      targetH = Math.round(targetW / ratio);
+    } else {
 
-      /* istanbul ignore next */ targetW = Math.round(targetH * ratio);
+      targetW = Math.round(targetH * ratio);
     }
   }
 
 
   if (targetW < 1 || targetH < 1) { showStatus('Invalid dimensions', 'error'); return; }
 
-  /* istanbul ignore next */ currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
+  currentCanvas = bicubicResize(currentCanvas, targetW, targetH);
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
-  /* istanbul ignore next */ updateDimensionDisplays();
+  updateDimensionDisplays();
 
   showStatus(`Resized to ${targetW}×${targetH}px`, 'success');
 }
 
 
- /* istanbul ignore next */ function onResizeInput(changedDim) {
+ function onResizeInput(changedDim) {
 
-   /* istanbul ignore next */ const maintainEl = document.getElementById('maintain-ratio');
+   const maintainEl = document.getElementById('maintain-ratio');
 
-   /* istanbul ignore next */ if (!maintainEl?.checked || !currentCanvas) return;
+   if (!maintainEl?.checked || !currentCanvas) return;
 
-   /* istanbul ignore next */ const ratio = currentCanvas.width / currentCanvas.height;
+   const ratio = currentCanvas.width / currentCanvas.height;
 
-   /* istanbul ignore next */ if (changedDim === 'w') {
+   if (changedDim === 'w') {
 
-     /* istanbul ignore next */ const wEl = document.getElementById('resize-w');
+     const wEl = document.getElementById('resize-w');
 
-     /* istanbul ignore next */ const hEl = document.getElementById('resize-h');
+     const hEl = document.getElementById('resize-h');
 
-     /* istanbul ignore next */ if (wEl && hEl) hEl.value = Math.round(parseInt(wEl.value) / ratio) || '';
-  /* istanbul ignore next */ } else {
+     if (wEl && hEl) hEl.value = Math.round(parseInt(wEl.value) / ratio) || '';
+  } else {
 
-     /* istanbul ignore next */ const wEl = document.getElementById('resize-w');
+     const wEl = document.getElementById('resize-w');
 
-     /* istanbul ignore next */ const hEl = document.getElementById('resize-h');
+     const hEl = document.getElementById('resize-h');
 
-     /* istanbul ignore next */ if (wEl && hEl) wEl.value = Math.round(parseInt(hEl.value) * ratio) || '';
+     if (wEl && hEl) wEl.value = Math.round(parseInt(hEl.value) * ratio) || '';
   }
 }
 
 // ── Rotate ──────────────────────────────────
 
- /* istanbul ignore next */ function applyRotate(degrees) {
+ function applyRotate(degrees) {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-  /* istanbul ignore next */ currentCanvas = rotateCanvas(currentCanvas, degrees);
+  currentCanvas = rotateCanvas(currentCanvas, degrees);
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
   showStatus(`Rotated ${degrees}°`, 'success');
 }
 
- /* istanbul ignore next */ function applyFlip(direction) {
+ function applyFlip(direction) {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-  /* istanbul ignore next */ currentCanvas = flipCanvas(currentCanvas, direction);
+  currentCanvas = flipCanvas(currentCanvas, direction);
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
   showStatus(`Flipped ${direction}`, 'success');
 }
 
- /* istanbul ignore next */ function applyTilt() {
-   /* istanbul ignore next */ const tiltEl = document.getElementById('tilt-angle');
-   /* istanbul ignore next */ const degrees = parseFloat(tiltEl?.value) || 0;
+ function applyTilt() {
+   const tiltEl = document.getElementById('tilt-angle');
+   const degrees = parseFloat(tiltEl?.value) || 0;
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-  /* istanbul ignore next */ currentCanvas = rotateCanvas(currentCanvas, degrees);
+  currentCanvas = rotateCanvas(currentCanvas, degrees);
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
   showStatus(`Tilted ${degrees}°`, 'success');
 }
 
 // ── Crop ────────────────────────────────────
 
- /* istanbul ignore next */ function applyCropManual() {
+ function applyCropManual() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ const x = parseInt(document.getElementById('crop-x')?.value) || 0;
+   const x = parseInt(document.getElementById('crop-x')?.value) || 0;
 
-   /* istanbul ignore next */ const y = parseInt(document.getElementById('crop-y')?.value) || 0;
+   const y = parseInt(document.getElementById('crop-y')?.value) || 0;
 
-   /* istanbul ignore next */ const w = parseInt(document.getElementById('crop-w')?.value) || currentCanvas.width;
+   const w = parseInt(document.getElementById('crop-w')?.value) || currentCanvas.width;
 
-   /* istanbul ignore next */ const h = parseInt(document.getElementById('crop-h')?.value) || currentCanvas.height;
+   const h = parseInt(document.getElementById('crop-h')?.value) || currentCanvas.height;
 
 
   if (x < 0 || y < 0 || w <= 0 || h <= 0) { showStatus('Invalid crop values', 'error'); return; }
 
-  /* istanbul ignore next */ currentCanvas = cropCanvas(currentCanvas, x, y, w, h);
+  currentCanvas = cropCanvas(currentCanvas, x, y, w, h);
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
   showStatus(`Cropped to ${currentCanvas.width}×${currentCanvas.height}px`, 'success');
 }
 
- /* istanbul ignore next */ function applyCropPreset(preset) {
+ function applyCropPreset(preset) {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ const w = currentCanvas.width;
+   const w = currentCanvas.width;
 
-   /* istanbul ignore next */ const h = currentCanvas.height;
-   /* istanbul ignore next */ let x, y, cw, ch;
+   const h = currentCanvas.height;
+   let x, y, cw, ch;
 
 
-   /* istanbul ignore next */ const ratios = {
-    /* istanbul ignore next */ '1:1': [1, 1], '16:9': [16, 9], '4:3': [4, 3], '3:2': [3, 2], '9:16': [9, 16]
+   const ratios = {
+    '1:1': [1, 1], '16:9': [16, 9], '4:3': [4, 3], '3:2': [3, 2], '9:16': [9, 16]
   };
 
-   /* istanbul ignore next */ const [rw, rh] = ratios[preset] || [1, 1];
+   const [rw, rh] = ratios[preset] || [1, 1];
 
-   /* istanbul ignore next */ const targetRatio = rw / rh;
+   const targetRatio = rw / rh;
 
-   /* istanbul ignore next */ const currentRatio = w / h;
+   const currentRatio = w / h;
 
 
   if (currentRatio > targetRatio) {
 
-    /* istanbul ignore next */ ch = h; cw = Math.round(h * targetRatio);
-  /* istanbul ignore next */ } else {
+    ch = h; cw = Math.round(h * targetRatio);
+  } else {
 
-    /* istanbul ignore next */ cw = w; ch = Math.round(w / targetRatio);
+    cw = w; ch = Math.round(w / targetRatio);
   }
 
-  /* istanbul ignore next */ x = Math.round((w - cw) / 2);
+  x = Math.round((w - cw) / 2);
 
-  /* istanbul ignore next */ y = Math.round((h - ch) / 2);
+  y = Math.round((h - ch) / 2);
 
 
-  /* istanbul ignore next */ currentCanvas = cropCanvas(currentCanvas, x, y, cw, ch);
+  currentCanvas = cropCanvas(currentCanvas, x, y, cw, ch);
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
   showStatus(`Cropped to ${preset} (${currentCanvas.width}×${currentCanvas.height}px)`, 'success');
 }
@@ -695,231 +695,231 @@
 
 // ── Background Editing ───────────────────────────────
 
-/* istanbul ignore next */ async function applyRemoveBg() {
+async function applyRemoveBg() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ const btn = document.getElementById('btn-remove-bg');
+   const btn = document.getElementById('btn-remove-bg');
 
-   /* istanbul ignore next */ const ogText = btn.textContent;
+   const ogText = btn.textContent;
 
-  /* istanbul ignore next */ btn.textContent = '⏳ Fetching AI Engine...';
+  btn.textContent = '⏳ Fetching AI Engine...';
 
-  /* istanbul ignore next */ btn.classList.add('animate-pulse');
+  btn.classList.add('animate-pulse');
 
-  /* istanbul ignore next */ btn.disabled = true;
+  btn.disabled = true;
 
-  /* istanbul ignore next */ showStatus('Removing Background using AI (runs locally)...', 'info');
+  showStatus('Removing Background using AI (runs locally)...', 'info');
 
 
-  /* istanbul ignore next */ try {
+  try {
 
-     /* istanbul ignore next */ const importFn = new Function('url', 'return import(url)');
+     const importFn = new Function('url', 'return import(url)');
 
-     /* istanbul ignore next */ const imglyModule = (typeof window !== 'undefined' && window._TEST_IMGLY_) 
-          /* istanbul ignore next */ ? window._TEST_IMGLY_ 
-          /* istanbul ignore next */ : await importFn('https://unpkg.com/@imgly/background-removal@1.4.3/dist/index.mjs');
+     const imglyModule = (typeof window !== 'undefined' && window._TEST_IMGLY_) 
+          ? window._TEST_IMGLY_ 
+          : await importFn('https://unpkg.com/@imgly/background-removal@1.4.3/dist/index.mjs');
       
 
-     /* istanbul ignore next */ const removeBgFunc = imglyModule.removeBackground || imglyModule.default;
+     const removeBgFunc = imglyModule.removeBackground || imglyModule.default;
 
-     /* istanbul ignore next */ const config = { publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.3/dist/" };
+     const config = { publicPath: "https://static.imgly.com/@imgly/background-removal-data/1.4.3/dist/" };
     
 
     currentCanvas.toBlob(async (blob) => {
 
-      /* istanbul ignore next */ try {
+      try {
 
-        /* istanbul ignore next */ btn.textContent = '🤖 Computing Matrix...';
+        btn.textContent = '🤖 Computing Matrix...';
 
-        /* istanbul ignore next */ const resultBlob = await removeBgFunc(blob, config);
+        const resultBlob = await removeBgFunc(blob, config);
 
-        /* istanbul ignore next */ const img = new Image();
+        const img = new Image();
 
         img.onload = () => {
 
-          /* istanbul ignore next */ const out = createCanvas(currentCanvas.width, currentCanvas.height);
+          const out = createCanvas(currentCanvas.width, currentCanvas.height);
 
-          /* istanbul ignore next */ const ctx = out.getContext('2d');
+          const ctx = out.getContext('2d');
 
-          /* istanbul ignore next */ ctx.drawImage(img, 0, 0, currentCanvas.width, currentCanvas.height);
+          ctx.drawImage(img, 0, 0, currentCanvas.width, currentCanvas.height);
 
-          /* istanbul ignore next */ currentCanvas = out;
+          currentCanvas = out;
 
-          /* istanbul ignore next */ updatePreview();
+          updatePreview();
 
-          /* istanbul ignore next */ showStatus('Background removed successfully!', 'success');
+          showStatus('Background removed successfully!', 'success');
 
-          /* istanbul ignore next */ btn.textContent = ogText;
+          btn.textContent = ogText;
 
-          /* istanbul ignore next */ btn.classList.remove('animate-pulse');
+          btn.classList.remove('animate-pulse');
 
-          /* istanbul ignore next */ btn.disabled = false;
+          btn.disabled = false;
         };
 
-        /* istanbul ignore next */ img.src = URL.createObjectURL(resultBlob);
-      /* istanbul ignore next */ } catch (err) {
+        img.src = URL.createObjectURL(resultBlob);
+      } catch (err) {
 
-        /* istanbul ignore next */ throw err;
+        throw err;
       }
-    /* istanbul ignore next */ }, 'image/png');
-  /* istanbul ignore next */ } catch (err) {
+    }, 'image/png');
+  } catch (err) {
 
-    /* istanbul ignore next */ console.error(err);
+    console.error(err);
 
-    /* istanbul ignore next */ showStatus('Failed to load AI model logic. Ensure adblockers or tracking protection are disabled.', 'error');
+    showStatus('Failed to load AI model logic. Ensure adblockers or tracking protection are disabled.', 'error');
 
-    /* istanbul ignore next */ btn.textContent = ogText;
+    btn.textContent = ogText;
 
-    /* istanbul ignore next */ btn.classList.remove('animate-pulse');
+    btn.classList.remove('animate-pulse');
 
-    /* istanbul ignore next */ btn.disabled = false;
+    btn.disabled = false;
   }
 }
 
- /* istanbul ignore next */ function applySolidBg() {
+ function applySolidBg() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ const color = document.getElementById('editor-bg-color')?.value || '#ffffff';
+   const color = document.getElementById('editor-bg-color')?.value || '#ffffff';
 
-   /* istanbul ignore next */ const out = createCanvas(currentCanvas.width, currentCanvas.height);
+   const out = createCanvas(currentCanvas.width, currentCanvas.height);
 
-   /* istanbul ignore next */ const ctx = out.getContext('2d');
+   const ctx = out.getContext('2d');
 
-  /* istanbul ignore next */ ctx.fillStyle = color;
+  ctx.fillStyle = color;
 
-  /* istanbul ignore next */ ctx.fillRect(0, 0, out.width, out.height);
+  ctx.fillRect(0, 0, out.width, out.height);
 
-  /* istanbul ignore next */ ctx.drawImage(currentCanvas, 0, 0);
+  ctx.drawImage(currentCanvas, 0, 0);
 
-  /* istanbul ignore next */ currentCanvas = out;
+  currentCanvas = out;
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
   showStatus(`Solid background applied: ${color}`, 'success');
 }
 
- /* istanbul ignore next */ function clearToTransparentBg() {
-  /* istanbul ignore next */ showStatus('Image is already transparent if removed. Download as PNG to keep transparency.', 'info');
+ function clearToTransparentBg() {
+  showStatus('Image is already transparent if removed. Download as PNG to keep transparency.', 'info');
 }
 
- /* istanbul ignore next */ function applyImageBg(event) {
+ function applyImageBg(event) {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ const file = event.target.files[0];
+   const file = event.target.files[0];
 
-   /* istanbul ignore next */ if (!file) return;
+   if (!file) return;
   
 
-   /* istanbul ignore next */ const img = new Image();
+   const img = new Image();
 
   img.onload = () => {
 
-     /* istanbul ignore next */ const out = createCanvas(currentCanvas.width, currentCanvas.height);
+     const out = createCanvas(currentCanvas.width, currentCanvas.height);
 
-     /* istanbul ignore next */ const ctx = out.getContext('2d');
+     const ctx = out.getContext('2d');
     // Cover the background
 
-     /* istanbul ignore next */ const scale = Math.max(out.width / img.width, out.height / img.height);
+     const scale = Math.max(out.width / img.width, out.height / img.height);
 
-     /* istanbul ignore next */ const x = (out.width / 2) - (img.width / 2) * scale;
+     const x = (out.width / 2) - (img.width / 2) * scale;
 
-     /* istanbul ignore next */ const y = (out.height / 2) - (img.height / 2) * scale;
+     const y = (out.height / 2) - (img.height / 2) * scale;
 
-    /* istanbul ignore next */ ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
 
-    /* istanbul ignore next */ ctx.drawImage(currentCanvas, 0, 0);
+    ctx.drawImage(currentCanvas, 0, 0);
 
-    /* istanbul ignore next */ currentCanvas = out;
+    currentCanvas = out;
 
-    /* istanbul ignore next */ updatePreview();
+    updatePreview();
 
-    /* istanbul ignore next */ showStatus('Image background applied', 'success');
+    showStatus('Image background applied', 'success');
 
-    /* istanbul ignore next */ event.target.value = '';
+    event.target.value = '';
   };
 
-  /* istanbul ignore next */ img.src = URL.createObjectURL(file);
+  img.src = URL.createObjectURL(file);
 }
 
 // ── Color Adjustments ────────────────────────
 
- /* istanbul ignore next */ function applyColors() {
+ function applyColors() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
   const getVal = id => parseInt(document.getElementById(id)?.value) || 0;
 
   const getValDefault = (id, def) => {
 
-     /* istanbul ignore next */ const v = document.getElementById(id);
+     const v = document.getElementById(id);
 
-     /* istanbul ignore next */ return v ? parseInt(v.value) : def;
+     return v ? parseInt(v.value) : def;
   };
 
 
-   /* istanbul ignore next */ const opts = {
-    /* istanbul ignore next */ brightness: getValDefault('adj-brightness', 100),
-    /* istanbul ignore next */ contrast: getValDefault('adj-contrast', 100),
-    /* istanbul ignore next */ saturation: getValDefault('adj-saturation', 100),
-    /* istanbul ignore next */ hue: getVal('adj-hue'),
-    /* istanbul ignore next */ sepia: getVal('adj-sepia'),
-    /* istanbul ignore next */ grayscale: getVal('adj-grayscale'),
-    /* istanbul ignore next */ invert: getVal('adj-invert')
+   const opts = {
+    brightness: getValDefault('adj-brightness', 100),
+    contrast: getValDefault('adj-contrast', 100),
+    saturation: getValDefault('adj-saturation', 100),
+    hue: getVal('adj-hue'),
+    sepia: getVal('adj-sepia'),
+    grayscale: getVal('adj-grayscale'),
+    invert: getVal('adj-invert')
   };
 
 
-  /* istanbul ignore next */ currentCanvas = applyColorAdjustments(currentCanvas, opts);
+  currentCanvas = applyColorAdjustments(currentCanvas, opts);
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
-  /* istanbul ignore next */ showStatus('Color adjustments applied', 'success');
+  showStatus('Color adjustments applied', 'success');
 }
 
- /* istanbul ignore next */ function resetColorSliders() {
-   /* istanbul ignore next */ const defaults = {
-    /* istanbul ignore next */ 'adj-brightness': 100, 'adj-contrast': 100, 'adj-saturation': 100,
-    /* istanbul ignore next */ 'adj-hue': 0, 'adj-sepia': 0, 'adj-grayscale': 0, 'adj-invert': 0
+ function resetColorSliders() {
+   const defaults = {
+    'adj-brightness': 100, 'adj-contrast': 100, 'adj-saturation': 100,
+    'adj-hue': 0, 'adj-sepia': 0, 'adj-grayscale': 0, 'adj-invert': 0
   };
   Object.entries(defaults).forEach(([id, val]) => {
-     /* istanbul ignore next */ const el = document.getElementById(id);
+     const el = document.getElementById(id);
 
-     /* istanbul ignore next */ if (el) el.value = val;
-     /* istanbul ignore next */ const display = document.getElementById(id + '-val');
+     if (el) el.value = val;
+     const display = document.getElementById(id + '-val');
 
-     /* istanbul ignore next */ if (display) display.textContent = val;
-  /* istanbul ignore next */ });
+     if (display) display.textContent = val;
+  });
 }
 
 // ── Split ────────────────────────────────────
 
- /* istanbul ignore next */ function applySplit() {
+ function applySplit() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ const cols = parseInt(document.getElementById('split-cols')?.value) || 2;
+   const cols = parseInt(document.getElementById('split-cols')?.value) || 2;
 
-   /* istanbul ignore next */ const rows = parseInt(document.getElementById('split-rows')?.value) || 2;
+   const rows = parseInt(document.getElementById('split-rows')?.value) || 2;
 
 
-   /* istanbul ignore next */ const tiles = splitImageGrid(currentCanvas, cols, rows);
+   const tiles = splitImageGrid(currentCanvas, cols, rows);
 
-   /* istanbul ignore next */ const container = document.getElementById('split-results');
+   const container = document.getElementById('split-results');
 
-   /* istanbul ignore next */ if (!container) return;
+   if (!container) return;
 
-  /* istanbul ignore next */ container.innerHTML = '';
+  container.innerHTML = '';
 
-  /* istanbul ignore next */ container.classList.remove('hidden');
+  container.classList.remove('hidden');
 
 
   tiles.forEach(({ canvas, col, row }) => {
 
-     /* istanbul ignore next */ const wrapper = document.createElement('div');
+     const wrapper = document.createElement('div');
 
-    /* istanbul ignore next */ wrapper.className = 'split-tile';
+    wrapper.className = 'split-tile';
 
     wrapper.innerHTML = `
       <img src="${canvas.toDataURL()}" alt="Tile ${row+1}-${col+1}" style="max-width:100%;border-radius:6px">
@@ -927,39 +927,39 @@
       <button class="btn btn-sm btn-secondary mt-1" onclick="downloadTileCanvas(this, ${row}, ${col})">Download</button>
     `;
 
-    /* istanbul ignore next */ wrapper.querySelector('button').dataset.url = canvas.toDataURL();
+    wrapper.querySelector('button').dataset.url = canvas.toDataURL();
 
-    /* istanbul ignore next */ container.appendChild(wrapper);
-  /* istanbul ignore next */ });
+    container.appendChild(wrapper);
+  });
 
 
   showStatus(`Split into ${tiles.length} tiles (${cols}×${rows})`, 'success');
 }
 
 
- /* istanbul ignore next */ function downloadTileCanvas(btn, row, col) {
+ function downloadTileCanvas(btn, row, col) {
 
-   /* istanbul ignore next */ const url = btn.dataset.url;
+   const url = btn.dataset.url;
 
-   /* istanbul ignore next */ if (!url) return;
+   if (!url) return;
 
-   /* istanbul ignore next */ const link = document.createElement('a');
+   const link = document.createElement('a');
 
   link.download = `tile-r${row+1}-c${col+1}.png`;
 
-  /* istanbul ignore next */ link.href = url;
+  link.href = url;
 
-  /* istanbul ignore next */ link.click();
+  link.click();
 }
 
 // ── Merge ────────────────────────────────────
 
- /* istanbul ignore next */ function initMergeFlow(event) {
-   /* istanbul ignore next */ const uploadArea = document.getElementById('upload-area');
+ function initMergeFlow(event) {
+   const uploadArea = document.getElementById('upload-area');
 
-   /* istanbul ignore next */ if (uploadArea) {
+   if (uploadArea) {
 
-     /* istanbul ignore next */ const dz = uploadArea.querySelector('.drop-zone');
+     const dz = uploadArea.querySelector('.drop-zone');
 
     if (dz) dz.innerHTML = '<div style="padding:2rem;text-align:center"><div class="animate-pulse text-accent font-bold">⏳ Loading images...</div></div>';
   }
@@ -967,105 +967,105 @@
 
   const files = Array.from(event?.target?.files || []).filter(f => f.type.startsWith('image/'));
 
-   /* istanbul ignore next */ if (!files.length) return;
+   if (!files.length) return;
 
 
   const promises = files.map(f => new Promise((resolve) => {
 
-     /* istanbul ignore next */ const reader = new FileReader();
+     const reader = new FileReader();
 
     reader.onload = e => {
 
-      /* istanbul ignore next */ const img = new Image();
+      const img = new Image();
 
       img.onload = () => resolve(img);
 
       img.onerror = () => resolve(null);
 
-      /* istanbul ignore next */ img.src = e.target.result;
+      img.src = e.target.result;
     };
 
     reader.onerror = () => resolve(null);
 
-    /* istanbul ignore next */ reader.readAsDataURL(f);
-  /* istanbul ignore next */ }));
+    reader.readAsDataURL(f);
+  }));
 
 
   Promise.all(promises).then(results => {
 
     const imgs = results.filter(img => img !== null);
 
-    /* istanbul ignore next */ mergeImages = [...mergeImages, ...imgs];
+    mergeImages = [...mergeImages, ...imgs];
 
-    /* istanbul ignore next */ renderMergeList();
+    renderMergeList();
     
 
     if (!currentCanvas && mergeImages.length > 0) {
 
-      /* istanbul ignore next */ if (mergeImages.length === 1) {
+      if (mergeImages.length === 1) {
 
-        /* istanbul ignore next */ originalImage = mergeImages[0];
+        originalImage = mergeImages[0];
 
-        /* istanbul ignore next */ initWorkspace(originalImage);
+        initWorkspace(originalImage);
 
-        /* istanbul ignore next */ mergeImages = []; // clear from merge to avoid confusion
+        mergeImages = []; // clear from merge to avoid confusion
 
-        /* istanbul ignore next */ switchTab('upscale'); 
+        switchTab('upscale'); 
 
-        /* istanbul ignore next */ showStatus('Only 1 image selected. Switched to normal editing mode.', 'info');
-      /* istanbul ignore next */ } else {
+        showStatus('Only 1 image selected. Switched to normal editing mode.', 'info');
+      } else {
 
-        /* istanbul ignore next */ originalImage = mergeImages[0];
+        originalImage = mergeImages[0];
 
-        /* istanbul ignore next */ initWorkspace(originalImage); // Init with first image to prevent null errors
+        initWorkspace(originalImage); // Init with first image to prevent null errors
 
-        /* istanbul ignore next */ switchTab('merge');
+        switchTab('merge');
 
         showStatus(`Loaded ${mergeImages.length} images. Adjust layout and click Merge.`, 'success');
       }
-    /* istanbul ignore next */ } else {
+    } else {
 
-      /* istanbul ignore next */ switchTab('merge');
+      switchTab('merge');
     }
-  /* istanbul ignore next */ });
+  });
 }
 
- /* istanbul ignore next */ function handleMergeUpload(event) {
+ function handleMergeUpload(event) {
 
   const files = Array.from(event?.target?.files || []).filter(f => f.type.startsWith('image/'));
 
-   /* istanbul ignore next */ if (!files.length) return;
+   if (!files.length) return;
 
 
   const promises = files.map(f => new Promise((resolve) => {
 
-     /* istanbul ignore next */ const reader = new FileReader();
+     const reader = new FileReader();
 
     reader.onload = e => {
 
-      /* istanbul ignore next */ const img = new Image();
+      const img = new Image();
 
       img.onload = () => resolve(img);
 
-      /* istanbul ignore next */ img.src = e.target.result;
+      img.src = e.target.result;
     };
 
-    /* istanbul ignore next */ reader.readAsDataURL(f);
-  /* istanbul ignore next */ }));
+    reader.readAsDataURL(f);
+  }));
 
 
   Promise.all(promises).then(imgs => {
 
-    /* istanbul ignore next */ mergeImages = [...mergeImages, ...imgs];
+    mergeImages = [...mergeImages, ...imgs];
 
-    /* istanbul ignore next */ renderMergeList();
-  /* istanbul ignore next */ });
+    renderMergeList();
+  });
 }
 
- /* istanbul ignore next */ function renderMergeList() {
-   /* istanbul ignore next */ const list = document.getElementById('merge-preview-list');
+ function renderMergeList() {
+   const list = document.getElementById('merge-preview-list');
 
-   /* istanbul ignore next */ if (!list) return;
+   if (!list) return;
 
   list.innerHTML = mergeImages.map((img, i) => `
     <div class="merge-img-item">
@@ -1076,242 +1076,242 @@
   `).join('');
 
 
-   /* istanbul ignore next */ const btn = document.getElementById('do-merge-btn');
+   const btn = document.getElementById('do-merge-btn');
 
   if (btn) btn.classList.toggle('hidden', mergeImages.length < 2);
 }
 
- /* istanbul ignore next */ function removeMergeImage(idx) {
-  /* istanbul ignore next */ mergeImages.splice(idx, 1);
-  /* istanbul ignore next */ renderMergeList();
+ function removeMergeImage(idx) {
+  mergeImages.splice(idx, 1);
+  renderMergeList();
 }
 
- /* istanbul ignore next */ function applyMerge() {
+ function applyMerge() {
 
   if (mergeImages.length < 2) return;
 
-   /* istanbul ignore next */ const layoutEl = document.getElementById('merge-layout');
+   const layoutEl = document.getElementById('merge-layout');
 
-   /* istanbul ignore next */ const layout = layoutEl?.value || 'horizontal';
+   const layout = layoutEl?.value || 'horizontal';
 
-   /* istanbul ignore next */ const cols = parseInt(document.getElementById('merge-cols')?.value) || 2;
+   const cols = parseInt(document.getElementById('merge-cols')?.value) || 2;
 
 
-   /* istanbul ignore next */ const merged = mergeImageLayout(mergeImages, layout, cols);
+   const merged = mergeImageLayout(mergeImages, layout, cols);
 
-  /* istanbul ignore next */ currentCanvas = merged;
+  currentCanvas = merged;
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
   showStatus(`Merged ${mergeImages.length} images (${layout})`, 'success');
 
   // Use merged as new working image
 
-   /* istanbul ignore next */ const uploadArea = document.getElementById('upload-area');
+   const uploadArea = document.getElementById('upload-area');
 
-   /* istanbul ignore next */ const workspace = document.getElementById('workspace');
+   const workspace = document.getElementById('workspace');
 
-   /* istanbul ignore next */ if (uploadArea) uploadArea.classList.add('hidden');
+   if (uploadArea) uploadArea.classList.add('hidden');
 
-   /* istanbul ignore next */ if (workspace) workspace.classList.remove('hidden');
+   if (workspace) workspace.classList.remove('hidden');
 }
 
 // ── Download ─────────────────────────────────
 
- /* istanbul ignore next */ function downloadResult(format = 'png') {
+ function downloadResult(format = 'png') {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
-   /* istanbul ignore next */ const link = document.createElement('a');
+   if (!currentCanvas) return;
+   const link = document.createElement('a');
   link.download = `image-toolkit-${Date.now()}.${format}`;
 
 
-   /* istanbul ignore next */ if (format === 'jpg') {
+   if (format === 'jpg') {
 
-    /* istanbul ignore next */ link.href = currentCanvas.toDataURL('image/jpeg', 0.9);
+    link.href = currentCanvas.toDataURL('image/jpeg', 0.9);
 
-  /* istanbul ignore next */ } else if (format === 'webp') {
+  } else if (format === 'webp') {
 
-    /* istanbul ignore next */ link.href = currentCanvas.toDataURL('image/webp', 0.9);
-  /* istanbul ignore next */ } else {
-    /* istanbul ignore next */ link.href = currentCanvas.toDataURL('image/png');
+    link.href = currentCanvas.toDataURL('image/webp', 0.9);
+  } else {
+    link.href = currentCanvas.toDataURL('image/png');
   }
-  /* istanbul ignore next */ link.click();
+  link.click();
 }
 
 // ── Undo / Redo History ─────────────────────
- /* istanbul ignore next */ let historyStack = [];
- /* istanbul ignore next */ let redoStack = [];
- /* istanbul ignore next */ const MAX_HISTORY = 20;
+ let historyStack = [];
+ let redoStack = [];
+ const MAX_HISTORY = 20;
 
- /* istanbul ignore next */ function pushHistory() {
+ function pushHistory() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-  /* istanbul ignore next */ historyStack.push(currentCanvas);
+  historyStack.push(currentCanvas);
 
   if (historyStack.length > MAX_HISTORY) historyStack.shift();
 
-  /* istanbul ignore next */ redoStack = [];
+  redoStack = [];
 }
 
- /* istanbul ignore next */ function undo() {
+ function undo() {
 
-   /* istanbul ignore next */ if (historyStack.length === 0) { showStatus('Nothing to undo', 'info'); return; }
+   if (historyStack.length === 0) { showStatus('Nothing to undo', 'info'); return; }
 
-  /* istanbul ignore next */ redoStack.push(currentCanvas);
+  redoStack.push(currentCanvas);
 
-  /* istanbul ignore next */ currentCanvas = historyStack.pop();
+  currentCanvas = historyStack.pop();
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
-  /* istanbul ignore next */ updateDimensionDisplays();
+  updateDimensionDisplays();
 
-  /* istanbul ignore next */ showStatus('Undone', 'success');
+  showStatus('Undone', 'success');
 }
 
- /* istanbul ignore next */ function redo() {
+ function redo() {
 
-   /* istanbul ignore next */ if (redoStack.length === 0) { showStatus('Nothing to redo', 'info'); return; }
+   if (redoStack.length === 0) { showStatus('Nothing to redo', 'info'); return; }
 
-  /* istanbul ignore next */ historyStack.push(currentCanvas);
+  historyStack.push(currentCanvas);
 
-  /* istanbul ignore next */ currentCanvas = redoStack.pop();
+  currentCanvas = redoStack.pop();
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
-  /* istanbul ignore next */ updateDimensionDisplays();
+  updateDimensionDisplays();
 
-  /* istanbul ignore next */ showStatus('Redone', 'success');
+  showStatus('Redone', 'success');
 }
 
 // ── Text Watermark ──────────────────────────
 
- /* istanbul ignore next */ function addTextWatermark(text, options = {}) {
+ function addTextWatermark(text, options = {}) {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ if (!text || !text.trim()) { showStatus('Watermark text is required', 'error'); return; }
-
-
-  /* istanbul ignore next */ pushHistory();
+   if (!text || !text.trim()) { showStatus('Watermark text is required', 'error'); return; }
 
 
-   /* istanbul ignore next */ const fontSize = options.fontSize || 48;
-
-   /* istanbul ignore next */ const opacity = options.opacity != null ? options.opacity : 0.3;
-
-   /* istanbul ignore next */ const color = options.color || '#ffffff';
-
-   /* istanbul ignore next */ const position = options.position || 'center';
-
-   /* istanbul ignore next */ const angle = options.angle != null ? options.angle : -30;
+  pushHistory();
 
 
-   /* istanbul ignore next */ const out = createCanvas(currentCanvas.width, currentCanvas.height);
+   const fontSize = options.fontSize || 48;
 
-   /* istanbul ignore next */ const ctx = out.getContext('2d');
+   const opacity = options.opacity != null ? options.opacity : 0.3;
 
-  /* istanbul ignore next */ ctx.drawImage(currentCanvas, 0, 0);
+   const color = options.color || '#ffffff';
+
+   const position = options.position || 'center';
+
+   const angle = options.angle != null ? options.angle : -30;
 
 
-  /* istanbul ignore next */ ctx.globalAlpha = opacity;
+   const out = createCanvas(currentCanvas.width, currentCanvas.height);
 
-  /* istanbul ignore next */ ctx.fillStyle = color;
+   const ctx = out.getContext('2d');
+
+  ctx.drawImage(currentCanvas, 0, 0);
+
+
+  ctx.globalAlpha = opacity;
+
+  ctx.fillStyle = color;
 
   ctx.font = `bold ${fontSize}px Arial, sans-serif`;
 
-  /* istanbul ignore next */ ctx.textAlign = 'center';
+  ctx.textAlign = 'center';
 
-  /* istanbul ignore next */ ctx.textBaseline = 'middle';
-
-
-   /* istanbul ignore next */ const cx = currentCanvas.width / 2;
-
-   /* istanbul ignore next */ const cy = currentCanvas.height / 2;
+  ctx.textBaseline = 'middle';
 
 
-   /* istanbul ignore next */ if (position === 'tile') {
+   const cx = currentCanvas.width / 2;
 
-     /* istanbul ignore next */ const rad = (angle * Math.PI) / 180;
+   const cy = currentCanvas.height / 2;
 
-     /* istanbul ignore next */ const stepX = fontSize * text.length * 0.7;
 
-     /* istanbul ignore next */ const stepY = fontSize * 2.5;
+   if (position === 'tile') {
+
+     const rad = (angle * Math.PI) / 180;
+
+     const stepX = fontSize * text.length * 0.7;
+
+     const stepY = fontSize * 2.5;
 
     for (let y = -currentCanvas.height; y < currentCanvas.height * 2; y += stepY) {
 
       for (let x = -currentCanvas.width; x < currentCanvas.width * 2; x += stepX) {
 
-        /* istanbul ignore next */ ctx.save();
+        ctx.save();
 
-        /* istanbul ignore next */ ctx.translate(x, y);
+        ctx.translate(x, y);
 
-        /* istanbul ignore next */ ctx.rotate(rad);
+        ctx.rotate(rad);
 
-        /* istanbul ignore next */ ctx.fillText(text, 0, 0);
+        ctx.fillText(text, 0, 0);
 
-        /* istanbul ignore next */ ctx.restore();
+        ctx.restore();
       }
     }
-  /* istanbul ignore next */ } else {
+  } else {
 
-    /* istanbul ignore next */ ctx.save();
+    ctx.save();
 
-    /* istanbul ignore next */ ctx.translate(cx, cy);
+    ctx.translate(cx, cy);
 
-    /* istanbul ignore next */ ctx.rotate((angle * Math.PI) / 180);
+    ctx.rotate((angle * Math.PI) / 180);
 
-    /* istanbul ignore next */ ctx.fillText(text, 0, 0);
+    ctx.fillText(text, 0, 0);
 
-    /* istanbul ignore next */ ctx.restore();
+    ctx.restore();
   }
 
 
-  /* istanbul ignore next */ ctx.globalAlpha = 1;
+  ctx.globalAlpha = 1;
 
-  /* istanbul ignore next */ currentCanvas = out;
+  currentCanvas = out;
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
-  /* istanbul ignore next */ showStatus('Watermark added', 'success');
+  showStatus('Watermark added', 'success');
 }
 
- /* istanbul ignore next */ function applyWatermarkFromUI() {
-   /* istanbul ignore next */ const text = document.getElementById('watermark-text')?.value || '';
-   /* istanbul ignore next */ const fontSize = parseInt(document.getElementById('watermark-size')?.value) || 48;
-   /* istanbul ignore next */ const opacity = parseFloat(document.getElementById('watermark-opacity')?.value) / 100 || 0.3;
-   /* istanbul ignore next */ const color = document.getElementById('watermark-color')?.value || '#ffffff';
-   /* istanbul ignore next */ const position = document.getElementById('watermark-position')?.value || 'center';
-   /* istanbul ignore next */ const angle = parseInt(document.getElementById('watermark-angle')?.value) || -30;
-  /* istanbul ignore next */ addTextWatermark(text, { fontSize, opacity, color, position, angle });
+ function applyWatermarkFromUI() {
+   const text = document.getElementById('watermark-text')?.value || '';
+   const fontSize = parseInt(document.getElementById('watermark-size')?.value) || 48;
+   const opacity = parseFloat(document.getElementById('watermark-opacity')?.value) / 100 || 0.3;
+   const color = document.getElementById('watermark-color')?.value || '#ffffff';
+   const position = document.getElementById('watermark-position')?.value || 'center';
+   const angle = parseInt(document.getElementById('watermark-angle')?.value) || -30;
+  addTextWatermark(text, { fontSize, opacity, color, position, angle });
 }
 
 // ── Compression Download ────────────────────
 
- /* istanbul ignore next */ function downloadWithQuality(format, quality) {
+ function downloadWithQuality(format, quality) {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
 
-   /* istanbul ignore next */ const q = Math.min(1, Math.max(0.01, quality));
+   const q = Math.min(1, Math.max(0.01, quality));
 
-   /* istanbul ignore next */ const link = document.createElement('a');
+   const link = document.createElement('a');
 
   link.download = `image-toolkit-${Date.now()}.${format}`;
 
 
-   /* istanbul ignore next */ if (format === 'jpg' || format === 'jpeg') {
+   if (format === 'jpg' || format === 'jpeg') {
 
-    /* istanbul ignore next */ link.href = currentCanvas.toDataURL('image/jpeg', q);
+    link.href = currentCanvas.toDataURL('image/jpeg', q);
 
-  /* istanbul ignore next */ } else if (format === 'webp') {
+  } else if (format === 'webp') {
 
-    /* istanbul ignore next */ link.href = currentCanvas.toDataURL('image/webp', q);
-  /* istanbul ignore next */ } else {
+    link.href = currentCanvas.toDataURL('image/webp', q);
+  } else {
 
-    /* istanbul ignore next */ link.href = currentCanvas.toDataURL('image/png');
+    link.href = currentCanvas.toDataURL('image/png');
   }
 
-  /* istanbul ignore next */ link.click();
+  link.click();
 
   showStatus(`Downloaded as ${format.toUpperCase()} (${Math.round(q * 100)}% quality)`, 'success');
 }
@@ -1320,160 +1320,160 @@
 
 // ── Additional Advanced Features ─────────────────────
 
- /* istanbul ignore next */ function applyWatermark() {
-   /* istanbul ignore next */ const text = document.getElementById('wm-text')?.value || '';
-   /* istanbul ignore next */ const fontSize = parseInt(document.getElementById('wm-size')?.value) || 48;
-   /* istanbul ignore next */ const opacity = parseFloat(document.getElementById('wm-opacity')?.value) || 0.5;
-   /* istanbul ignore next */ const color = document.getElementById('wm-color')?.value || '#ffffff';
-   /* istanbul ignore next */ const position = document.getElementById('wm-pos')?.value || 'center';
+ function applyWatermark() {
+   const text = document.getElementById('wm-text')?.value || '';
+   const fontSize = parseInt(document.getElementById('wm-size')?.value) || 48;
+   const opacity = parseFloat(document.getElementById('wm-opacity')?.value) || 0.5;
+   const color = document.getElementById('wm-color')?.value || '#ffffff';
+   const position = document.getElementById('wm-pos')?.value || 'center';
   
 
-   /* istanbul ignore next */ if (!text) { showStatus('Please enter watermark text', 'error'); return; }
+   if (!text) { showStatus('Please enter watermark text', 'error'); return; }
 
-  /* istanbul ignore next */ addTextWatermark(text, { fontSize, opacity, color, position: position === 'tiled' ? 'tile' : position });
+  addTextWatermark(text, { fontSize, opacity, color, position: position === 'tiled' ? 'tile' : position });
 }
 
-/* istanbul ignore next */ async function viewExif() {
+async function viewExif() {
 
-   /* istanbul ignore next */ if (!originalImage || !originalImage.src) {
-    /* istanbul ignore next */ showStatus('Upload an image first', 'error');
-     /* istanbul ignore next */ return;
+   if (!originalImage || !originalImage.src) {
+    showStatus('Upload an image first', 'error');
+     return;
   }
 
-   /* istanbul ignore next */ const pre = document.getElementById('exif-data');
+   const pre = document.getElementById('exif-data');
 
-   /* istanbul ignore next */ if (!pre) return;
+   if (!pre) return;
 
-  /* istanbul ignore next */ pre.classList.remove('hidden');
+  pre.classList.remove('hidden');
 
-  /* istanbul ignore next */ pre.textContent = 'Analyzing...';
+  pre.textContent = 'Analyzing...';
   
 
-  /* istanbul ignore next */ try {
+  try {
 
-     /* istanbul ignore next */ if (typeof exifr === 'undefined') {
+     if (typeof exifr === 'undefined') {
 
-       /* istanbul ignore next */ pre.textContent = 'Exifr library not loaded.';
+       pre.textContent = 'Exifr library not loaded.';
 
-       /* istanbul ignore next */ return;
+       return;
     }
 
-     /* istanbul ignore next */ const data = await exifr.parse(originalImage.src, true);
+     const data = await exifr.parse(originalImage.src, true);
 
-     /* istanbul ignore next */ if (!data || Object.keys(data).length === 0) {
+     if (!data || Object.keys(data).length === 0) {
 
-      /* istanbul ignore next */ pre.textContent = 'No EXIF metadata found in this image.';
-    /* istanbul ignore next */ } else {
+      pre.textContent = 'No EXIF metadata found in this image.';
+    } else {
 
-      /* istanbul ignore next */ pre.textContent = JSON.stringify(data, null, 2);
+      pre.textContent = JSON.stringify(data, null, 2);
     }
-  /* istanbul ignore next */ } catch(e) {
+  } catch(e) {
 
-    /* istanbul ignore next */ pre.textContent = 'Error reading EXIF or cross-origin restrictions applied.';
+    pre.textContent = 'Error reading EXIF or cross-origin restrictions applied.';
 
-    /* istanbul ignore next */ console.error(e);
+    console.error(e);
   }
 }
 
- /* istanbul ignore next */ function stripExif() {
+ function stripExif() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return;
+   if (!currentCanvas) return;
   // By recreating a new canvas from the current one and exporting it, EXIF is naturally stripped.
 
-   /* istanbul ignore next */ const out = createCanvas(currentCanvas.width, currentCanvas.height);
+   const out = createCanvas(currentCanvas.width, currentCanvas.height);
 
-   /* istanbul ignore next */ const ctx = out.getContext('2d');
+   const ctx = out.getContext('2d');
 
-  /* istanbul ignore next */ ctx.drawImage(currentCanvas, 0, 0);
+  ctx.drawImage(currentCanvas, 0, 0);
 
-  /* istanbul ignore next */ currentCanvas = out;
+  currentCanvas = out;
 
-  /* istanbul ignore next */ updatePreview();
+  updatePreview();
 
-  /* istanbul ignore next */ showStatus('EXIF data stripped from working canvas. Download now to save clean image.', 'success');
+  showStatus('EXIF data stripped from working canvas. Download now to save clean image.', 'success');
 
-   /* istanbul ignore next */ const pre = document.getElementById('exif-data');
+   const pre = document.getElementById('exif-data');
 
-   /* istanbul ignore next */ if (pre) pre.classList.add('hidden');
+   if (pre) pre.classList.add('hidden');
 }
 
-/* istanbul ignore next */ async function startBatchProcess(event) {
+async function startBatchProcess(event) {
 
   const files = Array.from(event.target.files).filter(f => f.type.startsWith('image/'));
 
-   /* istanbul ignore next */ if (!files.length) return;
+   if (!files.length) return;
   
 
-   /* istanbul ignore next */ const progContainer = document.getElementById('batch-progress');
+   const progContainer = document.getElementById('batch-progress');
 
-   /* istanbul ignore next */ const progBar = document.getElementById('batch-bar');
+   const progBar = document.getElementById('batch-bar');
 
-   /* istanbul ignore next */ const statusEl = document.getElementById('batch-status');
+   const statusEl = document.getElementById('batch-status');
 
-   /* istanbul ignore next */ if (progContainer) progContainer.classList.remove('hidden');
+   if (progContainer) progContainer.classList.remove('hidden');
 
-   /* istanbul ignore next */ if (progBar) progBar.style.width = '0%';
+   if (progBar) progBar.style.width = '0%';
   
 
-   /* istanbul ignore next */ if (typeof JSZip === 'undefined') {
+   if (typeof JSZip === 'undefined') {
 
-      /* istanbul ignore next */ if (statusEl) statusEl.textContent = 'JSZip library not loaded.';
+      if (statusEl) statusEl.textContent = 'JSZip library not loaded.';
 
-      /* istanbul ignore next */ return;
+      return;
   }
   
 
-   /* istanbul ignore next */ const zip = new JSZip();
+   const zip = new JSZip();
 
-   /* istanbul ignore next */ let processed = 0;
+   let processed = 0;
   
 
-   /* istanbul ignore next */ for (let file of files) {
+   for (let file of files) {
 
-      /* istanbul ignore next */ const img = await loadImageAsync(file);
+      const img = await loadImageAsync(file);
 
-      /* istanbul ignore next */ if (img) {
+      if (img) {
           // 1. Resize
 
-          /* istanbul ignore next */ let targetW = img.width;
+          let targetW = img.width;
 
-          /* istanbul ignore next */ let targetH = img.height;
+          let targetH = img.height;
 
-          /* istanbul ignore next */ const wInput = parseInt(document.getElementById('resize-w')?.value);
+          const wInput = parseInt(document.getElementById('resize-w')?.value);
 
-          /* istanbul ignore next */ const hInput = parseInt(document.getElementById('resize-h')?.value);
+          const hInput = parseInt(document.getElementById('resize-h')?.value);
 
-          /* istanbul ignore next */ if (wInput && hInput) { targetW = wInput; targetH = hInput; }
+          if (wInput && hInput) { targetW = wInput; targetH = hInput; }
           
 
-          /* istanbul ignore next */ let tempCanvas = createCanvas(img.width, img.height);
+          let tempCanvas = createCanvas(img.width, img.height);
 
-          /* istanbul ignore next */ tempCanvas.getContext('2d').drawImage(img, 0, 0);
+          tempCanvas.getContext('2d').drawImage(img, 0, 0);
 
-          /* istanbul ignore next */ tempCanvas = bicubicResize(tempCanvas, targetW, targetH);
+          tempCanvas = bicubicResize(tempCanvas, targetW, targetH);
           
           // 2. Colors
 
           const getValDefault = (id, def) => { const v = document.getElementById(id); return v ? parseInt(v.value) : def; };
 
-          /* istanbul ignore next */ const opts = {
-             /* istanbul ignore next */ brightness: getValDefault('adj-brightness', 100), contrast: getValDefault('adj-contrast', 100),
-             /* istanbul ignore next */ saturation: getValDefault('adj-saturation', 100), hue: getValDefault('adj-hue', 0),
-             /* istanbul ignore next */ sepia: getValDefault('adj-sepia', 0), grayscale: getValDefault('adj-grayscale', 0), invert: getValDefault('adj-invert', 0)
+          const opts = {
+             brightness: getValDefault('adj-brightness', 100), contrast: getValDefault('adj-contrast', 100),
+             saturation: getValDefault('adj-saturation', 100), hue: getValDefault('adj-hue', 0),
+             sepia: getValDefault('adj-sepia', 0), grayscale: getValDefault('adj-grayscale', 0), invert: getValDefault('adj-invert', 0)
           };
 
-          /* istanbul ignore next */ tempCanvas = applyColorAdjustments(tempCanvas, opts);
+          tempCanvas = applyColorAdjustments(tempCanvas, opts);
           
           // Extract data
 
-          /* istanbul ignore next */ const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.9);
+          const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.9);
 
-          /* istanbul ignore next */ const base64 = dataUrl.split(',')[1];
+          const base64 = dataUrl.split(',')[1];
 
           zip.file(`processed_${file.name.replace(/\.[^/.]+$/, "")}.jpg`, base64, {base64: true});
       }
 
-      /* istanbul ignore next */ processed++;
+      processed++;
 
       if (progBar) progBar.style.width = `${(processed / files.length) * 100}%`;
 
@@ -1481,126 +1481,126 @@
   }
   
 
-   /* istanbul ignore next */ if (statusEl) statusEl.textContent = 'Zipping...';
+   if (statusEl) statusEl.textContent = 'Zipping...';
 
-   /* istanbul ignore next */ const content = await zip.generateAsync({type: 'blob'});
+   const content = await zip.generateAsync({type: 'blob'});
 
-   /* istanbul ignore next */ const link = document.createElement('a');
+   const link = document.createElement('a');
 
-  /* istanbul ignore next */ link.href = URL.createObjectURL(content);
+  link.href = URL.createObjectURL(content);
 
   link.download = `batch_processed_${Date.now()}.zip`;
 
-  /* istanbul ignore next */ link.click();
+  link.click();
   
 
-   /* istanbul ignore next */ if (statusEl) statusEl.textContent = '✅ Batch complete!';
+   if (statusEl) statusEl.textContent = '✅ Batch complete!';
 
-  /* istanbul ignore next */ event.target.value = '';
+  event.target.value = '';
 }
 
 
- /* istanbul ignore next */ function loadImageAsync(file) {
+ function loadImageAsync(file) {
 
   return new Promise(resolve => {
 
-     /* istanbul ignore next */ const reader = new FileReader();
+     const reader = new FileReader();
 
      reader.onload = e => {
 
-        /* istanbul ignore next */ const img = new Image();
+        const img = new Image();
 
         img.onload = () => resolve(img);
 
         img.onerror = () => resolve(null);
 
-        /* istanbul ignore next */ img.src = e.target.result;
+        img.src = e.target.result;
      };
 
-     /* istanbul ignore next */ reader.readAsDataURL(file);
-  /* istanbul ignore next */ });
+     reader.readAsDataURL(file);
+  });
 }
 
- /* istanbul ignore next */ function getCanvasInfo() {
+ function getCanvasInfo() {
 
-   /* istanbul ignore next */ if (!currentCanvas) return null;
+   if (!currentCanvas) return null;
 
-   /* istanbul ignore next */ const w = currentCanvas.width;
+   const w = currentCanvas.width;
 
-   /* istanbul ignore next */ const h = currentCanvas.height;
+   const h = currentCanvas.height;
 
-   /* istanbul ignore next */ const pixels = w * h;
+   const pixels = w * h;
 
-   /* istanbul ignore next */ const estimatedBytes = pixels * 4; // RGBA
+   const estimatedBytes = pixels * 4; // RGBA
 
-   /* istanbul ignore next */ const megapixels = (pixels / 1000000).toFixed(2);
+   const megapixels = (pixels / 1000000).toFixed(2);
 
-   /* istanbul ignore next */ return {
-    /* istanbul ignore next */ width: w,
-    /* istanbul ignore next */ height: h,
-    /* istanbul ignore next */ pixels,
-    /* istanbul ignore next */ megapixels: parseFloat(megapixels),
-    /* istanbul ignore next */ estimatedSizeMB: parseFloat((estimatedBytes / (1024 * 1024)).toFixed(2)),
+   return {
+    width: w,
+    height: h,
+    pixels,
+    megapixels: parseFloat(megapixels),
+    estimatedSizeMB: parseFloat((estimatedBytes / (1024 * 1024)).toFixed(2)),
 
     aspectRatio: w > 0 && h > 0 ? `${(w / h).toFixed(2)}:1` : 'N/A'
   };
 }
 
- /* istanbul ignore next */ function resetToolkit() {
-  /* istanbul ignore next */ originalImage = null;
-  /* istanbul ignore next */ currentCanvas = null;
-  /* istanbul ignore next */ mergeImages = [];
-  /* istanbul ignore next */ historyStack = [];
-  /* istanbul ignore next */ redoStack = [];
-   /* istanbul ignore next */ const uploadArea = document.getElementById('upload-area');
-   /* istanbul ignore next */ const workspace = document.getElementById('workspace');
+ function resetToolkit() {
+  originalImage = null;
+  currentCanvas = null;
+  mergeImages = [];
+  historyStack = [];
+  redoStack = [];
+   const uploadArea = document.getElementById('upload-area');
+   const workspace = document.getElementById('workspace');
 
-   /* istanbul ignore next */ if (uploadArea) uploadArea.classList.remove('hidden');
+   if (uploadArea) uploadArea.classList.remove('hidden');
 
-   /* istanbul ignore next */ if (workspace) workspace.classList.add('hidden');
-   /* istanbul ignore next */ const resultsEl = document.getElementById('split-results');
+   if (workspace) workspace.classList.add('hidden');
+   const resultsEl = document.getElementById('split-results');
 
-   /* istanbul ignore next */ if (resultsEl) resultsEl.classList.add('hidden');
+   if (resultsEl) resultsEl.classList.add('hidden');
 }
 
- /* istanbul ignore next */ function showStatus(msg, type = 'info') {
-   /* istanbul ignore next */ const el = document.getElementById('status-text');
+ function showStatus(msg, type = 'info') {
+   const el = document.getElementById('status-text');
 
-   /* istanbul ignore next */ if (!el) return;
-   /* istanbul ignore next */ const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+   if (!el) return;
+   const icons = { success: '✅', error: '❌', info: 'ℹ️' };
 
   el.textContent = `${icons[type] || ''} ${msg}`;
   el.className = `status-${type}`;
 }
 
- /* istanbul ignore next */ function switchTab(tab) {
-  /* istanbul ignore next */ activeTab = tab;
+ function switchTab(tab) {
+  activeTab = tab;
 
   document.querySelectorAll('.toolkit-tab').forEach(t => t.classList.remove('active'));
 
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
   const activeBtn = document.getElementById(`tab-${tab}`);
 
-   /* istanbul ignore next */ if (activeBtn) activeBtn.classList.add('active');
+   if (activeBtn) activeBtn.classList.add('active');
   const activePanel = document.getElementById(`panel-${tab}`);
 
-   /* istanbul ignore next */ if (activePanel) activePanel.classList.remove('hidden');
+   if (activePanel) activePanel.classList.remove('hidden');
 }
 
 
- /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
-  /* istanbul ignore next */ module.exports = {
-    /* istanbul ignore next */ validateImageSize, formatDimensions, parseScale,
-    /* istanbul ignore next */ bicubicResize, rotateCanvas, flipCanvas, cropCanvas, applyColorAdjustments,
-    /* istanbul ignore next */ splitImageGrid, mergeImageLayout, createCanvas,
-    /* istanbul ignore next */ handleUpload, initWorkspace, updatePreview, downloadResult, resetToolkit, showStatus,
-    /* istanbul ignore next */ applyResize, applyRotate, applyFlip, applyTilt, applyCropManual, applyCropPreset,
-    /* istanbul ignore next */ applyColors, resetColorSliders, applySplit, applyMerge, applyUpscale, applyCustomUpscale,
-    /* istanbul ignore next */ applyRemoveBg, applySolidBg, clearToTransparentBg, applyImageBg,
-    /* istanbul ignore next */ initMergeFlow, handleMergeUpload, renderMergeList, removeMergeImage, switchTab,
+ if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    validateImageSize, formatDimensions, parseScale,
+    bicubicResize, rotateCanvas, flipCanvas, cropCanvas, applyColorAdjustments,
+    splitImageGrid, mergeImageLayout, createCanvas,
+    handleUpload, initWorkspace, updatePreview, downloadResult, resetToolkit, showStatus,
+    applyResize, applyRotate, applyFlip, applyTilt, applyCropManual, applyCropPreset,
+    applyColors, resetColorSliders, applySplit, applyMerge, applyUpscale, applyCustomUpscale,
+    applyRemoveBg, applySolidBg, clearToTransparentBg, applyImageBg,
+    initMergeFlow, handleMergeUpload, renderMergeList, removeMergeImage, switchTab,
     // New features
-    /* istanbul ignore next */ addTextWatermark, applyWatermarkFromUI, downloadWithQuality, getCanvasInfo, applyWatermark, viewExif, stripExif, startBatchProcess,
-    /* istanbul ignore next */ undo, redo, pushHistory,
+    addTextWatermark, applyWatermarkFromUI, downloadWithQuality, getCanvasInfo, applyWatermark, viewExif, stripExif, startBatchProcess,
+    undo, redo, pushHistory,
     getState: () => ({ originalImage, currentCanvas, mergeImages, activeTab, historyStack, redoStack }),
     setCurrentCanvas: (c) => { currentCanvas = c; },
     setOriginalImage: (img) => { originalImage = img; },

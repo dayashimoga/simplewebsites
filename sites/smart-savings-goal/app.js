@@ -3,4 +3,4 @@
 
  function compoundProjection(current,monthly,rate,months){let b=current;for(let i=0;i<months;i++)b=b*(1+rate/12)+monthly;return b}
 
- /* istanbul ignore next */ if(typeof module!=='undefined'&&module.exports)module.exports={calculate,compoundProjection};
+ if(typeof module!=='undefined'&&module.exports)module.exports={calculate,compoundProjection};
