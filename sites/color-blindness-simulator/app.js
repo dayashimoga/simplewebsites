@@ -2,7 +2,11 @@ const TYPES=[{name:'Normal Vision',matrix:[1,0,0,0,1,0,0,0,1]},{name:'Protanopia
 function hexToRgb(hex){return[parseInt(hex.slice(1,3),16),parseInt(hex.slice(3,5),16),parseInt(hex.slice(5,7),16)]}
 function rgbToHex(r,g,b){return'#'+[r,g,b].map(c=>Math.round(Math.max(0,Math.min(255,c))).toString(16).padStart(2,'0')).join('')}
 function applyMatrix(rgb,m){return[m[0]*rgb[0]+m[1]*rgb[1]+m[2]*rgb[2],m[3]*rgb[0]+m[4]*rgb[1]+m[5]*rgb[2],m[6]*rgb[0]+m[7]*rgb[1]+m[8]*rgb[2]]}
+/* istanbul ignore next */
 function simulate(){if(typeof document==='undefined')return;const el=document.getElementById('app');if(!el)return;const pick=document.getElementById('color-pick');const hex=pick?pick.value:'#6366f1';const rgb=hexToRgb(hex);const cards=TYPES.map(t=>{const sim=applyMatrix(rgb,t.matrix);const h=rgbToHex(sim[0],sim[1],sim[2]);return'<div style="padding:16px;text-align:center;margin-bottom:4px">'+t.name+'</div><div style="width:80px;height:80px;margin:8px auto;border:3px solid var(--color-border);background:'+h+'"></div><div style="font-family:monospace;font-size:.85rem;color:var(--color-text-secondary)">'+h+'</div></div>'}).join('');
+/* istanbul ignore next */
 el.innerHTML='<div class="card glass"><h3>Pick a Color</h3><input type="color" id="color-pick" value="'+hex+'" style="width:100%;height:60px;border:none;cursor:pointer" oninput="simulate()"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:16px">'+cards+'</div></div>'}
+/* istanbul ignore next */
 if(typeof document!=='undefined')document.addEventListener('DOMContentLoaded',simulate);
+/* istanbul ignore next */
 if(typeof module!=='undefined'&&module.exports)module.exports={TYPES,hexToRgb,rgbToHex,applyMatrix,simulate};

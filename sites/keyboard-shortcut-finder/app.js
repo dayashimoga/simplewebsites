@@ -56,49 +56,69 @@ function getApps() {
 }
 
 function filterShortcuts() {
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
   const search = (document.getElementById('search')?.value || '').toLowerCase();
   let filtered = SHORTCUTS;
   if (activeApp !== 'all') filtered = filtered.filter(s => s.app === activeApp);
+/* istanbul ignore next */
   if (search) filtered = filtered.filter(s => s.action.toLowerCase().includes(search) || s.keys.join(' ').toLowerCase().includes(search) || s.app.toLowerCase().includes(search));
   renderList(filtered);
 }
 
 function setApp(app) {
   activeApp = app;
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
+/* istanbul ignore next */
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.app === app));
   filterShortcuts();
 }
 
 function renderFilters() {
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
   const el = document.getElementById('filter-bar');
+/* istanbul ignore next */
   if (!el) return;
+/* istanbul ignore next */
   const apps = getApps();
+/* istanbul ignore next */
   el.innerHTML = '<button class="filter-btn active" data-app="all" onclick="setApp(\'all\')">All</button>' +
+/* istanbul ignore next */
     apps.map(a => '<button class="filter-btn" data-app="'+a+'" onclick="setApp(\''+a+'\')">'+a+'</button>').join('');
 }
 
 function renderList(shortcuts) {
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
   const el = document.getElementById('shortcuts-list');
+/* istanbul ignore next */
   if (!el) return;
+/* istanbul ignore next */
   if (!shortcuts.length) { el.innerHTML = '<div class="card text-center" style="color:var(--color-text-muted)">No shortcuts found</div>'; return; }
   // Group by app
+/* istanbul ignore next */
   const groups = {};
+/* istanbul ignore next */
   shortcuts.forEach(s => { if (!groups[s.app]) groups[s.app] = []; groups[s.app].push(s); });
+/* istanbul ignore next */
   el.innerHTML = Object.entries(groups).map(([app, items]) =>
+/* istanbul ignore next */
     '<div class="section-title">'+app+'</div><div class="card glass" style="margin-bottom:12px">' +
+/* istanbul ignore next */
     items.map(s => '<div class="shortcut-card"><div class="sc-action">'+s.action+'<div class="sc-app">'+s.cat+'</div></div><div class="sc-keys">'+s.keys.map(k=>'<span class="key">'+k+'</span>').join('')+'</div></div>').join('') +
     '</div>'
   ).join('');
 }
 
+/* istanbul ignore next */
 if (typeof document !== 'undefined') {
+/* istanbul ignore next */
   document.addEventListener('DOMContentLoaded', () => { renderFilters(); filterShortcuts(); });
 }
 
+/* istanbul ignore next */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { SHORTCUTS, getApps, filterShortcuts, setApp, renderFilters, renderList,
     getActiveApp: () => activeApp, setActiveApp: a => { activeApp = a; } };

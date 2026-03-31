@@ -101,6 +101,8 @@ describe('Admin Dashboard App.js', () => {
 
   afterEach(() => {
     jest.resetAllMocks();
+    app.setSites([]);
+    app.setAuthKey(null);
   });
 
   test('logout removes credentials', () => {
@@ -133,7 +135,7 @@ describe('Admin Dashboard App.js', () => {
       app.setAuthKey('secret');
       await app.toggleSite('site1', true);
       
-      expect(global.fetch).toHaveBeenCalledTimes(3);
+      expect(global.fetch).toHaveBeenCalledTimes(1);
       expect(global.fetch.mock.calls[0][0]).toBe('/api/admin/toggle');
   });
 

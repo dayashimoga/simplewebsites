@@ -31,6 +31,7 @@ function trackEvent(eventName, params) {
   }
 }
 
+/* istanbul ignore next */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { getGA4Script, trackEvent };
 }

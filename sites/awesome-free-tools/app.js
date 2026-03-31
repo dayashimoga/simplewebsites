@@ -3476,11 +3476,13 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+/* istanbul ignore next */
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', init);
 }
 
 // Export for SEO booster
+/* istanbul ignore next */
 if (typeof module !== 'undefined') {
     module.exports = { TOOLS_DATA, init, escapeHtml };
 }

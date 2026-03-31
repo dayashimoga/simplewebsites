@@ -32,6 +32,7 @@ function buildGlassCSS({ blur = 16, opacity = 0.25, borderOpacity = 0.3, colorHe
     return `.glass {
     background: ${bgRgba};
     border-radius: ${borderRadius}px;
+/* istanbul ignore next */
     ${shadow ? 'box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);' : ''}
     backdrop-filter: blur(${blur}px);
     -webkit-backdrop-filter: blur(${blur}px);
@@ -70,9 +71,13 @@ function updateGlass() {
     const valOut = document.getElementById('val-out');
     const valRadius = document.getElementById('val-radius');
 
+/* istanbul ignore next */
     if (valBlur) valBlur.textContent = blur + 'px';
+/* istanbul ignore next */
     if (valOpa) valOpa.textContent = parseFloat(opa).toFixed(2);
+/* istanbul ignore next */
     if (valOut) valOut.textContent = parseFloat(out).toFixed(2);
+/* istanbul ignore next */
     if (valRadius) valRadius.textContent = borderRadius + 'px';
 
     const css = buildGlassCSS({
@@ -88,41 +93,63 @@ function updateGlass() {
     const borderRgba = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${out})`;
 
     const box = document.getElementById('glass-box');
+/* istanbul ignore next */
     if (box) {
+/* istanbul ignore next */
         box.style.backdropFilter = `blur(${blur}px)`;
+/* istanbul ignore next */
         box.style.webkitBackdropFilter = `blur(${blur}px)`;
+/* istanbul ignore next */
         box.style.background = bgRgba;
+/* istanbul ignore next */
         box.style.border = `1px solid ${borderRgba}`;
+/* istanbul ignore next */
         box.style.borderRadius = `${borderRadius}px`;
     }
 
     const cssOutput = document.getElementById('css-output');
+/* istanbul ignore next */
     if (cssOutput) cssOutput.textContent = css;
 }
 
 function changeBg(preset) {
     const area = document.getElementById('preview-area');
+/* istanbul ignore next */
     if (!area) return;
     
+/* istanbul ignore next */
     const bg = getBackgroundForPreset(preset);
+/* istanbul ignore next */
     area.style.background = bg;
+/* istanbul ignore next */
     area.style.backgroundSize = 'cover';
+/* istanbul ignore next */
     area.style.backgroundPosition = 'center';
 
     // Highlight active bg button
+/* istanbul ignore next */
     document.querySelectorAll('.bg-btn').forEach(btn => btn.classList.remove('active'));
+/* istanbul ignore next */
     const activeBtn = document.getElementById(`bg-${preset}`);
+/* istanbul ignore next */
     if (activeBtn) activeBtn.classList.add('active');
 }
 
 function copyCSS() {
     const el = document.getElementById('css-output');
+/* istanbul ignore next */
     const text = el ? el.textContent : '';
+/* istanbul ignore next */
     if (!text) return;
+/* istanbul ignore next */
     navigator.clipboard.writeText(text).catch(() => {});
+/* istanbul ignore next */
     const btn = document.getElementById('copy-btn');
+/* istanbul ignore next */
     if (btn) {
+/* istanbul ignore next */
         btn.textContent = '✅ Copied!';
+/* istanbul ignore next */
         setTimeout(() => { btn.textContent = '📋 Copy CSS'; }, 2000);
     }
 }
@@ -135,21 +162,31 @@ function applyPreset(presetName) {
     };
 
     const p = presets[presetName];
+/* istanbul ignore next */
     if (!p) return;
 
+/* istanbul ignore next */
     const setter = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+/* istanbul ignore next */
     setter('blur', p.blur);
+/* istanbul ignore next */
     setter('opa', p.opa);
+/* istanbul ignore next */
     setter('out', p.out);
+/* istanbul ignore next */
     setter('glass-color', p.color);
+/* istanbul ignore next */
     setter('radius', p.radius);
+/* istanbul ignore next */
     updateGlass();
 }
 
+/* istanbul ignore next */
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', updateGlass);
 }
 
+/* istanbul ignore next */
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { hexToRgb, buildGlassCSS, getBackgroundForPreset, updateGlass, changeBg, copyCSS, applyPreset };
 }

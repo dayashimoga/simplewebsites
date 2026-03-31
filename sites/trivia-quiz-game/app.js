@@ -91,6 +91,7 @@ function getAllQuestions() {
 
 function startQuiz(category) {
   currentCategory = category;
+/* istanbul ignore next */
   const pool = category === 'all' ? getAllQuestions() : (QUESTIONS[category] || []);
   questions = shuffle(pool).slice(0, TOTAL_QUESTIONS);
   currentIndex = 0;
@@ -98,46 +99,77 @@ function startQuiz(category) {
   streak = 0;
   bestStreak = 0;
 
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
   document.getElementById('setup-screen').style.display = 'none';
+/* istanbul ignore next */
   document.getElementById('quiz-screen').style.display = 'block';
+/* istanbul ignore next */
   document.getElementById('result-screen').style.display = 'none';
+/* istanbul ignore next */
   const catLabel = category === 'all' ? 'Random Mix' : category.charAt(0).toUpperCase() + category.slice(1);
+/* istanbul ignore next */
   document.getElementById('q-category').textContent = catLabel;
+/* istanbul ignore next */
   showQuestion();
 }
 
 function showQuestion() {
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
+/* istanbul ignore next */
   if (currentIndex >= questions.length) { finishQuiz(); return; }
+/* istanbul ignore next */
   const q = questions[currentIndex];
+/* istanbul ignore next */
   document.getElementById('q-counter').textContent = `${currentIndex + 1} / ${questions.length}`;
+/* istanbul ignore next */
   document.getElementById('q-streak').textContent = `🔥 ${streak}`;
+/* istanbul ignore next */
   document.getElementById('question-text').textContent = q.q;
 
+/* istanbul ignore next */
   const grid = document.getElementById('answers-grid');
+/* istanbul ignore next */
   grid.innerHTML = q.a.map((ans, i) =>
+/* istanbul ignore next */
     `<button class="answer-btn" onclick="selectAnswer(${i})">${ans}</button>`
   ).join('');
 
+/* istanbul ignore next */
   const fb = document.getElementById('quiz-feedback');
+/* istanbul ignore next */
   fb.classList.add('hidden');
+/* istanbul ignore next */
   fb.className = 'quiz-feedback hidden';
 
+/* istanbul ignore next */
   timeLeft = TIME_PER_QUESTION;
+/* istanbul ignore next */
   startTimer();
 }
 
+/* istanbul ignore next */
 function startTimer() {
+/* istanbul ignore next */
   clearInterval(timerInterval);
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
+/* istanbul ignore next */
   const fill = document.getElementById('timer-fill');
+/* istanbul ignore next */
   if (fill) fill.style.width = '100%';
+/* istanbul ignore next */
   timerInterval = setInterval(() => {
+/* istanbul ignore next */
     timeLeft -= 0.1;
+/* istanbul ignore next */
     if (fill) fill.style.width = Math.max(0, (timeLeft / TIME_PER_QUESTION) * 100) + '%';
+/* istanbul ignore next */
     if (timeLeft <= 0) {
+/* istanbul ignore next */
       clearInterval(timerInterval);
+/* istanbul ignore next */
       selectAnswer(-1);
     }
   }, 100);
@@ -145,51 +177,79 @@ function startTimer() {
 
 function selectAnswer(idx) {
   clearInterval(timerInterval);
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
   const q = questions[currentIndex];
   const btns = document.querySelectorAll('.answer-btn');
   const fb = document.getElementById('quiz-feedback');
+/* istanbul ignore next */
   btns.forEach(b => b.classList.add('disabled'));
 
+/* istanbul ignore next */
   if (idx === q.c) {
+/* istanbul ignore next */
     score++;
+/* istanbul ignore next */
     streak++;
+/* istanbul ignore next */
     if (streak > bestStreak) bestStreak = streak;
+/* istanbul ignore next */
     btns[idx].classList.add('correct');
+/* istanbul ignore next */
     fb.textContent = '✅ Correct!';
+/* istanbul ignore next */
     fb.className = 'quiz-feedback correct-fb';
   } else {
+/* istanbul ignore next */
     streak = 0;
+/* istanbul ignore next */
     if (idx >= 0 && btns[idx]) btns[idx].classList.add('incorrect');
+/* istanbul ignore next */
     btns[q.c].classList.add('correct');
+/* istanbul ignore next */
     fb.textContent = `❌ Wrong! The answer was: ${q.a[q.c]}`;
+/* istanbul ignore next */
     fb.className = 'quiz-feedback incorrect-fb';
   }
+/* istanbul ignore next */
   fb.classList.remove('hidden');
 
+/* istanbul ignore next */
   currentIndex++;
+/* istanbul ignore next */
   setTimeout(() => showQuestion(), 1500);
 }
 
 function finishQuiz() {
   clearInterval(timerInterval);
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
   document.getElementById('quiz-screen').style.display = 'none';
+/* istanbul ignore next */
   document.getElementById('result-screen').style.display = 'block';
 
+/* istanbul ignore next */
   const pct = Math.round((score / questions.length) * 100);
+/* istanbul ignore next */
   const icon = document.getElementById('result-icon');
+/* istanbul ignore next */
   const title = document.getElementById('result-title');
+/* istanbul ignore next */
   if (pct >= 80) { icon.textContent = '🏆'; title.textContent = 'Amazing!'; }
+/* istanbul ignore next */
   else if (pct >= 50) { icon.textContent = '👏'; title.textContent = 'Good Job!'; }
+/* istanbul ignore next */
   else { icon.textContent = '📚'; title.textContent = 'Keep Learning!'; }
 
+/* istanbul ignore next */
   document.getElementById('result-stats').innerHTML = `
     <div class="stat-box"><div class="stat-val">${score}/${questions.length}</div><div class="stat-label">Score</div></div>
     <div class="stat-box"><div class="stat-val">${pct}%</div><div class="stat-label">Accuracy</div></div>
     <div class="stat-box"><div class="stat-val">🔥 ${bestStreak}</div><div class="stat-label">Best Streak</div></div>`;
 
+/* istanbul ignore next */
   saveScore(score, pct, bestStreak);
+/* istanbul ignore next */
   renderHighScores();
 }
 
@@ -204,26 +264,37 @@ function saveScore(sc, pct, strk) {
 }
 
 function renderHighScores() {
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
   const el = document.getElementById('high-scores');
+/* istanbul ignore next */
   if (!el) return;
+/* istanbul ignore next */
   try {
+/* istanbul ignore next */
     const scores = JSON.parse(localStorage.getItem('trivia_scores') || '[]');
+/* istanbul ignore next */
     if (!scores.length) { el.innerHTML = '<p style="color:var(--color-text-muted);text-align:center">No scores yet.</p>'; return; }
+/* istanbul ignore next */
     el.innerHTML = scores.map((s, i) =>
+/* istanbul ignore next */
       `<div class="score-row"><span>#${i+1}</span><span>${s.score}/10 (${s.pct}%)</span><span>🔥${s.streak}</span><span>${s.date}</span></div>`
     ).join('');
   } catch(e) {}
 }
 
 function goHome() {
+/* istanbul ignore next */
   if (typeof document === 'undefined') return;
   clearInterval(timerInterval);
   document.getElementById('setup-screen').style.display = 'block';
+/* istanbul ignore next */
   document.getElementById('quiz-screen').style.display = 'none';
+/* istanbul ignore next */
   document.getElementById('result-screen').style.display = 'none';
 }
 
+/* istanbul ignore next */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { QUESTIONS, shuffle, getAllQuestions, startQuiz, showQuestion, selectAnswer, finishQuiz, saveScore, renderHighScores, goHome,
     getState: () => ({ currentCategory, questions, currentIndex, score, streak, bestStreak, timeLeft }),

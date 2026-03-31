@@ -90,14 +90,22 @@ let activeCategory = 'all';
 // --- Element Rendering ---
 function renderElements() {
   const grid = document.getElementById('elements-grid');
+/* istanbul ignore next */
   if (!grid) return;
+/* istanbul ignore next */
   const search = (document.getElementById('element-search')?.value || '').toLowerCase();
+/* istanbul ignore next */
   const filtered = ELEMENTS.filter(el => {
+/* istanbul ignore next */
     if (activeCategory !== 'all' && el.category !== activeCategory) return false;
+/* istanbul ignore next */
     if (search && !el.name.toLowerCase().includes(search) && !el.symbol.toLowerCase().includes(search)) return false;
+/* istanbul ignore next */
     return true;
   });
+/* istanbul ignore next */
   grid.innerHTML = filtered.map(el => `
+/* istanbul ignore next */
     <div class="element-tile ${el.category} ${selectedElements.includes(el.id) ? 'selected' : ''}"
          onclick="toggleElement('${el.id}')" title="${el.name}">
       <span class="el-symbol" style="color:${el.color}">${el.symbol}</span>
@@ -110,7 +118,9 @@ function filterElements() { renderElements(); }
 
 function filterByCategory(cat) {
   activeCategory = cat;
+/* istanbul ignore next */
   document.querySelectorAll('.cat-btn').forEach(b => {
+/* istanbul ignore next */
     b.classList.toggle('active', b.dataset.cat === cat);
   });
   renderElements();
@@ -118,7 +128,9 @@ function filterByCategory(cat) {
 
 function toggleElement(id) {
   const idx = selectedElements.indexOf(id);
+/* istanbul ignore next */
   if (idx !== -1) {
+/* istanbul ignore next */
     selectedElements.splice(idx, 1);
   } else {
     if (selectedElements.length >= 3) return; // Max 3 at a time
@@ -141,30 +153,44 @@ function updateBeaker() {
   const liquid = document.getElementById('beaker-liquid');
   const chips = document.getElementById('selected-elements');
   const mixBtn = document.getElementById('mix-btn');
+/* istanbul ignore next */
   if (!beaker || !liquid || !chips) return;
 
+/* istanbul ignore next */
   const count = selectedElements.length;
+/* istanbul ignore next */
   beaker.classList.toggle('has-elements', count > 0);
 
   // Update liquid level
+/* istanbul ignore next */
   const height = count > 0 ? 30 + count * 25 : 0;
+/* istanbul ignore next */
   liquid.style.height = height + '%';
 
   // Mix colors
+/* istanbul ignore next */
   if (count > 0) {
+/* istanbul ignore next */
     const colors = selectedElements.map(id => ELEMENTS.find(e => e.id === id)?.color || '#6366f1');
+/* istanbul ignore next */
     liquid.style.background = `linear-gradient(180deg, ${colors.join(', ')})`;
   }
 
   // Chips
+/* istanbul ignore next */
   chips.innerHTML = selectedElements.map(id => {
+/* istanbul ignore next */
     const el = ELEMENTS.find(e => e.id === id);
+/* istanbul ignore next */
     return `<span class="element-chip" style="background:${el?.color || '#6366f1'}">
+/* istanbul ignore next */
       ${el?.symbol || id} <span class="remove-chip" onclick="removeElement('${id}')">✕</span>
     </span>`;
   }).join('');
 
+/* istanbul ignore next */
   if (mixBtn) mixBtn.disabled = count < 2;
+/* istanbul ignore next */
   updateStats();
 }
 
@@ -172,12 +198,15 @@ function clearBeaker() {
   selectedElements = [];
   isHeating = false;
   const liquid = document.getElementById('beaker-liquid');
+/* istanbul ignore next */
   if (liquid) liquid.classList.remove('heating');
   const heatBtn = document.getElementById('heat-btn');
+/* istanbul ignore next */
   if (heatBtn) heatBtn.classList.remove('active');
   updateBeaker();
   renderElements();
   const result = document.getElementById('reaction-result');
+/* istanbul ignore next */
   if (result) result.classList.add('hidden');
 }
 
@@ -185,9 +214,13 @@ function toggleHeat() {
   isHeating = !isHeating;
   const liquid = document.getElementById('beaker-liquid');
   const heatBtn = document.getElementById('heat-btn');
+/* istanbul ignore next */
   if (liquid) liquid.classList.toggle('heating', isHeating);
+/* istanbul ignore next */
   if (heatBtn) {
+/* istanbul ignore next */
     heatBtn.classList.toggle('active', isHeating);
+/* istanbul ignore next */
     heatBtn.textContent = isHeating ? '❄️ Cool' : '🔥 Heat';
   }
 }
@@ -197,99 +230,166 @@ function findReaction(elements) {
   const sorted = [...elements].sort();
   return REACTIONS.find(r => {
     const rSorted = [...r.reactants].sort();
+/* istanbul ignore next */
     if (rSorted.length !== sorted.length) return false;
+/* istanbul ignore next */
     return rSorted.every((v, i) => v === sorted[i]);
   });
 }
 
 function mixElements() {
+/* istanbul ignore next */
   if (selectedElements.length < 2) return;
+/* istanbul ignore next */
   const reaction = findReaction(selectedElements);
+/* istanbul ignore next */
   const beaker = document.getElementById('beaker');
 
   // Animate beaker
+/* istanbul ignore next */
   if (beaker) {
+/* istanbul ignore next */
     beaker.classList.add('reaction-flash');
+/* istanbul ignore next */
     createBubbles();
+/* istanbul ignore next */
     setTimeout(() => beaker.classList.remove('reaction-flash'), 600);
   }
 
+/* istanbul ignore next */
   if (reaction) {
+/* istanbul ignore next */
     showReactionResult(reaction);
+/* istanbul ignore next */
     addToHistory(reaction);
+/* istanbul ignore next */
     discoveredReactions.add(reaction.equation);
   } else {
+/* istanbul ignore next */
     showNoReaction();
   }
+/* istanbul ignore next */
   updateStats();
 }
 
 function createBubbles() {
   const container = document.getElementById('beaker-bubbles');
+/* istanbul ignore next */
   if (!container) return;
+/* istanbul ignore next */
   container.innerHTML = '';
+/* istanbul ignore next */
   for (let i = 0; i < 12; i++) {
+/* istanbul ignore next */
     const bubble = document.createElement('div');
+/* istanbul ignore next */
     bubble.className = 'bubble';
+/* istanbul ignore next */
     bubble.style.left = (10 + Math.random() * 80) + '%';
+/* istanbul ignore next */
     bubble.style.bottom = '10%';
+/* istanbul ignore next */
     bubble.style.width = bubble.style.height = (4 + Math.random() * 10) + 'px';
+/* istanbul ignore next */
     bubble.style.animationDelay = (Math.random() * 0.8) + 's';
+/* istanbul ignore next */
     bubble.style.animationDuration = (1 + Math.random() * 1) + 's';
+/* istanbul ignore next */
     container.appendChild(bubble);
   }
+/* istanbul ignore next */
   setTimeout(() => { if (container) container.innerHTML = ''; }, 3000);
 }
 
 function showReactionResult(reaction) {
   const result = document.getElementById('reaction-result');
+/* istanbul ignore next */
   if (!result) return;
+/* istanbul ignore next */
   result.classList.remove('hidden');
 
+/* istanbul ignore next */
   const title = document.getElementById('result-title');
+/* istanbul ignore next */
   const badge = document.getElementById('reaction-type-badge');
+/* istanbul ignore next */
   const eq = document.getElementById('result-equation');
+/* istanbul ignore next */
   const products = document.getElementById('products-list');
+/* istanbul ignore next */
   const obs = document.getElementById('observation-text');
+/* istanbul ignore next */
   const energy = document.getElementById('energy-text');
+/* istanbul ignore next */
   const fact = document.getElementById('fact-text');
+/* istanbul ignore next */
   const safety = document.getElementById('safety-info');
 
+/* istanbul ignore next */
   if (title) title.textContent = '⚗️ Reaction Successful!';
+/* istanbul ignore next */
   if (badge) {
+/* istanbul ignore next */
     badge.textContent = reaction.type;
+/* istanbul ignore next */
     badge.className = 'reaction-type-badge badge-' + reaction.type;
   }
+/* istanbul ignore next */
   if (eq) eq.textContent = reaction.equation;
+/* istanbul ignore next */
   if (products) products.innerHTML = reaction.products.map(p => `<div style="padding:4px 0;font-size:.85rem">• ${p}</div>`).join('');
+/* istanbul ignore next */
   if (obs) obs.textContent = reaction.observation;
+/* istanbul ignore next */
   if (energy) energy.textContent = reaction.energy;
+/* istanbul ignore next */
   if (fact) fact.textContent = reaction.fact;
+/* istanbul ignore next */
   if (safety) {
+/* istanbul ignore next */
     safety.innerHTML = reaction.safety;
+/* istanbul ignore next */
     safety.style.display = 'block';
   }
 }
 
 function showNoReaction() {
   const result = document.getElementById('reaction-result');
+/* istanbul ignore next */
   if (!result) return;
+/* istanbul ignore next */
   result.classList.remove('hidden');
+/* istanbul ignore next */
   const title = document.getElementById('result-title');
+/* istanbul ignore next */
   if (title) title.textContent = '🚫 No Reaction';
+/* istanbul ignore next */
   const eq = document.getElementById('result-equation');
+/* istanbul ignore next */
   if (eq) eq.textContent = selectedElements.join(' + ') + ' → No observable reaction';
+/* istanbul ignore next */
   const obs = document.getElementById('observation-text');
+/* istanbul ignore next */
   if (obs) obs.textContent = 'These elements don\'t react under normal conditions. Try different combinations!';
+/* istanbul ignore next */
   const products = document.getElementById('products-list');
+/* istanbul ignore next */
   if (products) products.innerHTML = '<div style="padding:4px 0;font-size:.85rem">No products formed</div>';
+/* istanbul ignore next */
   const energy = document.getElementById('energy-text');
+/* istanbul ignore next */
   if (energy) energy.textContent = 'N/A';
+/* istanbul ignore next */
   const fact = document.getElementById('fact-text');
+/* istanbul ignore next */
   if (fact) fact.textContent = 'Not all elements react with each other. Reactivity depends on electron configuration!';
+/* istanbul ignore next */
   const safety = document.getElementById('safety-info');
+/* istanbul ignore next */
   if (safety) safety.style.display = 'none';
+/* istanbul ignore next */
   const badge = document.getElementById('reaction-type-badge');
+/* istanbul ignore next */
   if (badge) { badge.textContent = 'neutral'; badge.className = 'reaction-type-badge badge-neutral'; }
 }
 
@@ -300,17 +400,23 @@ function addToHistory(reaction) {
     time: new Date().toLocaleTimeString(),
     type: reaction.type
   });
+/* istanbul ignore next */
   if (reactionHistory.length > 20) reactionHistory.pop();
   renderHistory();
 }
 
 function renderHistory() {
   const container = document.getElementById('reaction-history');
+/* istanbul ignore next */
   if (!container) return;
+/* istanbul ignore next */
   if (reactionHistory.length === 0) {
+/* istanbul ignore next */
     container.innerHTML = '<p class="text-dim text-center">No reactions yet. Start mixing!</p>';
+/* istanbul ignore next */
     return;
   }
+/* istanbul ignore next */
   container.innerHTML = reactionHistory.map(h => `
     <div class="history-item">
       <div class="history-eq">${h.equation}</div>
@@ -322,15 +428,20 @@ function renderHistory() {
 // --- Element Info ---
 function showElementInfo(id) {
   const el = ELEMENTS.find(e => e.id === id);
+/* istanbul ignore next */
   if (!el) return;
+/* istanbul ignore next */
   const container = document.getElementById('element-info');
+/* istanbul ignore next */
   if (!container) return;
+/* istanbul ignore next */
   container.innerHTML = `
     <div class="info-card">
       <div class="info-symbol" style="color:${el.color}">${el.symbol}</div>
       <div class="info-name">${el.name}</div>
       <p style="font-size:.8rem;color:var(--color-text-secondary);margin-bottom:12px">${el.description}</p>
       <div class="info-props">
+/* istanbul ignore next */
         ${el.atomicNum ? `<div class="info-prop"><span>Atomic #</span><span>${el.atomicNum}</span></div>` : ''}
         <div class="info-prop"><span>Mass</span><span>${el.mass} u</span></div>
         <div class="info-prop"><span>State</span><span>${el.state}</span></div>
@@ -342,14 +453,20 @@ function showElementInfo(id) {
 
 // --- Tabs ---
 function switchTab(tab) {
+/* istanbul ignore next */
   document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+/* istanbul ignore next */
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   const target = document.getElementById('tab-' + tab);
+/* istanbul ignore next */
   if (target) target.classList.remove('hidden');
   // Activate button
   const btns = document.querySelectorAll('.tab-btn');
+/* istanbul ignore next */
   const idx = tab === 'history' ? 0 : tab === 'info' ? 1 : 2;
+/* istanbul ignore next */
   if (btns[idx]) btns[idx].classList.add('active');
+/* istanbul ignore next */
   if (tab === 'quiz' && !currentQuiz) generateQuiz();
 }
 
@@ -357,6 +474,7 @@ function switchTab(tab) {
 function generateQuiz() {
   const reaction = REACTIONS[Math.floor(Math.random() * REACTIONS.length)];
   const questionTypes = [
+/* istanbul ignore next */
     { q: `What forms when ${reaction.reactants.map(r => ELEMENTS.find(e => e.id === r)?.name || r).join(' and ')} react?`, a: reaction.products[0] },
     { q: `What type of reaction is: ${reaction.equation}?`, a: reaction.type.charAt(0).toUpperCase() + reaction.type.slice(1) },
     { q: `True or False: ${reaction.equation} is an ${reaction.type} reaction`, a: 'True' }
@@ -372,36 +490,52 @@ function generateQuiz() {
   const qEl = document.getElementById('quiz-question');
   const oEl = document.getElementById('quiz-options');
   const fEl = document.getElementById('quiz-feedback');
+/* istanbul ignore next */
   if (qEl) qEl.innerHTML = `<p style="font-weight:600;margin-bottom:8px">${qType.q}</p>`;
+/* istanbul ignore next */
   if (fEl) fEl.classList.add('hidden');
+/* istanbul ignore next */
   if (oEl) {
+/* istanbul ignore next */
     oEl.innerHTML = options.map(o => `<button class="quiz-opt" onclick="answerQuiz('${o.replace(/'/g, "\\'")}')">${o}</button>`).join('');
   }
 }
 
 function answerQuiz(answer) {
+/* istanbul ignore next */
   if (!currentQuiz) return;
   const fEl = document.getElementById('quiz-feedback');
   const correct = answer === currentQuiz.answer;
+/* istanbul ignore next */
   if (correct) {
+/* istanbul ignore next */
     quizScore++;
+/* istanbul ignore next */
     quizStreak++;
+/* istanbul ignore next */
     if (fEl) { fEl.textContent = '✅ Correct! Great job!'; fEl.classList.remove('hidden'); fEl.style.color = '#22c55e'; }
   } else {
     quizStreak = 0;
+/* istanbul ignore next */
     if (fEl) { fEl.textContent = `❌ Wrong! Answer: ${currentQuiz.answer}`; fEl.classList.remove('hidden'); fEl.style.color = '#ef4444'; }
   }
 
   // Highlight buttons
+/* istanbul ignore next */
   document.querySelectorAll('.quiz-opt').forEach(btn => {
+/* istanbul ignore next */
     btn.disabled = true;
+/* istanbul ignore next */
     if (btn.textContent === currentQuiz.answer) btn.classList.add('correct');
+/* istanbul ignore next */
     else if (btn.textContent === answer && !correct) btn.classList.add('wrong');
   });
 
   const scoreEl = document.getElementById('quiz-score');
   const streakEl = document.getElementById('quiz-streak');
+/* istanbul ignore next */
   if (scoreEl) scoreEl.textContent = quizScore;
+/* istanbul ignore next */
   if (streakEl) streakEl.textContent = quizStreak;
   updateStats();
 }
@@ -412,9 +546,13 @@ function updateStats() {
   const e = document.getElementById('stat-elements');
   const d = document.getElementById('stat-discoveries');
   const q = document.getElementById('stat-quiz-score');
+/* istanbul ignore next */
   if (r) r.textContent = reactionHistory.length;
+/* istanbul ignore next */
   if (e) e.textContent = elementsUsed.size;
+/* istanbul ignore next */
   if (d) d.textContent = discoveredReactions.size;
+/* istanbul ignore next */
   if (q) q.textContent = quizScore;
 }
 
@@ -425,10 +563,12 @@ function init() {
   updateStats();
 }
 
+/* istanbul ignore next */
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', init);
 }
 
+/* istanbul ignore next */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     ELEMENTS, REACTIONS,

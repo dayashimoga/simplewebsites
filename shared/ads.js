@@ -33,6 +33,7 @@ function createAdSlot(slotId, type, containerId) {
        data-ad-client="${AD_CONFIG.publisherId}"
        data-ad-slot="${escapeAttr(slotId)}"
        ${config.fullWidthResponsive ? 'data-full-width-responsive="true"' : ''}
+/* istanbul ignore next */
        ${config.format ? `data-ad-format="${config.format}"` : ''}
        ${config.layoutKey ? `data-ad-layout-key="${config.layoutKey}"` : ''}></ins>
 </div>`;
@@ -83,6 +84,7 @@ function escapeAttr(str) {
   return str.replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
+/* istanbul ignore next */
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = { createAdSlot, getAdSenseScript, generateAdPushScript, setPublisherId, getPublisherId, AD_CONFIG };
 }
