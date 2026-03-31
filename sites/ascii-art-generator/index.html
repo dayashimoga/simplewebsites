@@ -2,17 +2,139 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ASCII Art Generator — Free Online Tool</title>
-  <meta name="description" content="Convert text to ASCII art">
+  <title>ASCII Art Generator — Free Text & Image Converter</title>
+  <meta name="description" content="Instantly convert text or images into creative ASCII art. Choose fonts, colors, and characters for unique designs.">
   <link rel="stylesheet" href="shared-styles.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container container-sm">
-    <section class="hero"><h1>🔠 <span class="text-gradient">ASCII Art Generator</span></h1><p>Convert text to ASCII art</p></section>
-    <div id="app"></div>
+  <div class="container container-lg">
+    <section class="hero text-center mb-6">
+      <h1>🔠 <span class="text-gradient">ASCII Generator</span></h1>
+      <p>Convert text and images to beautiful ASCII art in real-time.</p>
+    </section>
+
+    <div class="tabs-container mb-6 flex justify-center gap-4">
+      <button class="tab-btn active" data-tab="text" onclick="switchTab('text')">📝 Text to ASCII</button>
+      <button class="tab-btn" data-tab="image" onclick="switchTab('image')">🖼️ Image to ASCII</button>
+      <button class="tab-btn" data-tab="gallery" onclick="switchTab('gallery')">🎨 ASCII Gallery</button>
+    </div>
+
+    <!-- Layout Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      
+      <!-- Controls Panel -->
+      <div class="card lg:col-span-1 p-4 shadow-xl border border-gray-800 flex flex-col gap-4">
+        
+        <!-- Text Controls -->
+        <div id="text-controls" class="control-section">
+          <label class="font-bold text-sm text-gray-400 uppercase tracking-wider block mb-2">Input</label>
+          <textarea id="text-input" class="input w-full p-3 font-mono text-sm resize-y" rows="3" placeholder="Type something..." oninput="handleInput()"></textarea>
+          
+          <label class="font-bold text-sm text-gray-400 uppercase tracking-wider block mt-4 mb-2">Font Style</label>
+          <select id="font-select" class="input w-full" onchange="generateAscii()">
+            <option value="standard">Standard (Block)</option>
+            <option value="slant">Slanted</option>
+            <option value="shadow">Shadow</option>
+            <option value="big">Big 3D</option>
+            <option value="binary">Binary</option>
+            <option value="bubble">Bubble</option>
+          </select>
+        </div>
+
+        <!-- Image Controls -->
+        <div id="image-controls" class="control-section hidden">
+          <label class="font-bold text-sm text-gray-400 uppercase tracking-wider block mb-2">Upload Image</label>
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('image-upload').click()">
+            <span class="text-2xl mb-2 block">📷</span>
+            <span>Click to upload image</span>
+            <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+          </div>
+          
+          <label class="font-bold text-sm text-gray-400 uppercase tracking-wider block mt-4 mb-2">Resolution</label>
+          <div class="flex items-center justify-between">
+            <span class="text-xs" id="res-val">100px</span>
+            <input type="range" id="res-slider" min="50" max="300" step="10" value="100" class="w-2/3 accent-accent" oninput="updateImageParams()">
+          </div>
+
+          <label class="font-bold text-sm text-gray-400 uppercase tracking-wider block mt-4 mb-2">Contrast</label>
+          <div class="flex items-center justify-between">
+            <span class="text-xs" id="contrast-val">1.0</span>
+            <input type="range" id="contrast-slider" min="0.5" max="3" step="0.1" value="1" class="w-2/3 accent-accent" oninput="updateImageParams()">
+          </div>
+        </div>
+
+        <!-- Common Controls -->
+        <div class="control-section border-t border-gray-800 pt-4 mt-2">
+          <label class="font-bold text-sm text-gray-400 uppercase tracking-wider block mb-2">Display</label>
+          
+          <div class="mb-3">
+            <span class="text-xs block mb-1">Color Theme:</span>
+            <div class="theme-grid">
+              <button class="theme-btn theme-matrix" onclick="setTheme('matrix')" title="Matrix"></button>
+              <button class="theme-btn theme-cyberpunk" onclick="setTheme('cyberpunk')" title="Cyberpunk"></button>
+              <button class="theme-btn theme-retro" onclick="setTheme('retro')" title="Retro Amber"></button>
+              <button class="theme-btn theme-light" onclick="setTheme('light')" title="Light Print"></button>
+              <button class="theme-btn theme-midnight active" onclick="setTheme('midnight')" title="Midnight"></button>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <span class="text-xs block mb-1">Fill Character (Text mode only):</span>
+            <input type="text" id="fill-char" class="input w-full h-8 text-center font-mono" maxlength="2" placeholder="Auto" oninput="generateAscii()">
+          </div>
+
+          <div>
+            <span class="text-xs flex justify-between mb-1"><span>Font Size:</span><span id="font-size-val">14px</span></span>
+            <input type="range" id="font-size" min="6" max="24" value="14" class="w-full accent-accent" oninput="updateFontSize(this.value)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Output Panel -->
+      <div class="card lg:col-span-3 p-0 shadow-xl border border-gray-800 flex flex-col min-h-[500px] relative overflow-hidden">
+        
+        <div class="output-header flex justify-between items-center p-3 bg-gray-900 border-b border-gray-800">
+          <div class="flex gap-2">
+            <div class="mac-dot bg-red-500"></div>
+            <div class="mac-dot bg-yellow-500"></div>
+            <div class="mac-dot bg-green-500"></div>
+          </div>
+          <span class="text-xs text-gray-400 font-mono">ascii-terminal // output.txt</span>
+          <div class="flex gap-2">
+            <button class="btn btn-secondary btn-sm" onclick="copyArt()" id="copy-btn">📋 Copy</button>
+            <button class="btn btn-primary btn-sm" onclick="downloadArt()">💾 Download</button>
+          </div>
+        </div>
+        
+        <div class="output-container p-4 flex-1 flex items-center justify-center bg-black overflow-auto pattern-scanlines theme-midnight" id="output-wrapper">
+          <pre id="ascii-output" class="font-mono m-0"></pre>
+        </div>
+        
+        <!-- Loading overlay -->
+        <div id="loading" class="absolute inset-0 bg-black/80 flex items-center justify-center hidden">
+          <div class="text-center font-mono text-green-500">
+            <div class="loader-spinner mb-2">/</div>
+            <div>Processing...</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Gallery Container (Hidden by default) -->
+    <div id="gallery-container" class="card mt-6 hidden">
+      <h3 class="mb-4">🎨 ASCII Art Gallery</h3>
+      <div class="gallery-grid" id="gallery-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
   </div>
-  <footer class="footer"><p>&copy; 2026 ASCII Art Generator.</p></footer>
+  
+  <footer class="footer mt-12"><p>&copy; 2026 ASCII Art Generator. Fast & Client-Side.</p></footer>
   <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
 </body>
 </html>

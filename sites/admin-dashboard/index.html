@@ -8,43 +8,48 @@
     <link rel="stylesheet" href="shared-styles.css">
     <style>
         .grid-sites { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--space-4); margin-top: var(--space-6); }
-        .site-card { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4);   transition: all 0.3s ease; }
-        .site-card:hover { border-color: var(--color-primary);  }
+        .site-card { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4); transition: all 0.3s ease; }
+        .site-card:hover { border-color: var(--color-primary); }
         .site-card.disabled { opacity: 0.6; filter: grayscale(100%); }
         .site-info { display: flex; align-items: center; gap: var(--space-3); }
         .site-emoji { font-size: 1.5rem; }
         .site-title { font-weight: bold; }
-        .toggle-btn { padding: 4px 12px;  font-weight: 500; cursor: pointer; transition: all 0.2s ease; border: none; }
+        .toggle-btn { padding: 4px 12px; font-weight: 500; cursor: pointer; transition: all 0.2s ease; border: none; }
         .toggle-btn.enabled { background: #22c55e; color: white; }
         .toggle-btn.disabled { background: #ef4444; color: white; }
         
         #auth-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 50; }
-        .auth-card { background: var(--color-surface); padding: var(--space-6);   width: 100%; max-width: 400px; text-align: center; }
+        .auth-card { background: var(--color-surface); padding: var(--space-6); width: 100%; max-width: 450px; text-align: center; }
+        .auth-help { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border-left: 3px solid var(--color-accent); text-align: left; margin-bottom: 20px; font-size: 0.85rem; }
         
         .stats-header { display: flex; justify-content: space-between; align-items: center; padding: var(--space-4); }
         .stats-row { display: flex; gap: var(--space-6); }
-        .stat-box { display: flex; flex-direction: column; align-items: center; }
+        .stat-box { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .stat-num { font-size: 1.6rem; font-weight: 900; }
-        .stat-lbl { font-size: 0.7rem; color: var(--color-text-secondary, #888); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-lbl { font-size: 0.7rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 1px; }
         .text-green { color: #22c55e; }
         .text-red { color: #ef4444; }
         
-        .toolbar { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3); }
-        .search-box { flex: 1; padding: 8px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--color-border, rgba(255,255,255,0.1)); border-radius: 8px; color: inherit; font-size: 0.9rem; }
-        .search-box:focus { outline: none; border-color: var(--color-primary, #3b82f6); }
-        .toolbar-actions { display: flex; gap: 6px; }
+        .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-3); }
+        .search-box { flex: 1; min-width: 200px; padding: 8px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--color-border); border-radius: 8px; color: inherit; font-size: 0.9rem; }
+        .search-box:focus { outline: none; border-color: var(--color-primary); }
+        .toolbar-actions { display: flex; gap: 8px; align-items: center; }
     </style>
 </head>
 <body>
     <div id="auth-modal">
         <div class="auth-card glass">
             <h2 class="mb-4">🛡️ Admin Login</h2>
+            <div class="auth-help">
+                <strong class="text-accent mb-1 block">Help: How to set your Passkey</strong>
+                Set the <code>ADMIN_PASSKEY</code> environment variable in your Cloudflare Pages Dashboard &gt; Settings &gt; Environment variables. Example: <code>ADMIN_PASSKEY=mysecretkey123</code>.
+            </div>
             <p class="mb-4 text-sm opacity-80">Enter your master passkey to manage websites.</p>
             <form id="auth-form" class="flex flex-col gap-4">
-                <input type="password" id="passkey-input" class="input-text w-full" placeholder="Enter Passkey..." required>
-                <button type="submit" class="btn btn-primary w-full">Authenticate</button>
+                <input type="password" id="passkey-input" class="input w-full" placeholder="Enter Passkey..." required>
+                <button type="submit" class="btn btn-primary w-full py-3">Authenticate</button>
             </form>
-            <div id="auth-error" class="hidden text-red-500 mt-2 text-sm"></div>
+            <div id="auth-error" class="hidden text-red mt-3 text-sm font-bold">Invalid passkey or network error.</div>
         </div>
     </div>
 
@@ -54,20 +59,27 @@
             <p>Toggle any tool online or offline instantly via Cloudflare KV.</p>
         </section>
 
-        <div class="card glass stats-header mb-4">
+        <div class="card glass stats-header mb-4 flex-wrap gap-4">
             <div class="stats-row">
                 <div class="stat-box"><span class="stat-num" id="site-count">0</span><span class="stat-lbl">Total</span></div>
                 <div class="stat-box"><span class="stat-num text-green" id="online-count">0</span><span class="stat-lbl">Online</span></div>
                 <div class="stat-box"><span class="stat-num text-red" id="offline-count">0</span><span class="stat-lbl">Offline</span></div>
             </div>
-            <button class="btn btn-secondary text-sm" onclick="logout()">🔒 Logout</button>
+            
+            <div class="flex items-center gap-4">
+                <label class="flex items-center gap-2 text-sm cursor-pointer border border-border px-3 py-2 rounded-lg hover:border-primary transition-colors">
+                    <input type="checkbox" id="auto-refresh" class="accent-primary" onchange="toggleAutoRefresh(this.checked)"> Auto-Refresh (15s)
+                </label>
+                <button class="btn btn-secondary text-sm" onclick="showDashboard(true)">🔄 Refresh</button>
+                <button class="btn btn-secondary text-sm border-error text-error hover:bg-error hover:text-white" onclick="logout()">🔒 Logout</button>
+            </div>
         </div>
 
         <div class="card glass toolbar mb-4">
-            <input type="text" id="search-input" class="input-text search-box" placeholder="🔍 Search sites..." oninput="filterSites()">
+            <input type="text" id="search-input" class="search-box" placeholder="🔍 Search sites..." oninput="filterSites()">
             <div class="toolbar-actions">
-                <button class="btn btn-sm btn-primary" onclick="bulkToggle(true)">✅ Enable All</button>
-                <button class="btn btn-sm btn-secondary" onclick="bulkToggle(false)">⛔ Disable All</button>
+                <button class="btn btn-sm btn-accent text-white" onclick="bulkToggle(true)">✅ Enable All</button>
+                <button class="btn btn-sm" style="background:#ef4444;color:white;border:none" onclick="bulkToggle(false)">⛔ Disable All</button>
             </div>
         </div>
 
@@ -77,6 +89,10 @@
             <!-- Dynamic Cards -->
         </div>
     </div>
+
+    <footer class="footer mt-12 text-center text-sm text-dim">
+        <p>Admin Dashboard — Changes replicate globally within seconds.</p>
+    </footer>
 
     <script src="app.js"></script>
     <script src="shared-theme-toggle.js"></script>

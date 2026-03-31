@@ -22,6 +22,12 @@
             <!-- Video Preview & Trim Controls -->
             <div class="mb-6 bg-black rounded-lg overflow-hidden flex flex-col">
                 <video id="video-preview" controls class="w-full max-h-[300px] bg-black" style="max-height:300px;"></video>
+                <div class="bg-gray-800 p-2 flex justify-center gap-2 border-b border-gray-700">
+                    <button class="btn btn-secondary btn-speed text-xs p-1 px-3" id="speed-0-5" onclick="setPlaybackSpeed(0.5)">0.5x</button>
+                    <button class="btn btn-secondary btn-speed btn-primary active text-xs p-1 px-3" id="speed-1" onclick="setPlaybackSpeed(1)">1x</button>
+                    <button class="btn btn-secondary btn-speed text-xs p-1 px-3" id="speed-1-5" onclick="setPlaybackSpeed(1.5)">1.5x</button>
+                    <button class="btn btn-secondary btn-speed text-xs p-1 px-3" id="speed-2" onclick="setPlaybackSpeed(2)">2x</button>
+                </div>
                 <div class="card glass">
                     <label class="label text-sm mb-2">Trim Video (Start - End in seconds)</label>
                     <div class="flex gap-4 items-center">
@@ -35,7 +41,7 @@
             </div>
 
             <!-- Advanced Edit Settings -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
                 <div>
                     <h4 class="mb-2 text-md">Resolution</h4>
                     <select id="video-resolution" class="input text-sm w-full p-2 cursor-pointer">
@@ -61,6 +67,25 @@
                     <select id="video-audio" class="input text-sm w-full p-2 cursor-pointer">
                         <option value="keep" selected>Keep Audio</option>
                         <option value="mute">Mute (Remove Audio)</option>
+                    </select>
+                </div>
+                <div>
+                    <h4 class="mb-2 text-md">Target Format</h4>
+                    <select id="video-format" class="input text-sm w-full p-2 cursor-pointer">
+                        <option value="mp4" selected>MP4 Video</option>
+                        <option value="gif">Animated GIF</option>
+                        <option value="mp3">Audio Only (MP3)</option>
+                    </select>
+                </div>
+                <div>
+                    <h4 class="mb-2 text-md">Rotation & Flip</h4>
+                    <select id="video-rotation" class="input text-sm w-full p-2 cursor-pointer">
+                        <option value="none" selected>No Rotation</option>
+                        <option value="cw90">90° Clockwise</option>
+                        <option value="ccw90">90° Counter-Clockwise</option>
+                        <option value="180">180° Flip</option>
+                        <option value="hflip">Horizontal Flip</option>
+                        <option value="vflip">Vertical Flip</option>
                     </select>
                 </div>
                 <div>

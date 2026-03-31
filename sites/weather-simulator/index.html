@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Simulator — Interactive Climate Lab</title>
+  <meta name="description" content="Control temperature, humidity, and pressure to simulate weather phenomena. Learn how clouds, rain, snow, and storms form. Interactive science tool.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-4">
+      <h1>🌦️ <span class="text-gradient">Weather Simulator</span></h1>
+      <p>Control atmospheric conditions and watch weather phenomena form in real-time!</p>
+    </section>
+
+    <div class="sim-layout">
+      <!-- Controls Panel -->
+      <aside class="controls-panel card glass">
+        <h3 class="panel-title">🎛️ Atmospheric Controls</h3>
+
+        <div class="control-group">
+          <label class="control-label">🌡️ Temperature</label>
+          <input type="range" id="temp-slider" class="slider" min="-30" max="50" value="20" oninput="updateWeather()">
+          <div class="control-value"><span id="temp-value">20</span>°C / <span id="temp-f">68</span>°F</div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">💧 Humidity</label>
+          <input type="range" id="humidity-slider" class="slider" min="0" max="100" value="50" oninput="updateWeather()">
+          <div class="control-value"><span id="humidity-value">50</span>%</div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">🔽 Pressure</label>
+          <input type="range" id="pressure-slider" class="slider" min="950" max="1050" value="1013" oninput="updateWeather()">
+          <div class="control-value"><span id="pressure-value">1013</span> hPa</div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">💨 Wind Speed</label>
+          <input type="range" id="wind-slider" class="slider" min="0" max="200" value="10" oninput="updateWeather()">
+          <div class="control-value"><span id="wind-value">10</span> km/h</div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">🏔️ Altitude</label>
+          <input type="range" id="altitude-slider" class="slider" min="0" max="10000" value="0" step="100" oninput="updateWeather()">
+          <div class="control-value"><span id="altitude-value">0</span> m</div>
+        </div>
+
+        <hr class="divider">
+
+        <h4 class="panel-subtitle">⚡ Presets</h4>
+        <div class="presets-grid">
+          <button class="preset-btn" onclick="applyPreset('sunny')">☀️ Sunny</button>
+          <button class="preset-btn" onclick="applyPreset('cloudy')">☁️ Cloudy</button>
+          <button class="preset-btn" onclick="applyPreset('rain')">🌧️ Rain</button>
+          <button class="preset-btn" onclick="applyPreset('snow')">❄️ Snow</button>
+          <button class="preset-btn" onclick="applyPreset('storm')">⛈️ Storm</button>
+          <button class="preset-btn" onclick="applyPreset('fog')">🌫️ Fog</button>
+          <button class="preset-btn" onclick="applyPreset('tornado')">🌪️ Tornado</button>
+          <button class="preset-btn" onclick="applyPreset('heatwave')">🔥 Heat Wave</button>
+        </div>
+      </aside>
+
+      <!-- Sky Canvas -->
+      <main class="sky-area">
+        <div class="sky-canvas card glass" id="sky-canvas">
+          <div class="sky-gradient" id="sky-gradient"></div>
+          <div class="sun" id="sun">☀️</div>
+          <div class="moon" id="moon">🌙</div>
+          <div class="clouds-layer" id="clouds-layer"></div>
+          <div class="precipitation-layer" id="precipitation-layer"></div>
+          <div class="lightning-layer" id="lightning-layer"></div>
+          <div class="fog-layer" id="fog-layer"></div>
+          <div class="ground" id="ground">
+            <div class="ground-cover" id="ground-cover"></div>
+          </div>
+          <div class="weather-label" id="weather-label">
+            <span class="weather-icon" id="weather-icon">☀️</span>
+            <span class="weather-name" id="weather-name">Clear Sky</span>
+          </div>
+          <div class="wind-indicator" id="wind-indicator">💨</div>
+        </div>
+
+        <!-- Weather Info Cards -->
+        <div class="weather-info-grid mt-4">
+          <div class="info-card card glass">
+            <div class="info-icon">🌡️</div>
+            <div class="info-label">Feels Like</div>
+            <div class="info-val" id="feels-like">20°C</div>
+          </div>
+          <div class="info-card card glass">
+            <div class="info-icon">💧</div>
+            <div class="info-label">Dew Point</div>
+            <div class="info-val" id="dew-point">10°C</div>
+          </div>
+          <div class="info-card card glass">
+            <div class="info-icon">👁️</div>
+            <div class="info-label">Visibility</div>
+            <div class="info-val" id="visibility">10 km</div>
+          </div>
+          <div class="info-card card glass">
+            <div class="info-icon">🌈</div>
+            <div class="info-label">UV Index</div>
+            <div class="info-val" id="uv-index">5</div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Science Panel -->
+      <aside class="science-panel card glass">
+        <h3 class="panel-title">📖 Science Explained</h3>
+        <div id="science-explanation">
+          <div class="science-card">
+            <h4>☀️ Clear Sky Conditions</h4>
+            <p>With moderate temperature, low humidity, and standard pressure, the atmosphere remains clear. Water vapor doesn't condense, so no clouds form.</p>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <h4 class="panel-subtitle">🎓 Weather Facts</h4>
+        <div id="weather-facts">
+          <div class="fact-card">
+            <p>💡 The atmosphere weighs about 5.5 quadrillion tons!</p>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <h4 class="panel-subtitle">📊 Atmosphere Layers</h4>
+        <div class="atmosphere-layers" id="atmosphere-layers">
+          <div class="layer-bar" data-layer="Exosphere" style="--h:10%">
+            <span>Exosphere</span><small>>500km</small>
+          </div>
+          <div class="layer-bar" data-layer="Thermosphere" style="--h:15%">
+            <span>Thermosphere</span><small>80-500km</small>
+          </div>
+          <div class="layer-bar" data-layer="Mesosphere" style="--h:15%">
+            <span>Mesosphere</span><small>50-80km</small>
+          </div>
+          <div class="layer-bar" data-layer="Stratosphere" style="--h:25%">
+            <span>Stratosphere</span><small>12-50km</small>
+          </div>
+          <div class="layer-bar active" data-layer="Troposphere" style="--h:35%">
+            <span>Troposphere</span><small>0-12km</small>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="footer mt-8"><p>&copy; 2026 Weather Simulator. Learn atmospheric science!</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chemistry Reaction Lab — Virtual Experiments</title>
+  <meta name="description" content="Mix virtual chemicals, observe colorful reactions, and learn chemistry in an interactive lab. Free educational science tool for all ages.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-4">
+      <h1>🧪 <span class="text-gradient">Chemistry Reaction Lab</span></h1>
+      <p>Mix elements, observe reactions, and discover the science behind them!</p>
+    </section>
+
+    <!-- Element Selector Panel -->
+    <div class="lab-layout">
+      <aside class="elements-panel card glass" id="elements-panel">
+        <h3 class="panel-title">🔬 Elements</h3>
+        <div class="element-search-box">
+          <input type="text" id="element-search" class="input w-full" placeholder="🔍 Search elements..." oninput="filterElements()">
+        </div>
+        <div class="element-categories">
+          <button class="cat-btn active" data-cat="all" onclick="filterByCategory('all')">All</button>
+          <button class="cat-btn" data-cat="metals" onclick="filterByCategory('metals')">Metals</button>
+          <button class="cat-btn" data-cat="nonmetals" onclick="filterByCategory('nonmetals')">Non-Metals</button>
+          <button class="cat-btn" data-cat="acids" onclick="filterByCategory('acids')">Acids</button>
+          <button class="cat-btn" data-cat="bases" onclick="filterByCategory('bases')">Bases</button>
+          <button class="cat-btn" data-cat="compounds" onclick="filterByCategory('compounds')">Compounds</button>
+        </div>
+        <div class="elements-grid" id="elements-grid">
+          <!-- Populated by JS -->
+        </div>
+      </aside>
+
+      <!-- Main Lab Area -->
+      <main class="lab-bench">
+        <!-- Mixing Area -->
+        <div class="card glass mixing-area" id="mixing-area">
+          <h3 class="panel-title">⚗️ Mixing Beaker</h3>
+          <div class="beaker-container">
+            <div class="beaker" id="beaker">
+              <div class="beaker-liquid" id="beaker-liquid"></div>
+              <div class="beaker-bubbles" id="beaker-bubbles"></div>
+              <div class="beaker-label" id="beaker-label">Drop elements here</div>
+            </div>
+          </div>
+          <div class="selected-elements" id="selected-elements">
+            <!-- Shows added elements as chips -->
+          </div>
+          <div class="mix-controls">
+            <button class="btn btn-primary btn-lg" id="mix-btn" onclick="mixElements()" disabled>🧫 Mix & React!</button>
+            <button class="btn btn-secondary" onclick="clearBeaker()">🗑️ Clear</button>
+            <button class="btn btn-accent" id="heat-btn" onclick="toggleHeat()" title="Apply heat">🔥 Heat</button>
+          </div>
+        </div>
+
+        <!-- Reaction Result -->
+        <div class="card glass reaction-result hidden" id="reaction-result">
+          <div class="result-header">
+            <h3 id="result-title">Reaction Result</h3>
+            <span class="reaction-type-badge" id="reaction-type-badge"></span>
+          </div>
+          <div class="result-equation" id="result-equation"></div>
+          <div class="result-details">
+            <div class="detail-card" id="detail-products">
+              <h4>📦 Products</h4>
+              <div id="products-list"></div>
+            </div>
+            <div class="detail-card" id="detail-observation">
+              <h4>👁️ Observation</h4>
+              <p id="observation-text"></p>
+            </div>
+            <div class="detail-card" id="detail-energy">
+              <h4>⚡ Energy</h4>
+              <p id="energy-text"></p>
+            </div>
+            <div class="detail-card" id="detail-fact">
+              <h4>💡 Fun Fact</h4>
+              <p id="fact-text"></p>
+            </div>
+          </div>
+          <div class="safety-info" id="safety-info"></div>
+        </div>
+      </main>
+
+      <!-- Info / History Panel -->
+      <aside class="info-panel card glass">
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchTab('history')">📜 History</button>
+          <button class="tab-btn" onclick="switchTab('info')">📖 Info</button>
+          <button class="tab-btn" onclick="switchTab('quiz')">🎯 Quiz</button>
+        </div>
+
+        <div class="tab-content" id="tab-history">
+          <div id="reaction-history">
+            <p class="text-dim text-center">No reactions yet. Start mixing!</p>
+          </div>
+        </div>
+
+        <div class="tab-content hidden" id="tab-info">
+          <div id="element-info">
+            <p class="text-dim text-center">Click an element to see details</p>
+          </div>
+        </div>
+
+        <div class="tab-content hidden" id="tab-quiz">
+          <div id="quiz-area">
+            <h4 class="mb-3">Test Your Knowledge!</h4>
+            <div id="quiz-question"></div>
+            <div id="quiz-options" class="quiz-options"></div>
+            <div id="quiz-feedback" class="hidden"></div>
+            <div class="quiz-score mt-3">
+              <span>Score: <strong id="quiz-score">0</strong></span>
+              <span>Streak: <strong id="quiz-streak">0</strong>🔥</span>
+            </div>
+            <button class="btn btn-primary mt-3 w-full" onclick="generateQuiz()">Next Question</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="card glass stats-bar mt-4">
+      <div class="stat-item">
+        <span class="stat-num" id="stat-reactions">0</span>
+        <span class="stat-lbl">Reactions</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="stat-elements">0</span>
+        <span class="stat-lbl">Elements Used</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="stat-discoveries">0</span>
+        <span class="stat-lbl">Discoveries</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-num" id="stat-quiz-score">0</span>
+        <span class="stat-lbl">Quiz Score</span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer mt-8"><p>&copy; 2026 Chemistry Reaction Lab. Learn science interactively!</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

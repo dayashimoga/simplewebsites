@@ -1,0 +1,186 @@
+/* Weather Simulator Styles */
+.sim-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 280px;
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 1024px) {
+  .sim-layout { grid-template-columns: 1fr; }
+}
+
+.panel-title { font-size: 1rem; margin-bottom: var(--space-4); font-weight: 700; }
+.panel-subtitle { font-size: .85rem; margin-bottom: var(--space-2); font-weight: 600; }
+.divider { border: none; border-top: 1px solid var(--color-border); margin: var(--space-3) 0; }
+
+/* Controls */
+.controls-panel { max-height: 85vh; overflow-y: auto; }
+.control-group { margin-bottom: var(--space-4); }
+.control-label { display: block; font-size: .8rem; font-weight: 600; margin-bottom: 6px; }
+.slider {
+  width: 100%; appearance: none; height: 6px; border-radius: 3px;
+  background: var(--color-surface-alt); outline: none;
+}
+.slider::-webkit-slider-thumb {
+  appearance: none; width: 18px; height: 18px; border-radius: 50%;
+  background: var(--color-primary); cursor: pointer; border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+.control-value {
+  text-align: center; font-size: .9rem; font-weight: 700; margin-top: 4px;
+  color: var(--color-primary);
+}
+
+/* Presets */
+.presets-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.preset-btn {
+  padding: 8px 6px; font-size: .75rem; border-radius: var(--radius-md);
+  background: var(--color-surface-alt); border: 1px solid var(--color-border);
+  color: var(--color-text); cursor: pointer; transition: all .2s; font-weight: 500;
+}
+.preset-btn:hover {
+  border-color: var(--color-primary); background: rgba(99,102,241,.1);
+  transform: translateY(-1px);
+}
+
+/* Sky Canvas */
+.sky-canvas {
+  position: relative; height: 400px; overflow: hidden; border-radius: var(--radius-lg);
+  transition: all 1s ease;
+}
+.sky-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, #1e3a5f 0%, #4a90d9 40%, #87ceeb 100%);
+  transition: background 1.5s ease;
+}
+.sun {
+  position: absolute; top: 15%; left: 70%; font-size: 3rem;
+  filter: drop-shadow(0 0 20px rgba(255,200,50,.6));
+  transition: all 1s; animation: sunPulse 3s ease-in-out infinite;
+}
+@keyframes sunPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+.moon {
+  position: absolute; top: 20%; left: 75%; font-size: 2.5rem; opacity: 0;
+  transition: all 1s;
+}
+
+/* Clouds */
+.clouds-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.cloud {
+  position: absolute; font-size: 2rem; opacity: 0.8;
+  animation: cloudFloat linear infinite;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,.1));
+}
+@keyframes cloudFloat {
+  from { transform: translateX(-100px); }
+  to { transform: translateX(calc(100% + 100px)); }
+}
+
+/* Precipitation */
+.precipitation-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.raindrop {
+  position: absolute; width: 2px; background: linear-gradient(180deg, transparent, rgba(100,180,255,.8));
+  animation: rainFall linear infinite;
+}
+@keyframes rainFall {
+  from { transform: translateY(-20px); }
+  to { transform: translateY(420px); }
+}
+.snowflake {
+  position: absolute; color: #fff; font-size: .8rem;
+  animation: snowFall linear infinite;
+}
+@keyframes snowFall {
+  from { transform: translateY(-20px) rotate(0deg); }
+  to { transform: translateY(420px) rotate(360deg); }
+}
+
+/* Lightning */
+.lightning-layer { position: absolute; inset: 0; pointer-events: none; }
+.lightning-flash {
+  position: absolute; inset: 0; background: rgba(255,255,255,.8);
+  opacity: 0; animation: lightning .15s ease;
+}
+@keyframes lightning {
+  0% { opacity: 0; } 10% { opacity: .9; } 20% { opacity: .2; }
+  30% { opacity: .8; } 100% { opacity: 0; }
+}
+
+/* Fog */
+.fog-layer {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 60%;
+  background: linear-gradient(180deg, transparent, rgba(200,200,200,.6));
+  opacity: 0; transition: opacity 1s;
+}
+
+/* Ground */
+.ground {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+  background: linear-gradient(180deg, #2d5a27, #1a3518);
+  transition: background 1s;
+}
+.ground-cover {
+  position: absolute; inset: 0; opacity: 0; transition: opacity 1s;
+  background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,.8));
+}
+
+/* Weather Label */
+.weather-label {
+  position: absolute; top: var(--space-3); left: var(--space-3);
+  background: rgba(0,0,0,.5); backdrop-filter: blur(10px);
+  padding: 8px 16px; border-radius: var(--radius-full);
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; font-size: .9rem; z-index: 5;
+}
+.weather-icon { font-size: 1.3rem; }
+
+/* Wind */
+.wind-indicator {
+  position: absolute; bottom: 70px; right: var(--space-3);
+  font-size: 1.5rem; transition: all .5s; z-index: 5;
+}
+
+/* Info Grid */
+.weather-info-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3);
+}
+@media (max-width: 640px) {
+  .weather-info-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.info-card { text-align: center; padding: var(--space-3); }
+.info-icon { font-size: 1.5rem; margin-bottom: 4px; }
+.info-label { font-size: .7rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+.info-val { font-size: 1.1rem; font-weight: 700; color: var(--color-primary); }
+
+/* Science Panel */
+.science-panel { max-height: 85vh; overflow-y: auto; }
+.science-card {
+  padding: var(--space-3); background: var(--color-surface-alt);
+  border-radius: var(--radius-md); border: 1px solid var(--color-border);
+  margin-bottom: var(--space-2);
+}
+.science-card h4 { font-size: .85rem; margin-bottom: 6px; }
+.science-card p { font-size: .78rem; color: var(--color-text-secondary); margin: 0; line-height: 1.5; }
+
+.fact-card {
+  padding: var(--space-2); border-left: 3px solid var(--color-accent);
+  margin-bottom: var(--space-2);
+}
+.fact-card p { font-size: .78rem; margin: 0; }
+
+/* Atmosphere Layers */
+.atmosphere-layers { display: flex; flex-direction: column; gap: 2px; }
+.layer-bar {
+  padding: 6px 10px; border-radius: var(--radius-sm); font-size: .7rem;
+  background: var(--color-surface-alt); border: 1px solid var(--color-border);
+  display: flex; justify-content: space-between; transition: all .3s;
+}
+.layer-bar.active {
+  border-color: var(--color-primary); background: rgba(99,102,241,.15);
+}
+.layer-bar small { color: var(--color-text-secondary); }
+
+.hidden { display: none !important; }

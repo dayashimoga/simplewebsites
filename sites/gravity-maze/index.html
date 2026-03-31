@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gravity Maze — Physics Puzzle Game</title>
+  <meta name="description" content="Tilt gravity to guide a ball through mazes! Physics-based puzzle game with 10+ levels, special tiles, and a level editor.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-md">
+    <section class="hero text-center">
+      <h1>🌀 <span class="text-gradient">Gravity Maze</span></h1>
+      <p>Change gravity to guide the ball to the star. Use arrow keys, WASD, or swipe!</p>
+    </section>
+
+    <!-- Menu -->
+    <div id="menu-screen" class="card text-center">
+      <div class="menu-art">🌀</div>
+      <h2 class="mb-4">Ready to Defy Gravity?</h2>
+      <p class="mb-6" style="color:var(--color-text-muted)">Navigate mazes by changing the direction of gravity. Watch out for lava, use teleporters, and break through walls!</p>
+      <div class="flex flex-col gap-4" style="max-width:300px;margin:0 auto">
+        <button class="btn btn-primary" onclick="showLevelSelect()">🎮 Play Levels</button>
+        <button class="btn btn-secondary" onclick="openEditor()">🔧 Level Editor</button>
+      </div>
+      <div class="controls-guide mt-8">
+        <h4 class="mb-4">🕹️ Controls</h4>
+        <div class="controls-grid">
+          <div class="ctrl-item"><span class="ctrl-key">↑ W</span><span>Gravity Up</span></div>
+          <div class="ctrl-item"><span class="ctrl-key">↓ S</span><span>Gravity Down</span></div>
+          <div class="ctrl-item"><span class="ctrl-key">← A</span><span>Gravity Left</span></div>
+          <div class="ctrl-item"><span class="ctrl-key">→ D</span><span>Gravity Right</span></div>
+          <div class="ctrl-item"><span class="ctrl-key">R</span><span>Restart Level</span></div>
+          <div class="ctrl-item"><span class="ctrl-key">Swipe</span><span>Touch Control</span></div>
+        </div>
+      </div>
+      <div class="tile-legend mt-6">
+        <h4 class="mb-4">🗺️ Tile Guide</h4>
+        <div class="legend-grid">
+          <span class="legend-item">⭐ Goal</span>
+          <span class="legend-item">🌀 Teleporter</span>
+          <span class="legend-item">⚡ Speed Boost</span>
+          <span class="legend-item">💔 Breakable</span>
+          <span class="legend-item">❄ Ice (slippery)</span>
+          <span class="legend-item">🔥 Lava (deadly)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Level Select -->
+    <div id="levels-screen" style="display:none">
+      <div class="card">
+        <div class="flex justify-between items-center mb-6">
+          <h3>📋 Select Level</h3>
+          <button class="btn btn-secondary" onclick="goToMenu()">◀ Back</button>
+        </div>
+        <div class="level-grid" id="level-grid"></div>
+      </div>
+    </div>
+
+    <!-- Game -->
+    <div id="game-screen" style="display:none">
+      <div class="game-hud">
+        <div class="hud-item"><span class="hud-label">Level</span><span class="hud-value"><span id="level-num">1</span></span></div>
+        <div class="hud-item"><span class="hud-label" id="level-name">Getting Started</span></div>
+        <div class="hud-item"><span class="hud-label">Moves</span><span class="hud-value" id="move-count">0</span></div>
+        <div class="hud-item"><span class="hud-label">Par</span><span class="hud-value" id="par-moves">5</span></div>
+        <div class="hud-item"><span class="hud-label">Time</span><span class="hud-value" id="elapsed-time">0.0s</span></div>
+        <div class="hud-item gravity-hud"><span class="hud-label">Gravity</span><span class="hud-value gravity-arrow" id="gravity-arrow">↓</span></div>
+      </div>
+
+      <div class="canvas-wrapper">
+        <div id="canvas-container" class="canvas-container">
+          <canvas id="maze-canvas"></canvas>
+        </div>
+
+        <!-- Direction buttons (mobile) -->
+        <div class="direction-pad">
+          <button class="dir-btn" onclick="changeGravity('up')">↑</button>
+          <div class="dir-row">
+            <button class="dir-btn" onclick="changeGravity('left')">←</button>
+            <button class="dir-btn restart-btn" onclick="restartLevel()">↻</button>
+            <button class="dir-btn" onclick="changeGravity('right')">→</button>
+          </div>
+          <button class="dir-btn" onclick="changeGravity('down')">↓</button>
+        </div>
+      </div>
+
+      <!-- Level Complete Overlay -->
+      <div id="level-complete" class="level-overlay" style="display:none">
+        <div class="overlay-card">
+          <div class="stars-display" id="stars-display">⭐⭐⭐</div>
+          <h2>Level Complete!</h2>
+          <p>Moves: <strong id="complete-moves">0</strong> / Par: <strong id="complete-par">0</strong></p>
+          <div class="flex gap-4 justify-center mt-4">
+            <button class="btn btn-secondary" onclick="hideLevelOverlays(); restartLevel()">🔄 Retry</button>
+            <button class="btn btn-primary" onclick="hideLevelOverlays(); nextLevel()">▶ Next Level</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level Fail Overlay -->
+      <div id="level-fail" class="level-overlay" style="display:none">
+        <div class="overlay-card">
+          <div style="font-size:3rem">💀</div>
+          <h2>Oops! Lava!</h2>
+          <p>The ball fell into the lava. Try again!</p>
+          <button class="btn btn-primary mt-4" onclick="hideLevelOverlays(); restartLevel()">🔄 Retry</button>
+        </div>
+      </div>
+
+      <div class="game-bottom-bar">
+        <button class="btn btn-secondary" onclick="goToMenu()">◀ Menu</button>
+        <button class="btn btn-secondary" onclick="showLevelSelect()">📋 Levels</button>
+        <button class="btn btn-secondary" onclick="restartLevel()">🔄 Restart</button>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div id="editor-screen" style="display:none">
+      <div class="card">
+        <div class="flex justify-between items-center mb-4">
+          <h3>🔧 Level Editor</h3>
+          <button class="btn btn-secondary" onclick="goToMenu()">◀ Back</button>
+        </div>
+        <div class="editor-tools mb-4">
+          <button class="editor-tool active" data-type="0" onclick="setEditorTool(0)">⬜ Empty</button>
+          <button class="editor-tool" data-type="1" onclick="setEditorTool(1)">⬛ Wall</button>
+          <button class="editor-tool" data-type="3" onclick="setEditorTool(3)">🏁 Start</button>
+          <button class="editor-tool" data-type="2" onclick="setEditorTool(2)">⭐ Goal</button>
+          <button class="editor-tool" data-type="4" onclick="setEditorTool(4)">🌀 Teleport</button>
+          <button class="editor-tool" data-type="5" onclick="setEditorTool(5)">⚡ Speed</button>
+          <button class="editor-tool" data-type="6" onclick="setEditorTool(6)">💔 Break</button>
+          <button class="editor-tool" data-type="7" onclick="setEditorTool(7)">❄ Ice</button>
+          <button class="editor-tool" data-type="8" onclick="setEditorTool(8)">🔥 Lava</button>
+        </div>
+        <div class="editor-grid-container">
+          <div class="editor-grid" id="editor-grid"></div>
+        </div>
+        <div class="flex gap-4 mt-4 justify-center">
+          <button class="btn btn-primary" onclick="testEditorLevel()">▶ Test Level</button>
+          <button class="btn btn-accent" onclick="exportEditorLevel()">📋 Export</button>
+        </div>
+        <p class="text-center mt-2 text-sm" id="editor-status" style="color:var(--color-text-muted)"></p>
+      </div>
+    </div>
+  </div>
+  <footer class="footer"><p>&copy; 2026 Gravity Maze. Defy gravity!</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

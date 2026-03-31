@@ -53,7 +53,8 @@ function setDifficulty(diff) {
   const btns = document.querySelectorAll('.tab-btn');
   const idx = ['easy', 'medium', 'hard'].indexOf(diff);
   if (btns[idx]) btns[idx].classList.add('active');
-  document.getElementById('difficulty-badge').textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
+  const badge = document.getElementById('difficulty-badge');
+  if (badge) badge.textContent = diff.charAt(0).toUpperCase() + diff.slice(1);
   updateStats();
   nextWord();
 }
@@ -64,9 +65,13 @@ function nextWord() {
   hintUsed = false;
   timeLeft = TIME_LIMIT;
   if (typeof document === 'undefined') return;
-  document.getElementById('scrambled-word').textContent = scrambleWord(currentWord.word);
-  document.getElementById('guess-input').value = '';
-  document.getElementById('guess-input').focus();
+  const scrambledEl = document.getElementById('scrambled-word');
+  if (scrambledEl) scrambledEl.textContent = scrambleWord(currentWord.word);
+  const inputEl = document.getElementById('guess-input');
+  if (inputEl) {
+    inputEl.value = '';
+    inputEl.focus();
+  }
   const hintEl = document.getElementById('hint-text');
   if (hintEl) { hintEl.textContent = ''; hintEl.classList.add('hidden'); }
   const fb = document.getElementById('feedback');

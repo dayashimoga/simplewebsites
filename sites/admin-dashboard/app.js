@@ -1,23 +1,36 @@
+/* Admin Dashboard Advanced Features */
+
 let authKey = typeof localStorage !== 'undefined' ? localStorage.getItem('admin_passkey') : null;
 let sites = [];
 let filteredSites = [];
 let lastStatuses = {};
 
+// Features
+let autoRefreshTimer = null;
+const REFRESH_INTERVAL_MS = 15000;
+
 if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
     if (authKey) {
-        showDashboard();
+        showDashboard(true);
     }
 
     const form = document.getElementById('auth-form');
     if (form) {
-      form.addEventListener('submit', (e) => {
+      form.addEventListener('submit', async (e) => {
           e.preventDefault();
           const input = document.getElementById('passkey-input');
           if (input && input.value.trim()) {
             authKey = input.value;
             localStorage.setItem('admin_passkey', authKey);
-            showDashboard();
+            const errEl = document.getElementById('auth-error');
+            if(errEl) errEl.classList.add('hidden');
+            
+            // Try to load
+            const ok = await showDashboard(true);
+            if (!ok && errEl) {
+              errEl.classList.remove('hidden');
+            }
           }
       });
     }
@@ -32,15 +45,28 @@ function logout() {
       if (input) input.value = '';
       const main = document.getElementById('main-content');
       if (main) main.style.display = 'none';
-      const auth = document.getElementById('auth-screen');
-      if (auth) auth.style.display = 'block';
+      const auth = document.getElementById('auth-modal');
+      if (auth) auth.style.display = 'flex';
+      
+      const chk = document.getElementById('auto-refresh');
+      if (chk) { chk.checked = false; toggleAutoRefresh(false); }
     }
 }
 
-async function showDashboard() {
-    if (typeof document !== 'undefined') {
-      const auth = document.getElementById('auth-screen');
-      if (auth) auth.style.display = 'none';
+function toggleAutoRefresh(enabled) {
+    if (autoRefreshTimer) {
+        clearInterval(autoRefreshTimer);
+        autoRefreshTimer = null;
+    }
+    if (enabled) {
+        autoRefreshTimer = setInterval(() => {
+            showDashboard(); // quiet refresh
+        }, REFRESH_INTERVAL_MS);
+    }
+}
+
+async function showDashboard(showLoader = false) {
+    if (typeof document !== 'undefined' && showLoader) {
       const main = document.getElementById('main-content');
       if (main) main.style.display = 'block';
       const loading = document.getElementById('loading');
@@ -49,13 +75,14 @@ async function showDashboard() {
     
     try {
         // Fetch known sites
-        const manifestRes = await fetch('/sites_manifest.json');
-        if (!manifestRes.ok) throw new Error('Missing sites_manifest.json');
-        sites = await manifestRes.json();
+        if (sites.length === 0) {
+          const manifestRes = await fetch('/sites_manifest.json');
+          if (!manifestRes.ok) throw new Error('Missing sites_manifest.json');
+          sites = await manifestRes.json();
+          // Exclude admin-dashboard itself
+          sites = sites.filter(s => s.id !== 'admin-dashboard');
+        }
         
-        // Exclude admin-dashboard itself
-        sites = sites.filter(s => s.id !== 'admin-dashboard');
-
         // Fetch KV status
         const ids = sites.map(s => s.id);
         const statusRes = await fetch('/api/admin/status', {
@@ -70,18 +97,29 @@ async function showDashboard() {
         if (!statusRes.ok) {
             if (statusRes.status === 401) {
                 logout();
-                return;
+                return false;
             }
             throw new Error(`Status ${statusRes.status}`);
+        }
+        
+        // Success
+        if (typeof document !== 'undefined') {
+            const auth = document.getElementById('auth-modal');
+            if (auth) auth.style.display = 'none';
         }
 
         const statusData = await statusRes.json();
         renderGrid(sites, statusData.statuses || {});
+        return true;
+        
     } catch (err) {
         console.error('Failed to load dashboard:', err);
-        if (typeof alert !== 'undefined') alert('Error: ' + err.message);
+        if (typeof document !== 'undefined' && showLoader) {
+          alert('Error loading status: ' + err.message);
+        }
+        return false;
     } finally {
-        if (typeof document !== 'undefined') {
+        if (typeof document !== 'undefined' && showLoader) {
             const loading = document.getElementById('loading');
             if (loading) loading.style.display = 'none';
         }
@@ -91,6 +129,12 @@ async function showDashboard() {
 function renderGrid(sitesList, statuses) {
     if (typeof document === 'undefined') return;
     lastStatuses = statuses || lastStatuses;
+    
+    const query = document.getElementById('search-input')?.value || '';
+    if (query) {
+      sitesList = sitesList.filter(s => (s.title || s.id).toLowerCase().includes(query.toLowerCase()));
+    }
+    
     const grid = document.getElementById('sites-grid');
     if (!grid) return;
     grid.innerHTML = '';
@@ -104,13 +148,14 @@ function renderGrid(sitesList, statuses) {
         const card = document.createElement('div');
         card.className = `site-card glass ${isEnabled ? '' : 'disabled'}`;
         card.innerHTML = `
-            <div class="site-info">
+            <div class="site-info max-w-[70%]">
                 <span class="site-emoji">${site.emoji || '🛠️'}</span>
-                <div class="flex flex-col">
-                    <span class="site-title">${site.title || site.id}</span>
+                <div class="flex flex-col overflow-hidden">
+                    <span class="site-title truncate">${site.title || site.id}</span>
+                    <span class="text-xs text-gray-400 font-mono truncate">/${site.id}</span>
                 </div>
             </div>
-            <button class="toggle-btn ${isEnabled ? 'enabled' : 'disabled'}" onclick="toggleSite('${site.id}', ${isEnabled})">
+            <button class="toggle-btn ${isEnabled ? 'enabled' : 'disabled'} shadow-[0_4px_10px_rgba(0,0,0,0.5)] active:scale-95" onclick="toggleSite('${site.id}', ${isEnabled})">
                 ${isEnabled ? 'ONLINE' : 'OFFLINE'}
             </button>
         `;
@@ -139,45 +184,49 @@ async function toggleSite(siteId, currentlyEnabled) {
         });
         
         if (!res.ok) throw new Error(`Toggle failed: HTTP ${res.status}`);
-        await showDashboard();
+        
+        // Optimistic update
+        lastStatuses[siteId] = newState;
+        renderGrid(sites, lastStatuses);
+        
     } catch (err) {
         if (typeof alert !== 'undefined') alert(err.message);
     }
 }
 
 function filterSites() {
-    if (typeof document === 'undefined') return;
-    const query = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
-    if (!query) {
-        renderGrid(sites, lastStatuses);
-        return;
-    }
-    const filtered = sites.filter(s => {
-        const title = (s.title || s.id).toLowerCase();
-        return title.includes(query) || s.id.toLowerCase().includes(query);
-    });
-    renderGrid(filtered, lastStatuses);
+    renderGrid(sites, lastStatuses);
 }
 
 async function bulkToggle(enable) {
     const newState = enable ? 'enabled' : 'disabled';
-    if (typeof confirm !== 'undefined' && !confirm(`${enable ? 'Enable' : 'Disable'} ALL ${sites.length} sites?`)) return;
+    if (typeof confirm !== 'undefined' && !confirm(`${enable ? 'Enable' : 'Disable'} ALL displayed sites?`)) return;
+    
+    // Determine which sites are currently displayed
+    const listToToggle = document.getElementById('search-input')?.value ? 
+         sites.filter(s => (s.title || s.id).toLowerCase().includes(document.getElementById('search-input').value.toLowerCase())) 
+         : sites;
+         
     try {
-        for (const site of sites) {
-            await fetch('/api/admin/toggle', {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${authKey}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ siteId: site.id, status: newState })
-            });
-        }
-        await showDashboard();
+        const promises = listToToggle.map(site => fetch('/api/admin/toggle', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${authKey}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ siteId: site.id, status: newState })
+        }));
+        
+        await Promise.all(promises);
+        
+        // Optimistic update
+        listToToggle.forEach(s => lastStatuses[s.id] = newState);
+        renderGrid(sites, lastStatuses);
+        
     } catch (err) {
         if (typeof alert !== 'undefined') alert('Bulk toggle error: ' + err.message);
     }
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { logout, showDashboard, renderGrid, toggleSite, filterSites, bulkToggle,
+    module.exports = { logout, showDashboard, renderGrid, toggleSite, filterSites, bulkToggle, toggleAutoRefresh,
         getState: () => ({ authKey, sites, filteredSites, lastStatuses }),
         setAuthKey: k => { authKey = k; }, 
         getAuthKey: () => authKey,

@@ -3,48 +3,138 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Soundboard Synth — Free Playable Drum Machine</title>
-  <meta name="description" content="Play drums and synth pads in your browser. Record loops, change BPM, and jam online for free.">
+  <meta name="description" content="Play drums and synth pads in your browser. Features 16-step sequencer, effects rack, and web audio recording.">
   <link rel="stylesheet" href="shared-styles.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container container-md text-center">
-    <section class="hero mb-4">
-      <h1>🎹 <span class="text-gradient">Soundboard Synth</span></h1>
-      <p>Click pads or use your keyboard (A-L) to play. Turn up the volume!</p>
-    </section>
+  <div class="container container-lg">
+    <header class="synth-header">
+      <div class="header-logo">🎹 <span class="text-gradient">Soundboard Synth</span></div>
+      <div class="header-controls">
+        <div class="control-group">
+          <label>Volume</label>
+          <input type="range" id="master-vol" min="0" max="1" step="0.05" value="0.7">
+        </div>
+        <div class="control-group">
+          <label>BPM: <span id="bpm-val">120</span></label>
+          <input type="range" id="bpm-slider" min="60" max="200" step="1" value="120">
+        </div>
+        <button id="metro-btn" class="btn btn-secondary btn-sm" title="Metronome">🗜️ Metro</button>
+      </div>
+    </header>
 
-    <!-- Controls -->
-    <div class="card mb-6 flex-wrap justify-center gap-4 flex shadow-xl border border-gray-800">
-      <div class="flex items-center gap-2">
-         <span class="text-sm">Waveform:</span>
-         <select id="osc-type" class="input p-2 cursor-pointer text-sm" onchange="setOscType(this.value)">
-           <option value="sine">Sine (Soft)</option>
-           <option value="square">Square (8-bit)</option>
-           <option value="sawtooth" selected>Sawtooth (Synth)</option>
-           <option value="triangle">Triangle (Mellow)</option>
-         </select>
+    <div class="synth-layout">
+      <!-- Main Workstation -->
+      <div class="main-panel">
+        
+        <!-- Top Toolbar -->
+        <div class="toolbar card">
+          <div class="preset-selector">
+            <span class="toolbar-label">Bank:</span>
+            <select id="bank-select" class="input slim-input">
+              <option value="synth">Synth Leads</option>
+              <option value="drums">Drum Machine</option>
+              <option value="piano">Electric Piano</option>
+              <option value="bass">Deep Bass</option>
+            </select>
+          </div>
+          
+          <div class="visualizer-container">
+            <canvas id="waveform-canvas"></canvas>
+          </div>
+          
+          <div class="recording-controls">
+            <button id="btn-record" class="btn btn-secondary btn-sm">🔴 Rec</button>
+            <button id="btn-play" class="btn btn-secondary btn-sm hidden">▶️ Play</button>
+            <button id="btn-clear" class="btn btn-secondary btn-sm hidden">🗑️</button>
+            <button id="btn-export" class="btn btn-accent btn-sm hidden">💾 .WAV</button>
+          </div>
+        </div>
+
+        <!-- Recording Timeline -->
+        <div class="timeline-container card hidden" id="timeline-card">
+          <div class="timeline-header flex justify-between text-xs text-gray-400 mb-2">
+            <span>Pattern Timeline</span>
+            <span id="timeline-length">0.0s</span>
+          </div>
+          <div class="timeline-track" id="timeline-track">
+            <!-- Note blips generated here -->
+          </div>
+        </div>
+
+        <!-- Sequencer -->
+        <div class="sequencer-panel card">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-bold">16-Step Sequencer</h3>
+            <div class="flex gap-2">
+              <button id="seq-play-btn" class="btn btn-primary btn-sm">▶️ Seq</button>
+              <button id="seq-clear-btn" class="btn btn-secondary btn-sm">Clear Mode</button>
+            </div>
+          </div>
+          <div class="sequencer-grid" id="sequencer-grid">
+            <!-- 4 Tracks x 16 steps -->
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <span class="text-sm">Volume:</span>
-        <input type="range" id="master-vol" class="w-24 accent-accent" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)">
-      </div>
-      
-      <div class="flex items-center gap-2 border-l border-gray-700 pl-4">
-        <button class="btn btn-secondary text-sm" id="btn-record" onclick="toggleRecord()">🔴 Record</button>
-        <button class="btn btn-secondary text-sm hidden" id="btn-play" onclick="playLoop()">▶️ Play Loop</button>
-        <button class="btn btn-accent text-sm hidden" id="btn-clear" onclick="clearLoop()">🗑️ Clear</button>
+      <!-- Side Panel (Pads & Effects) -->
+      <div class="side-panel">
+        <!-- Pads -->
+        <div class="pads-card card">
+          <div class="flex justify-between mb-3 items-center">
+            <h3 class="text-sm font-bold">Performance Pads</h3>
+            <span class="text-xs text-gray-400">Keys: A-L, Q-P</span>
+          </div>
+          <div id="pads-grid" class="pads-grid">
+            <!-- Generated by JS 4x3 -->
+          </div>
+        </div>
+
+        <!-- Effects Rack -->
+        <div class="fx-rack card">
+          <h3 class="text-sm font-bold mb-3 border-b border-gray-700 pb-2">Effects Rack</h3>
+          
+          <div class="fx-module">
+            <div class="fx-header">
+              <label><input type="checkbox" id="fx-filter-enable"> Filter</label>
+              <select id="fx-filter-type" class="slim-input">
+                <option value="lowpass">LowPass</option>
+                <option value="highpass">HighPass</option>
+              </select>
+            </div>
+            <input type="range" id="fx-filter-freq" min="20" max="10000" step="10" value="2000" title="Cutoff">
+          </div>
+
+          <div class="fx-module">
+            <div class="fx-header">
+              <label><input type="checkbox" id="fx-delay-enable"> Delay</label>
+              <span class="text-xs text-gray-400" id="fx-delay-val">0.3s</span>
+            </div>
+            <input type="range" id="fx-delay-time" min="0.1" max="1" step="0.05" value="0.3" title="Time">
+            <input type="range" id="fx-delay-feedback" min="0" max="0.9" step="0.05" value="0.4" title="Feedback">
+          </div>
+
+          <div class="fx-module">
+            <div class="fx-header">
+              <label><input type="checkbox" id="fx-reverb-enable"> Reverb</label>
+            </div>
+            <input type="range" id="fx-reverb-amount" min="0" max="1" step="0.05" value="0.3" title="Mix">
+          </div>
+
+          <div class="fx-module">
+            <div class="fx-header">
+              <label><input type="checkbox" id="fx-dist-enable"> Distortion</label>
+            </div>
+            <input type="range" id="fx-dist-amount" min="0" max="100" step="1" value="20" title="Drive">
+          </div>
+        </div>
       </div>
     </div>
-
-    <!-- The Pads -->
-    <div id="pads-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-3 max-w-[600px] mx-auto select-none">
-      <!-- Generated by JS -->
-    </div>
-    
   </div>
-  <footer class="footer mt-12"><p>&copy; 2026 Soundboard Synth. Web Audio API powered.</p></footer>
-  <script src="app.js"></script><script src="shared-theme-toggle.js"></script>
+  
+  <footer class="footer mt-6"><p>&copy; 2026 Soundboard Synth. Advanced Web Audio API.</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
 </body>
 </html>

@@ -44,6 +44,12 @@
       <button class="btn btn-secondary"       id="tab-rotate"  onclick="switchMode('rotate')">🔄 Rotate</button>
       <button class="btn btn-secondary"       id="tab-resize"  onclick="switchMode('resize')">📐 Resize</button>
       <button class="btn btn-secondary"       id="tab-protect" onclick="switchMode('protect')">🔒 Protect</button>
+      <button class="btn btn-secondary"       id="tab-compress" onclick="switchMode('compress')">📦 Compress</button>
+      <button class="btn btn-secondary"       id="tab-watermark" onclick="switchMode('watermark')">💧 Watermark</button>
+      <button class="btn btn-secondary"       id="tab-metadata" onclick="switchMode('metadata')">📝 Metadata</button>
+      <button class="btn btn-secondary"       id="tab-pagenum" onclick="switchMode('pagenum')">#️⃣ Pages</button>
+      <button class="btn btn-secondary"       id="tab-img2pdf" onclick="switchMode('img2pdf')">🖼️ Img to PDF</button>
+      <button class="btn btn-secondary"       id="tab-reorder" onclick="switchMode('reorder')">🔀 Reorder</button>
     </div>
 
     <div class="card mb-8">
@@ -159,6 +165,130 @@
             <button class="btn btn-secondary flex-1" onclick="executeRemovePassword()">🔓 Remove Password</button>
           </div>
           <p class="hint mt-3 text-xs">Note: This embeds a protection marker in the PDF metadata. For full AES encryption, use Adobe Acrobat or a dedicated PDF encryption tool.</p>
+        </div>
+      </div>
+
+      <!-- ======= COMPRESS ======= -->
+      <div id="mode-compress" class="feature-section hidden">
+        <p class="mb-4 text-muted">Reduce PDF file size by enabling object stream compression.</p>
+        <div class="drop-zone" onclick="document.getElementById('compress-input').click()">
+          <div class="drop-icon">📦</div><p>Click or drop a PDF here</p>
+        </div>
+        <input type="file" id="compress-input" accept="application/pdf" class="hidden" onchange="handleCompressUpload(event)">
+        
+        <div id="compress-ui" class="hidden mt-4">
+          <p id="compress-file-info" class="font-bold text-accent mb-4"></p>
+          <button class="btn btn-accent w-full" onclick="executeCompress()">📦 Compress & Download</button>
+        </div>
+      </div>
+
+      <!-- ======= WATERMARK ======= -->
+      <div id="mode-watermark" class="feature-section hidden">
+        <p class="mb-4 text-muted">Add a bold, diagonal text watermark to every page.</p>
+        <div class="drop-zone" onclick="document.getElementById('watermark-input').click()">
+          <div class="drop-icon">💧</div><p>Click or drop a PDF here</p>
+        </div>
+        <input type="file" id="watermark-input" accept="application/pdf" class="hidden" onchange="handleWatermarkUpload(event)">
+        
+        <div id="watermark-ui" class="hidden mt-4">
+          <p id="watermark-file-info" class="font-bold text-accent mb-4"></p>
+          
+          <label class="font-bold block mb-2">Watermark Text</label>
+          <input type="text" id="watermark-text" class="input-text w-full mb-3" placeholder="e.g. CONFIDENTIAL">
+          
+          <div class="flex gap-4 mb-4">
+            <div class="flex-1">
+              <label class="font-bold block mb-2 text-sm">Font Size</label>
+              <input type="number" id="watermark-size" class="input-text w-full" value="60" min="10" max="200">
+            </div>
+            <div class="flex-1">
+              <label class="font-bold block mb-2 text-sm">Opacity (0.1 - 1)</label>
+              <input type="number" id="watermark-opacity" class="input-text w-full" value="0.25" min="0.1" max="1" step="0.05">
+            </div>
+          </div>
+          
+          <button class="btn btn-accent w-full" onclick="executeWatermark()">💧 Add Watermark & Download</button>
+        </div>
+      </div>
+
+      <!-- ======= METADATA ======= -->
+      <div id="mode-metadata" class="feature-section hidden">
+        <p class="mb-4 text-muted">View and edit standard PDF metadata (Title, Author, Subject).</p>
+        <div class="drop-zone" onclick="document.getElementById('metadata-input').click()">
+          <div class="drop-icon">📝</div><p>Click or drop a PDF here</p>
+        </div>
+        <input type="file" id="metadata-input" accept="application/pdf" class="hidden" onchange="handleMetadataUpload(event)">
+        
+        <div id="metadata-ui" class="hidden mt-4">
+          <p id="metadata-file-info" class="font-bold text-accent mb-4"></p>
+          
+          <label class="font-bold block mb-1 text-sm">Title</label>
+          <input type="text" id="meta-title" class="input-text w-full mb-3">
+          
+          <label class="font-bold block mb-1 text-sm">Author</label>
+          <input type="text" id="meta-author" class="input-text w-full mb-3">
+          
+          <label class="font-bold block mb-1 text-sm">Subject</label>
+          <input type="text" id="meta-subject" class="input-text w-full mb-4">
+          
+          <button class="btn btn-accent w-full" onclick="executeMetadataEdit()">📝 Update Metadata</button>
+        </div>
+      </div>
+
+      <!-- ======= PAGE NUMBERS ======= -->
+      <div id="mode-pagenum" class="feature-section hidden">
+        <p class="mb-4 text-muted">Stamp page numbers automatically onto every page.</p>
+        <div class="drop-zone" onclick="document.getElementById('pagenum-input').click()">
+          <div class="drop-icon">#️⃣</div><p>Click or drop a PDF here</p>
+        </div>
+        <input type="file" id="pagenum-input" accept="application/pdf" class="hidden" onchange="handlePageNumUpload(event)">
+        
+        <div id="pagenum-ui" class="hidden mt-4">
+          <p id="pagenum-file-info" class="font-bold text-accent mb-4"></p>
+          
+          <div class="flex gap-4 mb-4">
+            <div class="flex-1">
+              <label class="font-bold block mb-2 text-sm">Position</label>
+              <select id="pagenum-position" class="input-text w-full">
+                <option value="bottom-center">Bottom Center</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-right">Bottom Right</option>
+                <option value="top-center">Top Center</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label class="font-bold block mb-2 text-sm">Start At</label>
+              <input type="number" id="pagenum-start" class="input-text w-full" value="1" min="1">
+            </div>
+          </div>
+          
+          <button class="btn btn-accent w-full" onclick="executePageNumbers()">#️⃣ Add Page Numbers</button>
+        </div>
+      </div>
+
+      <!-- ======= IMG TO PDF ======= -->
+      <div id="mode-img2pdf" class="feature-section hidden">
+        <p class="mb-4 text-muted">Convert multiple images (JPG, PNG) into a single PDF document.</p>
+        <div class="drop-zone" onclick="document.getElementById('img2pdf-input').click()">
+          <div class="drop-icon">🖼️</div><p>Click or drop Image files here</p>
+        </div>
+        <input type="file" id="img2pdf-input" accept="image/png, image/jpeg, image/webp" multiple class="hidden" onchange="handleImg2PdfUpload(event)">
+        <div id="img2pdf-list" class="mt-4 flex flex-col gap-2"></div>
+        <button class="btn btn-accent w-full mt-4 hidden" id="do-img2pdf-btn" onclick="executeImg2Pdf()">📥 Convert Images to PDF</button>
+      </div>
+
+      <!-- ======= REORDER ======= -->
+      <div id="mode-reorder" class="feature-section hidden">
+        <p class="mb-4 text-muted">Rearrange pages visually and delete unwanted pages.</p>
+        <div class="drop-zone" id="reorder-drop" onclick="document.getElementById('reorder-input').click()">
+          <div class="drop-icon">🔀</div><p>Click or drop a PDF here</p>
+        </div>
+        <input type="file" id="reorder-input" accept="application/pdf" class="hidden" onchange="handleReorderUpload(event)">
+        <div id="reorder-ui" class="hidden mt-4">
+           <p id="reorder-file-info" class="font-bold text-accent mb-2"></p>
+           <p class="hint text-xs mb-4">Drag to reorder. Click the X to remove a page. (For large PDFs, this may take a moment to render).</p>
+           <div id="reorder-grid" class="pdf-grid p-4 bg-surface rounded-md border border-border" style="max-height: 400px; overflow-y: auto;"></div>
+           <button class="btn btn-accent w-full mt-4" id="do-reorder-btn" onclick="executeReorder()">📥 Save Reordered PDF</button>
         </div>
       </div>
 

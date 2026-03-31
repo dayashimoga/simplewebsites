@@ -1,86 +1,127 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Mandala Drawer — Infinite Symmetric Art</title>
-  <meta name="description" content="Draw beautiful symmetric mandalas effortlessly. Choose segments, colors, and brush sizes to create stunning digital art.">
+  <meta name="description" content="Draw beautiful symmetric mandalas with various brushes, effects, and mirroring options.">
   <link rel="stylesheet" href="shared-styles.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container container-lg">
-    <section class="hero text-center mb-6">
-      <h1>🌸 <span class="text-gradient">Mandala Drawer</span></h1>
-      <p>Draw once, mirror everywhere. Create mesmerizing symmetric art.</p>
-    </section>
-    
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      <!-- Toolbar -->
-      <div class="card lg:col-span-1 p-4 shadow-xl border border-gray-800 flex flex-col gap-5 h-fit">
-        <div>
-          <h4 class="text-sm uppercase text-gray-400 mb-2 font-bold tracking-wider">🪞 Symmetry</h4>
-          <div class="flex items-center justify-between bg-gray-900 rounded-lg p-3">
-            <span class="text-sm font-medium">Segments:</span>
-            <input type="number" id="segments" class="input w-20 text-center text-lg" value="12" min="1" max="36" onchange="updateSymmetry()">
-          </div>
-          <input type="range" id="segment-slider" class="w-full mt-3 accent-accent" min="1" max="36" value="12" oninput="document.getElementById('segments').value=this.value; updateSymmetry()">
-          
-          <label class="flex items-center gap-2 mt-4 text-sm cursor-pointer select-none">
-            <input type="checkbox" id="mirror-lines" checked onchange="updateSymmetry()"> Mirror within segment
-          </label>
-          <label class="flex items-center gap-2 mt-2 text-sm cursor-pointer select-none">
-            <input type="checkbox" id="show-guidelines" checked onchange="drawGuides()"> Show Guidelines
-          </label>
-        </div>
+  
+  <div class="mandala-layout">
+    <!-- Header -->
+    <header class="mandala-header">
+      <div class="header-logo">🌸 <span class="text-gradient">Mandala Drawer</span></div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="showGallery()">🖼️ Gallery</button>
+        <button class="btn btn-secondary btn-sm" onclick="undo()" id="btn-undo" title="Undo (Ctrl+Z)" disabled>↩️</button>
+        <button class="btn btn-secondary btn-sm" onclick="redo()" id="btn-redo" title="Redo (Ctrl+Y)" disabled>↪️</button>
+        <button class="btn btn-primary btn-sm" onclick="downloadImage()">💾 Save</button>
+        <button class="btn-sidebar-toggle" onclick="toggleSidebar()">☰</button>
+      </div>
+    </header>
 
-        <hr class="border-gray-800">
-
-        <div>
-          <h4 class="text-sm uppercase text-gray-400 mb-2 font-bold tracking-wider">🖌️ Brush</h4>
-          <div class="grid grid-cols-2 gap-3 mb-3">
-            <div class="card glass" id="tool-draw" onclick="setTool('draw')">
-              <span class="text-xl mb-1">✍️</span><span class="text-xs">Draw</span>
-            </div>
-            <div class="card glass" id="tool-erase" onclick="setTool('erase')">
-              <span class="text-xl mb-1">🧹</span><span class="text-xs">Erase</span>
-            </div>
-          </div>
-          
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-sm">Size: <span id="size-val">3</span>px</span>
-            <input type="range" id="brush-size" class="w-1/2 accent-accent" min="1" max="50" value="3" oninput="setBrushSize(this.value)">
-          </div>
-          
-          <div class="mt-4">
-            <span class="text-sm block mb-2">Color:</span>
-            <input type="color" id="brush-color" class="w-full h-10 border-none rounded cursor-pointer p-0" value="#6366f1" onchange="setBrushColor(this.value)">
+    <!-- Main Workspace -->
+    <div class="mandala-workspace">
+      
+      <!-- Collapsible Sidebar -->
+      <aside class="mandala-sidebar" id="sidebar">
+        
+        <div class="sidebar-section">
+          <h4>Tools</h4>
+          <div class="tool-grid">
+            <button class="tool-btn active" data-tool="draw" onclick="setTool('draw')" title="Draw">✍️</button>
+            <button class="tool-btn" data-tool="erase" onclick="setTool('erase')" title="Eraser">🧹</button>
+            <button class="tool-btn" onclick="clearCanvas()" title="Clear All">🗑️</button>
+            <button class="tool-btn" id="btn-autodraw" onclick="toggleAutoDraw()" title="Auto Draw">✨</button>
           </div>
         </div>
 
-        <hr class="border-gray-800">
+        <div class="sidebar-section">
+          <h4>Brush Style</h4>
+          <select id="brush-type" class="full-input" onchange="setBrushType(this.value)">
+            <option value="round">Round Classic</option>
+            <option value="calligraphy">Calligraphy</option>
+            <option value="spray">Spray Paint</option>
+            <option value="glow">Neon Glow</option>
+          </select>
+          
+          <div class="slider-group">
+            <label>Size: <span id="size-val">3</span>px</label>
+            <input type="range" id="brush-size" min="1" max="50" value="3" oninput="setBrushSize(this.value)">
+          </div>
+          
+          <div class="slider-group">
+            <label>Opacity: <span id="opacity-val">100</span>%</label>
+            <input type="range" id="brush-opacity" min="0.1" max="1" step="0.05" value="1" oninput="setBrushOpacity(this.value)">
+          </div>
+        </div>
 
-        <div>
-           <h4 class="text-sm uppercase text-gray-400 mb-2 font-bold tracking-wider">🎨 Canvas</h4>
-           <div class="mt-2">
-            <span class="text-sm block mb-2">Background:</span>
-            <input type="color" id="bg-color" class="w-full h-8 border-none rounded cursor-pointer p-0" value="#121212" onchange="setBgColor(this.value)">
-           </div>
+        <div class="sidebar-section">
+          <h4>Colors</h4>
+          <div class="color-picker-wrap">
+            <input type="color" id="brush-color" value="#6366f1" onchange="setBrushColor(this.value)">
+            <input type="color" id="bg-color" value="#121212" onchange="setBgColor(this.value)" title="Background">
+          </div>
+          
+          <div class="palette-grid" id="palette-grid">
+            <!-- Palettes generated here -->
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>Symmetry (<span id="seg-val">12</span>)</h4>
+          <input type="range" id="segment-slider" min="1" max="64" value="12" oninput="updateSymmetry(this.value)">
+          
+          <label class="check-label mt-2">
+            <input type="checkbox" id="mirror-lines" checked onchange="toggleSetting('mirror', this.checked)"> Mirror inside segments
+          </label>
+          <label class="check-label">
+            <input type="checkbox" id="show-guidelines" checked onchange="toggleSetting('guides', this.checked)"> Show Guidelines
+          </label>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>View</h4>
+          <div class="slider-group">
+            <label>Zoom: <span id="zoom-val">100</span>%</label>
+            <input type="range" id="zoom-slider" min="50" max="300" step="10" value="100" oninput="setZoom(this.value)">
+          </div>
         </div>
         
-        <div class="mt-auto pt-4 flex flex-col gap-2">
-          <button class="btn btn-secondary w-full py-2 hover:border-red-500 hover:text-red-500 transition" onclick="clearCanvas()">🗑️ Clear Canvas</button>
-          <button class="btn btn-accent w-full py-3 text-lg font-bold shadow-glow" onclick="downloadImage()">📥 Save Art</button>
-        </div>
-      </div>
+      </aside>
 
       <!-- Canvas Area -->
-      <div class="lg:col-span-3 flex justify-center items-center bg-gray-900 rounded-xl p-4 border border-gray-800 shadow-inner relative overflow-hidden" id="canvas-container" style="min-height: 500px">
-        <canvas id="mandala-canvas" class="cursor-crosshair w-full max-w-[600px] aspect-square rounded-full shadow-2xl bg-black touch-none"></canvas>
-        <canvas id="guide-canvas" class="absolute w-full max-w-[600px] aspect-square pointer-events-none rounded-full"></canvas>
+      <main class="canvas-container" id="canvas-container">
+        <div class="canvas-wrapper" id="canvas-wrapper">
+          <canvas id="bg-canvas"></canvas>
+          <canvas id="mandala-canvas"></canvas>
+          <canvas id="cursor-canvas"></canvas>
+          <canvas id="guide-canvas"></canvas>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- Gallery Modal -->
+  <div id="gallery-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3>🖼️ Saved Mandalas</h3>
+        <button class="btn btn-secondary btn-sm" onclick="closeGallery()">✕</button>
+      </div>
+      <div class="gallery-grid" id="gallery-grid">
+        <!-- Saved items go here -->
+      </div>
+      <div class="flex gap-4 mt-6">
+        <button class="btn btn-primary w-full" onclick="saveToGallery()">➕ Save Current</button>
       </div>
     </div>
   </div>
-  <footer class="footer mt-12"><p>&copy; 2026 Mandala Drawer. Pure HTML5 Canvas rendering.</p></footer>
-  <script src="app.js"></script><script src="shared-theme-toggle.js"></script>
+
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
 </body>
 </html>

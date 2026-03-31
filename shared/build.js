@@ -86,7 +86,7 @@ function generateNavBar(siteName, manifest) {
   return `<nav class="site-nav" aria-label="Site navigation">
   <a href="/" aria-label="Back to all tools">← All Tools</a>
   <span class="nav-title">${title}</span>
-  <button onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark';localStorage.setItem('theme',document.documentElement.dataset.theme)" style="background:none;border:1px solid var(--color-border);border-radius:var(--radius-full);padding:4px 10px;cursor:pointer;font-size:1rem;color:var(--color-text)" aria-label="Toggle theme" title="Toggle dark/light mode">🌙</button>
+  <button id="nav-theme-toggle" onclick="if(window.toggleTheme) toggleTheme(); else { document.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); localStorage.setItem('theme', document.documentElement.getAttribute('data-theme')); }" style="background:none;border:1px solid var(--color-border);border-radius:var(--radius-full);padding:4px 10px;cursor:pointer;font-size:1rem;color:var(--color-text)" aria-label="Toggle theme" title="Toggle dark/light mode">🌓</button>
 </nav>`;
 }
 
@@ -207,6 +207,11 @@ function processHtml(html, siteName, manifest) {
   // Inject nav bar after <body> tag
   const navHtml = generateNavBar(siteName, manifest);
   processed = processed.replace(/<body([^>]*)>/i, `<body$1>\n${navHtml}`);
+
+  // Inject shared-theme-toggle.js globally if missing
+  if (!processed.includes('shared-theme-toggle.js') && !processed.includes('theme-toggle.js')) {
+    processed = processed.replace(/<\/body>/i, `<script src="shared-theme-toggle.js"></script>\n</body>`);
+  }
 
   // Add contact email and privacy/terms links to footer if configured
   const currentEmail = process.env.CONTACT_EMAIL || CONTACT_EMAIL;

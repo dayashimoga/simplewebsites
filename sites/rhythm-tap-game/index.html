@@ -9,45 +9,87 @@
 </head>
 <body>
   <div class="container container-sm">
-    <section class="hero"><h1>🎵 <span class="text-gradient">Rhythm Tap</span></h1><p>Tap the notes as they reach the hit zone. Time your taps to the beat!</p></section>
+    <section class="hero text-center mb-6">
+      <h1>🎵 <span class="text-gradient">Rhythm Tap</span></h1>
+      <p>Tap the notes as they reach the hit zone. Time your taps to the beat!</p>
+    </section>
+
+    <!-- Main Menu -->
     <div id="menu-screen" class="card text-center">
       <h3 class="mb-4">Select Difficulty</h3>
-      <div class="flex flex-col gap-3">
+      <div class="flex flex-col gap-3 max-w-[300px] mx-auto">
         <button class="btn btn-primary" onclick="startGame('slow')">🐢 Slow (80 BPM)</button>
         <button class="btn btn-primary" onclick="startGame('medium')">🎵 Medium (120 BPM)</button>
         <button class="btn btn-primary" onclick="startGame('fast')">🔥 Fast (160 BPM)</button>
       </div>
-      <div class="mt-6"><h4 class="mb-3">🏆 High Scores</h4><div id="high-scores"></div></div>
-    </div>
-    <div id="game-screen" style="display:none">
-      <div class="game-hud">
-        <span class="hud-item" id="hud-score">Score: 0</span>
-        <span class="hud-item" id="hud-combo">Combo: 0x</span>
-        <span class="hud-item" id="hud-time">Notes: 0</span>
+      <div class="mt-8">
+        <h4 class="mb-4 uppercase text-sm font-bold text-gray-400">🏆 High Scores</h4>
+        <div id="high-scores" class="bg-gray-900 rounded-lg p-3"></div>
       </div>
-      <div class="lanes-container" id="lanes-container">
-        <div class="lane" data-lane="0"></div>
-        <div class="lane" data-lane="1"></div>
-        <div class="lane" data-lane="2"></div>
-        <div class="lane" data-lane="3"></div>
-        <div class="hit-zone"></div>
-      </div>
-      <div class="tap-buttons">
-        <button class="tap-btn" onmousedown="tapLane(0)" ontouchstart="tapLane(0)">◀</button>
-        <button class="tap-btn" onmousedown="tapLane(1)" ontouchstart="tapLane(1)">▼</button>
-        <button class="tap-btn" onmousedown="tapLane(2)" ontouchstart="tapLane(2)">▲</button>
-        <button class="tap-btn" onmousedown="tapLane(3)" ontouchstart="tapLane(3)">▶</button>
-      </div>
-      <div class="hit-feedback hidden" id="hit-feedback"></div>
     </div>
-    <div id="result-screen" class="card text-center" style="display:none">
-      <div style="font-size:3rem">🎶</div>
-      <h2 id="result-title">Song Complete!</h2>
-      <div class="result-stats" id="result-stats"></div>
-      <button class="btn btn-primary mt-4" onclick="goMenu()">Play Again</button>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="card p-4 hidden">
+      <div class="game-hud flex justify-between bg-gray-900 p-3 rounded mb-4 font-mono font-bold text-lg border border-gray-800">
+        <div class="text-primary">Score: <span id="hud-score">0</span></div>
+        <div class="text-accent" id="combo-container" style="display:none">Combo: <span id="hud-combo">0</span>x</div>
+        <div class="text-gray-400">Notes: <span id="hud-time">0</span></div>
+      </div>
+
+      <div class="lanes-container relative h-[400px] bg-black border-2 border-gray-800 rounded flex overflow-hidden shadow-inner w-full max-w-[400px] mx-auto" id="lanes-container">
+        <div class="lane flex-1 border-r border-gray-800 relative z-10" data-lane="0"></div>
+        <div class="lane flex-1 border-r border-gray-800 relative z-10" data-lane="1"></div>
+        <div class="lane flex-1 border-r border-gray-800 relative z-10" data-lane="2"></div>
+        <div class="lane flex-1 relative z-10" data-lane="3"></div>
+        
+        <!-- The Hit Zone -->
+        <div class="hit-zone absolute bottom-[20px] left-0 right-0 h-[40px] border-y-2 border-primary bg-primary/20 z-20 flex" id="hit-zone">
+          <div class="flex-1 border-r border-primary/50 relative"><div class="hit-indicator hidden" id="ind-0"></div></div>
+          <div class="flex-1 border-r border-primary/50 relative"><div class="hit-indicator hidden" id="ind-1"></div></div>
+          <div class="flex-1 border-r border-primary/50 relative"><div class="hit-indicator hidden" id="ind-2"></div></div>
+          <div class="flex-1 relative"><div class="hit-indicator hidden" id="ind-3"></div></div>
+        </div>
+      </div>
+
+      <div class="tap-buttons flex justify-between gap-2 mt-4 w-full max-w-[400px] mx-auto">
+        <button class="tap-btn flex-1 py-4 text-2xl font-bold bg-gray-800 border-2 border-gray-700 rounded transition-colors active:bg-primary" onmousedown="tapLane(0)" ontouchstart="event.preventDefault(); tapLane(0)">◀ (D)</button>
+        <button class="tap-btn flex-1 py-4 text-2xl font-bold bg-gray-800 border-2 border-gray-700 rounded transition-colors active:bg-primary" onmousedown="tapLane(1)" ontouchstart="event.preventDefault(); tapLane(1)">▼ (F)</button>
+        <button class="tap-btn flex-1 py-4 text-2xl font-bold bg-gray-800 border-2 border-gray-700 rounded transition-colors active:bg-primary" onmousedown="tapLane(2)" ontouchstart="event.preventDefault(); tapLane(2)">▲ (J)</button>
+        <button class="tap-btn flex-1 py-4 text-2xl font-bold bg-gray-800 border-2 border-gray-700 rounded transition-colors active:bg-primary" onmousedown="tapLane(3)" ontouchstart="event.preventDefault(); tapLane(3)">▶ (K)</button>
+      </div>
+
+      <div class="hit-feedback absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-bold uppercase pointer-events-none drop-shadow-md z-50 text-center w-full" id="hit-feedback"></div>
     </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="card text-center hidden">
+      <div style="font-size:4rem" class="mb-2">🎶</div>
+      <h2 id="result-title" class="mb-6 font-bold text-3xl">Song Complete!</h2>
+      
+      <div class="result-stats bg-gray-900 rounded p-6 inline-block text-left mx-auto border border-gray-800 mb-6">
+        <div class="flex justify-between mb-2">
+          <span class="text-gray-400 mr-8">Final Score:</span>
+          <span class="font-bold text-xl text-primary" id="final-score">0</span>
+        </div>
+        <div class="flex justify-between mb-2">
+          <span class="text-gray-400">Max Combo:</span>
+          <span class="font-bold" id="final-combo">0</span>
+        </div>
+        <div class="flex justify-between mt-4 pt-4 border-t border-gray-800">
+          <span class="text-gray-400">Rating:</span>
+          <span class="font-bold text-2xl" id="final-rating">C</span>
+        </div>
+        <div class="text-xs text-gray-500 mt-4 text-center" id="final-details"></div>
+      </div>
+
+      <div>
+        <button class="btn btn-primary px-8 py-3 font-bold text-lg" onclick="goMenu()">Play Again</button>
+      </div>
+    </div>
+
   </div>
-  <footer class="footer"><p>&copy; 2026 Rhythm Tap Game.</p></footer>
+  <footer class="footer mt-12"><p>&copy; 2026 Rhythm Tap Game. Keyboard (D, F, J, K) recommended.</p></footer>
   <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
 </body>
 </html>

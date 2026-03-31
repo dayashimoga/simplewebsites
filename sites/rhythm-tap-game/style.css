@@ -1,28 +1,49 @@
-.game-hud { display: flex; justify-content: space-around; padding: 10px; margin-bottom: 8px; }
-.hud-item { padding: 4px 14px; background: var(--color-surface-alt); border-radius: var(--radius-full); font-size: .85rem; font-weight: 700; }
-.lanes-container { position: relative; height: 400px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; background: rgba(0,0,0,.3); border-radius: var(--radius-lg); overflow: hidden; border: 2px solid var(--color-border); }
-.lane { position: relative; background: rgba(255,255,255,.02); }
-.lane:nth-child(1) { background: rgba(239,68,68,.05); }
-.lane:nth-child(2) { background: rgba(59,130,246,.05); }
-.lane:nth-child(3) { background: rgba(34,197,94,.05); }
-.lane:nth-child(4) { background: rgba(168,85,247,.05); }
-.hit-zone { position: absolute; bottom: 40px; left: 0; right: 0; height: 50px; border-top: 3px solid var(--color-primary); border-bottom: 3px solid var(--color-primary); background: rgba(99,102,241,.1); z-index: 2; pointer-events: none; }
-.note { position: absolute; width: calc(100% - 8px); height: 30px; margin: 0 4px; border-radius: var(--radius-sm); z-index: 3; }
-.note[data-lane="0"] { background: linear-gradient(135deg, #ef4444, #f97316); }
-.note[data-lane="1"] { background: linear-gradient(135deg, #3b82f6, #06b6d4); }
-.note[data-lane="2"] { background: linear-gradient(135deg, #22c55e, #84cc16); }
-.note[data-lane="3"] { background: linear-gradient(135deg, #a855f7, #ec4899); }
-.tap-buttons { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; }
-.tap-btn { padding: 16px; background: var(--color-surface-alt); border: 2px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text); font-size: 1.5rem; cursor: pointer; transition: all .1s; user-select: none; -webkit-user-select: none; }
-.tap-btn:active { transform: scale(.92); background: var(--color-primary); border-color: var(--color-primary); }
-.hit-feedback { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 1.5rem; font-weight: 800; padding: 8px 24px; border-radius: var(--radius-md); z-index: 100; animation: hitPop .5s ease forwards; pointer-events: none; }
-.hit-feedback.perfect { color: #22c55e; background: rgba(34,197,94,.15); }
-.hit-feedback.good { color: #eab308; background: rgba(234,179,8,.15); }
-.hit-feedback.miss { color: #ef4444; background: rgba(239,68,68,.15); }
-.hidden { display: none !important; }
-@keyframes hitPop { from { opacity: 1; transform: translate(-50%,-50%) scale(1.2); } to { opacity: 0; transform: translate(-50%,-70%) scale(.8); } }
-.result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
-.stat-box { padding: 16px 8px; background: var(--color-surface-alt); border-radius: var(--radius-md); text-align: center; }
-.stat-val { font-size: 1.8rem; font-weight: 700; background: linear-gradient(135deg, var(--color-primary), var(--color-accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-.stat-label { font-size: .75rem; color: var(--color-text-secondary); margin-top: 4px; }
-.score-row { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid var(--color-border); font-size: .9rem; }
+/* Rhythm Tap Game Styles */
+
+/* Menu */
+#high-scores { padding: 8px; border-radius: var(--radius-sm); font-family: monospace; }
+.score-row { display: flex; justify-content: space-between; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.8rem; }
+.score-row:last-child { border-bottom: none; }
+
+/* Game Area */
+.game-hud { margin-bottom: 16px; font-weight: bold; position: relative; z-index: 50; }
+.lanes-container { position: relative; background: #000; overflow: hidden; height: 400px; max-width: 400px; margin: 0 auto; border: 2px solid var(--color-border); }
+
+/* Lanes */
+.lane { flex: 1; border-right: 1px dashed rgba(255,255,255,0.1); position: relative; }
+.lane:last-child { border-right: none; }
+
+/* Hit Zone */
+.hit-zone { position: absolute; bottom: 20px; left: 0; right: 0; height: 40px; border-top: 2px solid var(--color-primary); border-bottom: 2px solid var(--color-primary); background: rgba(99,102,241,0.2); z-index: 20; display: flex; }
+.hit-indicator { position: absolute; inset: 0; background: rgba(255,255,255,0.8); opacity: 0; transition: opacity 0.1s; }
+.hit-indicator.active { opacity: 1; }
+
+/* Notes */
+.note { 
+  position: absolute; width: 100%; height: 20px; background: var(--gradient-primary); 
+  border-radius: var(--radius-sm); border: 1px solid #fff; box-shadow: 0 0 10px var(--color-primary);
+  /* Use transform for performant rendering */
+  will-change: transform; left: 0; top: 0;
+}
+.note.missed { background: #ef4444; border-color: #ef4444; opacity: 0.5; }
+
+/* Feedback */
+.hit-feedback { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; font-weight: 900; opacity: 0; text-transform: uppercase; z-index: 100; pointer-events: none; text-shadow: 0 4px 8px rgba(0,0,0,0.8); }
+.feedback-pop { animation: popFade 0.5s ease-out forwards; }
+
+@keyframes popFade {
+  0% { transform: translate(-50%, -30%) scale(0.5); opacity: 0; }
+  20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -60%) scale(1); opacity: 0; }
+}
+
+.combo-bounce { animation: bounce 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+@keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); color: #fff; } }
+
+/* Controls */
+.tap-buttons { display: flex; max-width: 400px; margin: 16px auto 0; gap: 8px; }
+.tap-btn { flex: 1; padding: 16px 0; font-size: 1.5rem; background: var(--color-surface); border: 2px solid var(--color-border); border-radius: var(--radius-md); cursor: pointer; user-select: none; transition: all 0.1s; font-weight: bold; color: var(--color-text); }
+.tap-btn:active { background: var(--color-primary); border-color: var(--color-primary); transform: scale(0.95); }
+
+/* Results */
+.result-stats { background: rgba(255,255,255,0.03); padding: 24px; border-radius: var(--radius-lg); text-align: left; display: inline-block; min-width: 250px; }

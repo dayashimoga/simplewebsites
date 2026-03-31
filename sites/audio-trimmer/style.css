@@ -1,31 +1,66 @@
-.drop-zone {
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  border: 2px dashed var(--color-border);
-  background-color: var(--color-bg-surface);
-}
+/* Audio Trimmer Advanced Styles */
 
-.drop-zone.dragover {
-  border-color: var(--color-primary);
-  background-color: rgba(108, 92, 231, 0.1);
-}
+html, body { overflow-x: hidden; }
 
-.waveform-container {
-  cursor: text;
+.app-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 24px; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); margin-top: 16px;
 }
+.header-actions { display: flex; gap: 8px; }
 
+/* Upload Screen */
+.upload-screen { transition: opacity 0.3s; }
+.drop-zone { border-color: rgba(255,255,255,0.1); }
+.drop-zone.drag-over { background: rgba(99,102,241,0.1); border-color: var(--color-primary); border-style: solid; }
+
+/* Editor Screen */
+.editor-screen { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+/* Waveform Setup */
+.waveform-container { box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+.waveform-scroll-view { transition: transform 0.1s; transform-origin: left center; }
+.waveform-canvas { position: absolute; left: 0; top: 0; pointer-events: none; }
+
+/* Handles */
 .trim-handle {
-  cursor: ew-resize;
-  z-index: 10;
+  width: 4px; box-shadow: 0 0 10px rgba(99,102,241,0.8); transition: background 0.1s;
+}
+.trim-handle.active { background: #fff; width: 6px; }
+.handle-label {
+  white-space: nowrap; font-family: monospace; z-index: 50;
+}
+.handle-label::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border-width: 4px; border-style: solid; border-color: var(--color-primary) transparent transparent transparent;
 }
 
-.left-handle:hover, .right-handle:hover {
-  background-color: rgba(108, 92, 231, 0.7);
-}
+/* Playhead Animation */
+#playhead { transition: transform 0.05s linear; will-change: transform; left: 0; }
 
-#playhead {
-  z-index: 20;
+/* Control panel adjustments */
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,0.1); outline: none; transition: 0.2s;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--color-primary); cursor: pointer; transition: 0.2s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+.btn-icon { outline: none; border: 2px solid var(--color-border); }
+.btn-icon:hover { border-color: var(--color-primary); background: rgba(255,255,255,0.05); }
+.btn-icon:active { transform: scale(0.9); }
+
+/* Progress bar */
+#progress-bar { border-radius: 2px; overflow: hidden; }
+#progress-fill { transition: width 0.1s linear; }
+
+@media (max-width: 768px) {
+  .app-header { flex-direction: column; gap: 16px; align-items: flex-start; }
+  .file-info-bar { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .file-info-bar > div { width: 100%; justify-content: space-between; }
+  .grid { grid-template-columns: 1fr; }
 }

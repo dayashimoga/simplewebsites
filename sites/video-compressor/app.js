@@ -209,7 +209,11 @@ async function executeCompression() {
 
         const ext = (videoFile.name.split('.').pop() || 'mp4').toLowerCase();
         const inputName = `input.${ext}`;
-        const outputName = 'output.mp4';
+        const formatSelect = document.getElementById('video-format')?.value || 'mp4';
+        const isGif = formatSelect === 'gif';
+        const isMp3 = formatSelect === 'mp3';
+        const outExt = isGif ? 'gif' : isMp3 ? 'mp3' : 'mp4';
+        const outputName = `output.${outExt}`;
         const crf = qualityToCRF(quality);
         
         // Build CLI args
@@ -229,21 +233,48 @@ async function executeCompression() {
             args.push('-t', duration.toString());
         }
         
-        args.push('-vcodec', 'libx264', '-crf', crf, '-preset', 'ultrafast');
+        
+        // Video Filter array
+        let vFilters = [];
         
         if (resolution && resolution !== 'original') {
-            args.push('-vf', `scale='min(${resolution},iw)':-2`);
+            vFilters.push(isGif ? `scale='min(${resolution},iw)':-1:flags=lanczos` : `scale='min(${resolution},iw)':-2`);
+        }
+        
+        // Rotation & Flip
+        const rot = document.getElementById('video-rotation')?.value;
+        if (rot === 'cw90') vFilters.push('transpose=1');
+        else if (rot === 'ccw90') vFilters.push('transpose=2');
+        else if (rot === '180') vFilters.push('transpose=2,transpose=2');
+        else if (rot === 'hflip') vFilters.push('hflip');
+        else if (rot === 'vflip') vFilters.push('vflip');
+        
+        if (isGif) vFilters.push('split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse');
+        
+        if (vFilters.length > 0) {
+            args.push('-vf', vFilters.join(','));
         }
         
         if (fps && fps !== 'original') {
             args.push('-r', fps.toString());
         }
         
-        if (audio === 'mute') {
+        if (audio === 'mute' && !isMp3 && !isGif) {
             args.push('-an');
         }
         
-        args.push('-movflags', '+faststart', outputName);
+        if (isGif) {
+            args.push('-loop', '0');
+        } else if (isMp3) {
+            // Audio only
+            args.push('-vn', '-acodec', 'libmp3lame', '-q:a', quality === 'high' ? '2' : quality === 'low' ? '6' : '4');
+        } else {
+            // Video encoding
+            args.push('-vcodec', 'libx264', '-crf', crf, '-preset', 'ultrafast');
+            args.push('-movflags', '+faststart');
+        }
+
+        args.push(outputName);
 
         if (statusEl) statusEl.textContent = 'Writing File...';
         await ff.writeFile(inputName, await fetchFile(videoFile));
@@ -253,7 +284,8 @@ async function executeCompression() {
 
         if (statusEl) statusEl.textContent = 'Finalizing Output...';
         const data = await ff.readFile(outputName);
-        outputBlob = new Blob([data.buffer], { type: 'video/mp4' });
+        const mime = isGif ? 'image/gif' : isMp3 ? 'audio/mpeg' : 'video/mp4';
+        outputBlob = new Blob([data.buffer], { type: mime });
 
         if (barWrap) barWrap.classList.add('hidden');
         if (statusEl) statusEl.classList.add('hidden');
@@ -283,9 +315,12 @@ async function executeCompression() {
 
 function downloadVideo() {
     if (!outputBlob) return;
+    const formatSelect = document.getElementById('video-format')?.value || 'mp4';
+    const ext = formatSelect === 'gif' ? 'gif' : formatSelect === 'mp3' ? 'mp3' : 'mp4';
+    
     const link = document.createElement('a');
     link.href = URL.createObjectURL(outputBlob);
-    link.download = `compressed-video-${Date.now()}.mp4`;
+    link.download = `processed-video-${Date.now()}.${ext}`;
     link.click();
 }
 
@@ -300,6 +335,114 @@ function resetCompressor() {
     if (resultUI) resultUI.classList.add('hidden');
 }
 
+// --- New Features ---
+
+/**
+ * Get video metadata from a video element
+ * @param {HTMLVideoElement} videoEl
+ * @returns {{ duration: string, width: number, height: number, readyState: number }}
+ */
+function getVideoMetadata(videoEl) {
+    if (!videoEl) return null;
+    const dur = videoEl.duration || 0;
+    const mins = Math.floor(dur / 60);
+    const secs = Math.floor(dur % 60);
+    return {
+        duration: isNaN(dur) ? 'Unknown' : `${mins}:${secs.toString().padStart(2, '0')}`,
+        durationSeconds: isNaN(dur) ? 0 : Math.round(dur),
+        width: videoEl.videoWidth || 0,
+        height: videoEl.videoHeight || 0,
+        readyState: videoEl.readyState || 0
+    };
+}
+
+/**
+ * Estimate output file size based on settings
+ * @param {number} originalSize - in bytes
+ * @param {string} quality - 'high' | 'medium' | 'low'
+ * @param {string} resolution - 'original' | '1920' | '1280' | '854' | '640'
+ * @returns {{ estimatedSize: number, estimatedSizeFormatted: string, reductionPct: number }}
+ */
+function estimateOutputSize(originalSize, quality, resolution) {
+    if (!originalSize || originalSize <= 0) return { estimatedSize: 0, estimatedSizeFormatted: '0 B', reductionPct: 0 };
+
+    // CRF-based compression ratios (approximate)
+    const qualityRatios = { high: 0.7, medium: 0.45, low: 0.25 };
+    let ratio = qualityRatios[quality] || 0.45;
+
+    // Resolution scaling factor
+    const resFactors = { '1920': 0.9, '1280': 0.65, '854': 0.4, '640': 0.25 };
+    if (resolution && resolution !== 'original' && resFactors[resolution]) {
+        ratio *= resFactors[resolution];
+    }
+
+    const estimated = Math.round(originalSize * ratio);
+    return {
+        estimatedSize: estimated,
+        estimatedSizeFormatted: formatSize(estimated),
+        reductionPct: Math.round(100 - (estimated / originalSize) * 100)
+    };
+}
+
+/**
+ * Set playback speed for preview
+ * @param {number} speed - e.g. 0.5, 1, 1.5, 2
+ */
+function setPlaybackSpeed(speed) {
+    const vid = document.getElementById('video-preview');
+    if (vid) vid.playbackRate = Math.max(0.25, Math.min(4, speed));
+}
+
+/**
+ * Get output filename based on settings
+ * @param {string} originalName
+ * @param {string} quality
+ * @returns {string}
+ */
+function getOutputFilename(originalName, quality) {
+    const base = originalName ? originalName.replace(/\.[^.]+$/, '') : 'video';
+    const suffix = quality === 'high' ? 'hq' : quality === 'low' ? 'lq' : 'mq';
+    return `${base}-${suffix}-${Date.now()}.mp4`;
+}
+
+let processingHistory = [];
+
+/**
+ * Record a processing entry
+ */
+function addHistoryEntry(originalSize, outputSize, quality, duration) {
+    processingHistory.push({
+        timestamp: Date.now(),
+        originalSize,
+        outputSize,
+        savings: calcSavings(originalSize, outputSize),
+        quality,
+        duration: duration || 0
+    });
+    if (processingHistory.length > 50) processingHistory.shift();
+}
+
+function getProcessingHistory() {
+    return [...processingHistory];
+}
+
+function clearProcessingHistory() {
+    processingHistory = [];
+}
+
+/**
+ * Update the estimated size display
+ */
+function updateEstimateDisplay() {
+    if (!videoFile) return;
+    const quality = document.getElementById('btn-hq')?.classList.contains('active') ? 'high'
+        : document.getElementById('btn-lq')?.classList.contains('active') ? 'low' : 'medium';
+    const resolution = document.getElementById('video-resolution')?.value || 'original';
+    const est = estimateOutputSize(videoFile.size, quality, resolution);
+    const el = document.getElementById('estimate-display');
+    if (el) el.textContent = `~${est.estimatedSizeFormatted} (${est.reductionPct}% smaller)`;
+}
+
 if (typeof document !== 'undefined') {
     document.addEventListener('DOMContentLoaded', () => {
         setupDragDrop();
@@ -310,8 +453,11 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         qualityToCRF, formatSize, calcSavings, isVideoFile,
         initFFmpeg, handleUpload, setVideoFile, setTrimFromVideo, setQuality,
-        executeCompression, downloadVideo, resetCompressor,
-        getState: () => ({ videoFile, quality, outputBlob, isFFmpegLoaded: !!ffmpegInstance }),
+        executeCompression, downloadVideo, resetCompressor, showError, setupDragDrop,
+        // New features
+        getVideoMetadata, estimateOutputSize, setPlaybackSpeed, getOutputFilename,
+        addHistoryEntry, getProcessingHistory, clearProcessingHistory, updateEstimateDisplay,
+        getState: () => ({ videoFile, quality, outputBlob, isFFmpegLoaded: !!ffmpegInstance, processingHistory }),
         setVideoFileInternal: f => { videoFile = f; },
         setQualityInternal: q => { quality = q; },
         setOutputBlobInternal: b => { outputBlob = b; },
@@ -323,3 +469,4 @@ if (typeof module !== 'undefined' && module.exports) {
         getOutputBlob: () => outputBlob
     };
 }
+

@@ -804,10 +804,272 @@ function downloadResult(format = 'png') {
   link.click();
 }
 
+// ── Undo / Redo History ─────────────────────
+let historyStack = [];
+let redoStack = [];
+const MAX_HISTORY = 20;
+
+function pushHistory() {
+  if (!currentCanvas) return;
+  historyStack.push(currentCanvas);
+  if (historyStack.length > MAX_HISTORY) historyStack.shift();
+  redoStack = [];
+}
+
+function undo() {
+  if (historyStack.length === 0) { showStatus('Nothing to undo', 'info'); return; }
+  redoStack.push(currentCanvas);
+  currentCanvas = historyStack.pop();
+  updatePreview();
+  updateDimensionDisplays();
+  showStatus('Undone', 'success');
+}
+
+function redo() {
+  if (redoStack.length === 0) { showStatus('Nothing to redo', 'info'); return; }
+  historyStack.push(currentCanvas);
+  currentCanvas = redoStack.pop();
+  updatePreview();
+  updateDimensionDisplays();
+  showStatus('Redone', 'success');
+}
+
+// ── Text Watermark ──────────────────────────
+
+function addTextWatermark(text, options = {}) {
+  if (!currentCanvas) return;
+  if (!text || !text.trim()) { showStatus('Watermark text is required', 'error'); return; }
+
+  pushHistory();
+
+  const fontSize = options.fontSize || 48;
+  const opacity = options.opacity != null ? options.opacity : 0.3;
+  const color = options.color || '#ffffff';
+  const position = options.position || 'center';
+  const angle = options.angle != null ? options.angle : -30;
+
+  const out = createCanvas(currentCanvas.width, currentCanvas.height);
+  const ctx = out.getContext('2d');
+  ctx.drawImage(currentCanvas, 0, 0);
+
+  ctx.globalAlpha = opacity;
+  ctx.fillStyle = color;
+  ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const cx = currentCanvas.width / 2;
+  const cy = currentCanvas.height / 2;
+
+  if (position === 'tile') {
+    const rad = (angle * Math.PI) / 180;
+    const stepX = fontSize * text.length * 0.7;
+    const stepY = fontSize * 2.5;
+    for (let y = -currentCanvas.height; y < currentCanvas.height * 2; y += stepY) {
+      for (let x = -currentCanvas.width; x < currentCanvas.width * 2; x += stepX) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(rad);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
+    }
+  } else {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((angle * Math.PI) / 180);
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+  }
+
+  ctx.globalAlpha = 1;
+  currentCanvas = out;
+  updatePreview();
+  showStatus('Watermark added', 'success');
+}
+
+function applyWatermarkFromUI() {
+  const text = document.getElementById('watermark-text')?.value || '';
+  const fontSize = parseInt(document.getElementById('watermark-size')?.value) || 48;
+  const opacity = parseFloat(document.getElementById('watermark-opacity')?.value) / 100 || 0.3;
+  const color = document.getElementById('watermark-color')?.value || '#ffffff';
+  const position = document.getElementById('watermark-position')?.value || 'center';
+  const angle = parseInt(document.getElementById('watermark-angle')?.value) || -30;
+  addTextWatermark(text, { fontSize, opacity, color, position, angle });
+}
+
+// ── Compression Download ────────────────────
+
+function downloadWithQuality(format, quality) {
+  if (!currentCanvas) return;
+  const q = Math.min(1, Math.max(0.01, quality));
+  const link = document.createElement('a');
+  link.download = `image-toolkit-${Date.now()}.${format}`;
+
+  if (format === 'jpg' || format === 'jpeg') {
+    link.href = currentCanvas.toDataURL('image/jpeg', q);
+  } else if (format === 'webp') {
+    link.href = currentCanvas.toDataURL('image/webp', q);
+  } else {
+    link.href = currentCanvas.toDataURL('image/png');
+  }
+  link.click();
+  showStatus(`Downloaded as ${format.toUpperCase()} (${Math.round(q * 100)}% quality)`, 'success');
+}
+
+// ── Canvas Info ─────────────────────────────
+
+// ── Additional Advanced Features ─────────────────────
+
+function applyWatermark() {
+  const text = document.getElementById('wm-text')?.value || '';
+  const fontSize = parseInt(document.getElementById('wm-size')?.value) || 48;
+  const opacity = parseFloat(document.getElementById('wm-opacity')?.value) || 0.5;
+  const color = document.getElementById('wm-color')?.value || '#ffffff';
+  const position = document.getElementById('wm-pos')?.value || 'center';
+  
+  if (!text) { showStatus('Please enter watermark text', 'error'); return; }
+  addTextWatermark(text, { fontSize, opacity, color, position: position === 'tiled' ? 'tile' : position });
+}
+
+async function viewExif() {
+  if (!originalImage || !originalImage.src) {
+    showStatus('Upload an image first', 'error');
+    return;
+  }
+  const pre = document.getElementById('exif-data');
+  if (!pre) return;
+  pre.classList.remove('hidden');
+  pre.textContent = 'Analyzing...';
+  
+  try {
+    if (typeof exifr === 'undefined') {
+       pre.textContent = 'Exifr library not loaded.';
+       return;
+    }
+    const data = await exifr.parse(originalImage.src, true);
+    if (!data || Object.keys(data).length === 0) {
+      pre.textContent = 'No EXIF metadata found in this image.';
+    } else {
+      pre.textContent = JSON.stringify(data, null, 2);
+    }
+  } catch(e) {
+    pre.textContent = 'Error reading EXIF or cross-origin restrictions applied.';
+    console.error(e);
+  }
+}
+
+function stripExif() {
+  if (!currentCanvas) return;
+  // By recreating a new canvas from the current one and exporting it, EXIF is naturally stripped.
+  const out = createCanvas(currentCanvas.width, currentCanvas.height);
+  const ctx = out.getContext('2d');
+  ctx.drawImage(currentCanvas, 0, 0);
+  currentCanvas = out;
+  updatePreview();
+  showStatus('EXIF data stripped from working canvas. Download now to save clean image.', 'success');
+  const pre = document.getElementById('exif-data');
+  if (pre) pre.classList.add('hidden');
+}
+
+async function startBatchProcess(event) {
+  const files = Array.from(event.target.files).filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
+  
+  const progContainer = document.getElementById('batch-progress');
+  const progBar = document.getElementById('batch-bar');
+  const statusEl = document.getElementById('batch-status');
+  if (progContainer) progContainer.classList.remove('hidden');
+  if (progBar) progBar.style.width = '0%';
+  
+  if (typeof JSZip === 'undefined') {
+      if (statusEl) statusEl.textContent = 'JSZip library not loaded.';
+      return;
+  }
+  
+  const zip = new JSZip();
+  let processed = 0;
+  
+  for (let file of files) {
+      const img = await loadImageAsync(file);
+      if (img) {
+          // 1. Resize
+          let targetW = img.width;
+          let targetH = img.height;
+          const wInput = parseInt(document.getElementById('resize-w')?.value);
+          const hInput = parseInt(document.getElementById('resize-h')?.value);
+          if (wInput && hInput) { targetW = wInput; targetH = hInput; }
+          
+          let tempCanvas = createCanvas(img.width, img.height);
+          tempCanvas.getContext('2d').drawImage(img, 0, 0);
+          tempCanvas = bicubicResize(tempCanvas, targetW, targetH);
+          
+          // 2. Colors
+          const getValDefault = (id, def) => { const v = document.getElementById(id); return v ? parseInt(v.value) : def; };
+          const opts = {
+             brightness: getValDefault('adj-brightness', 100), contrast: getValDefault('adj-contrast', 100),
+             saturation: getValDefault('adj-saturation', 100), hue: getValDefault('adj-hue', 0),
+             sepia: getValDefault('adj-sepia', 0), grayscale: getValDefault('adj-grayscale', 0), invert: getValDefault('adj-invert', 0)
+          };
+          tempCanvas = applyColorAdjustments(tempCanvas, opts);
+          
+          // Extract data
+          const dataUrl = tempCanvas.toDataURL('image/jpeg', 0.9);
+          const base64 = dataUrl.split(',')[1];
+          zip.file(`processed_${file.name.replace(/\.[^/.]+$/, "")}.jpg`, base64, {base64: true});
+      }
+      processed++;
+      if (progBar) progBar.style.width = `${(processed / files.length) * 100}%`;
+      if (statusEl) statusEl.textContent = `Processing: ${processed} / ${files.length}`;
+  }
+  
+  if (statusEl) statusEl.textContent = 'Zipping...';
+  const content = await zip.generateAsync({type: 'blob'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(content);
+  link.download = `batch_processed_${Date.now()}.zip`;
+  link.click();
+  
+  if (statusEl) statusEl.textContent = '✅ Batch complete!';
+  event.target.value = '';
+}
+
+function loadImageAsync(file) {
+  return new Promise(resolve => {
+     const reader = new FileReader();
+     reader.onload = e => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = e.target.result;
+     };
+     reader.readAsDataURL(file);
+  });
+}
+
+function getCanvasInfo() {
+  if (!currentCanvas) return null;
+  const w = currentCanvas.width;
+  const h = currentCanvas.height;
+  const pixels = w * h;
+  const estimatedBytes = pixels * 4; // RGBA
+  const megapixels = (pixels / 1000000).toFixed(2);
+  return {
+    width: w,
+    height: h,
+    pixels,
+    megapixels: parseFloat(megapixels),
+    estimatedSizeMB: parseFloat((estimatedBytes / (1024 * 1024)).toFixed(2)),
+    aspectRatio: w > 0 && h > 0 ? `${(w / h).toFixed(2)}:1` : 'N/A'
+  };
+}
+
 function resetToolkit() {
   originalImage = null;
   currentCanvas = null;
   mergeImages = [];
+  historyStack = [];
+  redoStack = [];
   const uploadArea = document.getElementById('upload-area');
   const workspace = document.getElementById('workspace');
   if (uploadArea) uploadArea.classList.remove('hidden');
@@ -844,12 +1106,16 @@ if (typeof module !== 'undefined' && module.exports) {
     applyColors, resetColorSliders, applySplit, applyMerge, applyUpscale, applyCustomUpscale,
     applyRemoveBg, applySolidBg, clearToTransparentBg, applyImageBg,
     initMergeFlow, handleMergeUpload, renderMergeList, removeMergeImage, switchTab,
-    getState: () => ({ originalImage, currentCanvas, mergeImages, activeTab }),
+    // New features
+    addTextWatermark, applyWatermarkFromUI, downloadWithQuality, getCanvasInfo, applyWatermark, viewExif, stripExif, startBatchProcess,
+    undo, redo, pushHistory,
+    getState: () => ({ originalImage, currentCanvas, mergeImages, activeTab, historyStack, redoStack }),
     setCurrentCanvas: (c) => { currentCanvas = c; },
     setOriginalImage: (img) => { originalImage = img; },
     setMergeImages: (imgs) => { mergeImages = imgs; },
     getCurrentCanvas: () => currentCanvas,
     getOriginalImage: () => originalImage,
-    getMergeImages: () => mergeImages
+    getMergeImages: () => mergeImages,
+    resetHistory: () => { historyStack = []; redoStack = []; }
   };
 }

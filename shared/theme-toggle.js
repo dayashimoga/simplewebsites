@@ -25,6 +25,14 @@ function toggleTheme() {
 
 function createToggleButton() {
   if (document.getElementById('theme-toggle')) return;
+  
+  // If nav injected toggle isn't there, we create a floating one (e.g. for index.html or standalone sites)
+  const navBtn = document.getElementById('nav-theme-toggle');
+  if (navBtn) {
+    updateToggleIcon(document.documentElement.getAttribute('data-theme') || 'dark');
+    return;
+  }
+
   const btn = document.createElement('button');
   btn.id = 'theme-toggle';
   btn.setAttribute('aria-label', 'Toggle dark/light theme');
@@ -60,6 +68,9 @@ function createToggleButton() {
 function updateToggleIcon(theme) {
   const btn = document.getElementById('theme-toggle');
   if (btn) btn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
+  
+  const navBtn = document.getElementById('nav-theme-toggle');
+  if (navBtn) navBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
 }
 
 // Auto-init on DOM ready
