@@ -159,17 +159,7 @@
         <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="BOTTOM_SLOT"></ins>
     </div>
     <footer class="footer"><p>&copy; 2026 QR Code Generator Pro.</p></footer>
-    <!-- Primary CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" onerror="loadFallbackQR()"></script>
-    <!-- Fallback loader -->
-    <script>
-        function loadFallbackQR() {
-            if (typeof QRCode !== 'undefined') return;
-            var s = document.createElement('script');
-            s.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
-            document.head.appendChild(s);
-        }
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
     <script src="app.js"></script>
     <script src="shared-theme-toggle.js"></script>
 </body>

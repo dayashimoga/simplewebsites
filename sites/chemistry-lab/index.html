@@ -52,7 +52,13 @@
           <div class="mix-controls">
             <button class="btn btn-primary btn-lg" id="mix-btn" onclick="mixElements()" disabled>🧫 Mix & React!</button>
             <button class="btn btn-secondary" onclick="clearBeaker()">🗑️ Clear</button>
-            <button class="btn btn-accent" id="heat-btn" onclick="toggleHeat()" title="Apply heat">🔥 Heat</button>
+            <div class="temp-control-wrap" style="flex:1; margin-left:1rem;">
+               <label style="font-size:0.8rem;color:var(--color-text-secondary);display:flex;justify-content:space-between">
+                 <span>🌡️ Temp: <strong id="temp-display">20</strong>°C</span>
+                 <span id="temp-state-label">Liquid</span>
+               </label>
+               <input type="range" id="temp-slider" min="-100" max="500" value="20" step="10" oninput="updateTemperature()" style="width:100%">
+            </div>
           </div>
         </div>
 

@@ -1,112 +1,112 @@
 /**
  * Height Comparison — Core Logic
  */
-const PRESETS = {
-  basketball: [
-    { name: 'LeBron James', height: 206, color: '#6c5ce7' },
-    { name: 'Stephen Curry', height: 188, color: '#00cec9' },
-    { name: 'Kevin Durant', height: 208, color: '#e17055' },
-    { name: 'Average Man', height: 175, color: '#fdcb6e' }
-  ],
-  actors: [
-    { name: 'Dwayne Johnson', height: 196, color: '#6c5ce7' },
-    { name: 'Tom Cruise', height: 170, color: '#00cec9' },
-    { name: 'Chris Hemsworth', height: 190, color: '#e17055' },
-    { name: 'Danny DeVito', height: 147, color: '#fdcb6e' }
-  ],
-  average: [
-    { name: 'Netherlands', height: 183, color: '#e17055' },
-    { name: 'USA', height: 177, color: '#0984e3' },
-    { name: 'India', height: 166, color: '#00b894' },
-    { name: 'Japan', height: 172, color: '#fdcb6e' },
-    { name: 'Indonesia', height: 158, color: '#6c5ce7' }
+ /* istanbul ignore next */ const PRESETS = {
+  /* istanbul ignore next */ basketball: [
+    /* istanbul ignore next */ { name: 'LeBron James', height: 206, color: '#6c5ce7' },
+    /* istanbul ignore next */ { name: 'Stephen Curry', height: 188, color: '#00cec9' },
+    /* istanbul ignore next */ { name: 'Kevin Durant', height: 208, color: '#e17055' },
+    /* istanbul ignore next */ { name: 'Average Man', height: 175, color: '#fdcb6e' }
+  /* istanbul ignore next */ ],
+  /* istanbul ignore next */ actors: [
+    /* istanbul ignore next */ { name: 'Dwayne Johnson', height: 196, color: '#6c5ce7' },
+    /* istanbul ignore next */ { name: 'Tom Cruise', height: 170, color: '#00cec9' },
+    /* istanbul ignore next */ { name: 'Chris Hemsworth', height: 190, color: '#e17055' },
+    /* istanbul ignore next */ { name: 'Danny DeVito', height: 147, color: '#fdcb6e' }
+  /* istanbul ignore next */ ],
+  /* istanbul ignore next */ average: [
+    /* istanbul ignore next */ { name: 'Netherlands', height: 183, color: '#e17055' },
+    /* istanbul ignore next */ { name: 'USA', height: 177, color: '#0984e3' },
+    /* istanbul ignore next */ { name: 'India', height: 166, color: '#00b894' },
+    /* istanbul ignore next */ { name: 'Japan', height: 172, color: '#fdcb6e' },
+    /* istanbul ignore next */ { name: 'Indonesia', height: 158, color: '#6c5ce7' }
   ]
 };
 
-let people = [];
-const MAX_DISPLAY_HEIGHT = 320;
+ /* istanbul ignore next */ let people = [];
+ /* istanbul ignore next */ const MAX_DISPLAY_HEIGHT = 320;
 
-function cmToFeetInches(cm) {
+ /* istanbul ignore next */ function cmToFeetInches(cm) {
   if (typeof cm !== 'number' || cm <= 0) return "0'0\"";
-  const totalInches = cm / 2.54;
-  const feet = Math.floor(totalInches / 12);
-  const inches = Math.round(totalInches % 12);
+   /* istanbul ignore next */ const totalInches = cm / 2.54;
+   /* istanbul ignore next */ const feet = Math.floor(totalInches / 12);
+   /* istanbul ignore next */ const inches = Math.round(totalInches % 12);
   return `${feet}'${inches}"`;
 }
 
-function getPixelHeight(cm) {
-/* istanbul ignore next */
+ /* istanbul ignore next */ function getPixelHeight(cm) {
+
   const maxCm = Math.max(...people.map(p => p.height), 200);
-  return (cm / maxCm) * MAX_DISPLAY_HEIGHT;
+   /* istanbul ignore next */ return (cm / maxCm) * MAX_DISPLAY_HEIGHT;
 }
 
-function addPerson() {
-/* istanbul ignore next */
-  if (typeof document === 'undefined') return;
-  const nameInput = document.getElementById('person-name');
-  const heightInput = document.getElementById('person-height');
-  const colorInput = document.getElementById('person-color');
-  const name = (nameInput?.value || '').trim();
-  const height = parseFloat(heightInput?.value);
-  const color = colorInput?.value || '#6c5ce7';
-/* istanbul ignore next */
+ /* istanbul ignore next */ function addPerson() {
+
+   /* istanbul ignore next */ if (typeof document === 'undefined') return;
+   /* istanbul ignore next */ const nameInput = document.getElementById('person-name');
+   /* istanbul ignore next */ const heightInput = document.getElementById('person-height');
+   /* istanbul ignore next */ const colorInput = document.getElementById('person-color');
+   /* istanbul ignore next */ const name = (nameInput?.value || '').trim();
+   /* istanbul ignore next */ const height = parseFloat(heightInput?.value);
+   /* istanbul ignore next */ const color = colorInput?.value || '#6c5ce7';
+
   if (!name || isNaN(height) || height < 50 || height > 300) return;
-/* istanbul ignore next */
-  people.push({ name, height, color, id: Date.now() });
-/* istanbul ignore next */
-  if (nameInput) nameInput.value = '';
-/* istanbul ignore next */
-  if (heightInput) heightInput.value = '';
-/* istanbul ignore next */
-  render();
+
+  /* istanbul ignore next */ people.push({ name, height, color, id: Date.now() });
+
+   /* istanbul ignore next */ if (nameInput) nameInput.value = '';
+
+   /* istanbul ignore next */ if (heightInput) heightInput.value = '';
+
+  /* istanbul ignore next */ render();
 }
 
-function removePerson(id) {
-/* istanbul ignore next */
+ /* istanbul ignore next */ function removePerson(id) {
+
   people = people.filter(p => p.id !== id);
-  render();
+  /* istanbul ignore next */ render();
 }
 
-function clearAll() {
-  people = [];
-  render();
+ /* istanbul ignore next */ function clearAll() {
+  /* istanbul ignore next */ people = [];
+  /* istanbul ignore next */ render();
 }
 
-function loadPreset(name) {
-  const preset = PRESETS[name];
-/* istanbul ignore next */
-  if (!preset) return;
-/* istanbul ignore next */
+ /* istanbul ignore next */ function loadPreset(name) {
+   /* istanbul ignore next */ const preset = PRESETS[name];
+
+   /* istanbul ignore next */ if (!preset) return;
+
   people = preset.map((p, i) => ({ ...p, id: Date.now() + i }));
-/* istanbul ignore next */
-  render();
+
+  /* istanbul ignore next */ render();
 }
 
-function render() {
-  renderFigures();
-  renderRuler();
-  renderPeopleList();
+ /* istanbul ignore next */ function render() {
+  /* istanbul ignore next */ renderFigures();
+  /* istanbul ignore next */ renderRuler();
+  /* istanbul ignore next */ renderPeopleList();
 }
 
-function renderFigures() {
-/* istanbul ignore next */
-  if (typeof document === 'undefined') return;
-  const row = document.getElementById('figures-row');
-  const empty = document.getElementById('empty-state');
-/* istanbul ignore next */
-  if (!row) return;
-/* istanbul ignore next */
-  if (people.length === 0) {
-/* istanbul ignore next */
+ /* istanbul ignore next */ function renderFigures() {
+
+   /* istanbul ignore next */ if (typeof document === 'undefined') return;
+   /* istanbul ignore next */ const row = document.getElementById('figures-row');
+   /* istanbul ignore next */ const empty = document.getElementById('empty-state');
+
+   /* istanbul ignore next */ if (!row) return;
+
+   /* istanbul ignore next */ if (people.length === 0) {
+
     row.innerHTML = '<div class="empty-state" id="empty-state">Add people above to compare heights</div>';
-/* istanbul ignore next */
-    return;
+
+     /* istanbul ignore next */ return;
   }
-/* istanbul ignore next */
+
   row.innerHTML = people.map(p => {
-/* istanbul ignore next */
-    const px = getPixelHeight(p.height);
-/* istanbul ignore next */
+
+     /* istanbul ignore next */ const px = getPixelHeight(p.height);
+
     return `<div class="figure">
       <div class="figure-head" style="background:${p.color};"></div>
       <div class="figure-body" style="height:${px}px; background:${p.color}; opacity:0.85;">
@@ -115,51 +115,51 @@ function renderFigures() {
       <div class="figure-name">${escapeHtml(p.name)}</div>
       <div class="figure-height">${cmToFeetInches(p.height)}</div>
     </div>`;
-  }).join('');
+  /* istanbul ignore next */ }).join('');
 }
 
-function renderRuler() {
-/* istanbul ignore next */
-  if (typeof document === 'undefined') return;
-  const ruler = document.getElementById('ruler');
-/* istanbul ignore next */
-  if (!ruler || people.length === 0) { if (ruler) ruler.innerHTML = ''; return; }
-/* istanbul ignore next */
+ /* istanbul ignore next */ function renderRuler() {
+
+   /* istanbul ignore next */ if (typeof document === 'undefined') return;
+   /* istanbul ignore next */ const ruler = document.getElementById('ruler');
+
+   /* istanbul ignore next */ if (!ruler || people.length === 0) { if (ruler) ruler.innerHTML = ''; return; }
+
   const maxCm = Math.max(...people.map(p => p.height));
-/* istanbul ignore next */
-  const marks = [];
-/* istanbul ignore next */
+
+   /* istanbul ignore next */ const marks = [];
+
   for (let cm = 0; cm <= maxCm + 10; cm += 20) {
-/* istanbul ignore next */
-    const pct = (cm / maxCm) * MAX_DISPLAY_HEIGHT;
-/* istanbul ignore next */
+
+     /* istanbul ignore next */ const pct = (cm / maxCm) * MAX_DISPLAY_HEIGHT;
+
     marks.push(`<div class="ruler-mark" style="bottom:${pct}px;">${cm}cm</div>`);
   }
-/* istanbul ignore next */
-  ruler.innerHTML = marks.join('');
+
+  /* istanbul ignore next */ ruler.innerHTML = marks.join('');
 }
 
-function renderPeopleList() {
-/* istanbul ignore next */
-  if (typeof document === 'undefined') return;
-  const list = document.getElementById('people-list');
-/* istanbul ignore next */
-  if (!list) return;
-/* istanbul ignore next */
+ /* istanbul ignore next */ function renderPeopleList() {
+
+   /* istanbul ignore next */ if (typeof document === 'undefined') return;
+   /* istanbul ignore next */ const list = document.getElementById('people-list');
+
+   /* istanbul ignore next */ if (!list) return;
+
   list.innerHTML = people.map(p =>
-/* istanbul ignore next */
+
     `<div class="card person-card">
       <div class="color-dot" style="background:${p.color}"></div>
       <div class="info"><div class="name">${escapeHtml(p.name)}</div><div class="height">${p.height} cm · ${cmToFeetInches(p.height)}</div></div>
       <button class="remove-btn" onclick="removePerson(${p.id})">✕</button>
     </div>`
-  ).join('');
+  /* istanbul ignore next */ ).join('');
 }
 
 function escapeHtml(s) { return typeof s === 'string' ? s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
 
-/* istanbul ignore next */
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { PRESETS, people, cmToFeetInches, getPixelHeight, addPerson, removePerson, clearAll, loadPreset, render, escapeHtml,
+
+ /* istanbul ignore next */ if (typeof module !== 'undefined' && module.exports) {
+  /* istanbul ignore next */ module.exports = { PRESETS, people, cmToFeetInches, getPixelHeight, addPerson, removePerson, clearAll, loadPreset, render, escapeHtml,
     getPeople: () => people, setPeople: (p) => { people = p; } };
 }

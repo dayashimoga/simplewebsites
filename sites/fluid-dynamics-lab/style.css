@@ -1,0 +1,119 @@
+.simulation-container {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  background-color: #000;
+}
+
+#fluid-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  cursor: crosshair;
+}
+
+#controls-panel {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 320px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xl);
+  z-index: 10;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #f1f5f9;
+}
+
+#controls-panel.collapsed {
+  transform: translateX(120%);
+}
+
+.control-group {
+  margin-bottom: 1.2rem;
+}
+
+.control-group label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #94a3b8;
+}
+
+.mode-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mode-btn {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+  font-size: 0.9rem;
+}
+
+.mode-btn:hover {
+  background: rgba(30, 41, 59, 0.8);
+}
+
+.mode-btn.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+
+#val-dissipation, #val-viscosity {
+  color: var(--color-primary);
+}
+
+#toggle-ui {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 5;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  #controls-panel {
+    top: auto;
+    bottom: 20px;
+    right: 50%;
+    transform: translateX(50%);
+    width: 90vw;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+  #controls-panel.collapsed {
+    transform: translate(50%, 120%);
+  }
+  #toggle-ui {
+    top: auto;
+    bottom: 20px;
+    right: 20px;
+  }
+}

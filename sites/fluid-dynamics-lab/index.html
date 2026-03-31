@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluid Dynamics Sandbox</title>
+  <meta name="description" content="Interactive fluid physics and particle simulation lab. Explore vorticity, viscosity, and real-time fluid dynamics.">
+  <link rel="stylesheet" href="../shared/shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="simulation-container">
+    <canvas id="fluid-canvas"></canvas>
+    
+    <div class="ui-panel card glass" id="controls-panel">
+      <h2 class="text-gradient" style="margin-top:0">Fluid Dynamics Lab</h2>
+      <p class="text-xs text-dim mb-4">Click and drag cursor to interact with the fluid field.</p>
+      
+      <div class="control-group">
+        <label>Mode</label>
+        <div class="mode-toggles">
+          <button class="mode-btn active" data-mode="dye">🌈 Inject Dye</button>
+          <button class="mode-btn" data-mode="velocity">💨 Push Fluid</button>
+          <button class="mode-btn" data-mode="obstacle">🧱 Draw Obstacle</button>
+        </div>
+      </div>
+      
+      <div class="control-group">
+        <label title="Rate at which dye colors fade out">Dissipation: <span id="val-dissipation">0.98</span></label>
+        <input type="range" id="param-dissipation" min="0.8" max="1.0" step="0.01" value="0.98">
+      </div>
+      
+      <div class="control-group">
+        <label title="How fast the fluid loses momentum">Viscosity: <span id="val-viscosity">0.05</span></label>
+        <input type="range" id="param-viscosity" min="0" max="0.5" step="0.01" value="0.05">
+      </div>
+      
+      <div class="control-group">
+        <label>Display Field</label>
+        <select id="param-display" class="input w-full">
+          <option value="dye">Colorful Dye</option>
+          <option value="velocity">Velocity Vectors</option>
+        </select>
+      </div>
+      
+      <div class="mt-4 flex gap">
+         <button class="btn btn-secondary w-full" id="btn-clear">🗑️ Clear Field</button>
+      </div>
+      
+      <div class="metrics mt-4 text-xs font-mono text-dim">
+         <div class="flex justify-between"><span>Grid Size:</span><span id="metric-grid">64x64</span></div>
+         <div class="flex justify-between"><span>FPS:</span><span id="metric-fps">60</span></div>
+      </div>
+    </div>
+    
+    <button id="toggle-ui" class="btn btn-secondary glass" title="Toggle Controls">⚙️</button>
+  </div>
+  <script src="app.js"></script>
+  <script src="../shared/theme-toggle.js"></script>
+</body>
+</html>
