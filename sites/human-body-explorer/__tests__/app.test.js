@@ -63,24 +63,41 @@ describe('Human Body Explorer', () => {
   test('getters return correctly', () => {
     expect(app.getSystemById('skeletal')).toBeTruthy();
     expect(app.getSystemById('invalid')).toBeNull();
+    expect(app.getSystemById(null)).toBeNull();
     expect(app.getOrganById('brain')).toBeTruthy();
     expect(app.getOrganById('invalid')).toBeNull();
+    expect(app.getOrganById(null)).toBeNull();
     expect(app.getOrgansBySystem('skeletal').length).toBeGreaterThan(0);
     expect(app.getOrgansBySystem(null).length).toBe(app.ORGANS.length);
     expect(app.getScenarioById('hold-breath')).toBeTruthy();
+    expect(app.getScenarioById(null)).toBeNull();
     expect(app.getFoodsForOrgan('brain').length).toBeGreaterThan(0);
+    expect(app.getFoodsForOrgan(null).length).toBe(0);
   });
 
   test('calculators work', () => {
     const bmi = app.calculateBMI(70, 175);
     expect(bmi.bmi).toBeLessThan(25);
+    expect(app.calculateBMI(50, 180).category).toBe('Underweight');
+    expect(app.calculateBMI(85, 175).category).toBe('Overweight');
+    expect(app.calculateBMI(100, 170).category).toBe('Obese');
+    
     const hr = app.calculateHeartRate(30, 70);
     expect(hr.maxHR).toBe(190);
     expect(app.calculateHeartRate(0, 0)).toBeNull();
+    expect(app.calculateHeartRate(null, null)).toBeNull();
+    
     const water = app.calculateWaterIntake(70, 'active');
     expect(water.liters).toBeGreaterThan(2);
+    expect(app.calculateWaterIntake(70, 'sedentary')).toBeTruthy();
+    expect(app.calculateWaterIntake(70, 'moderate')).toBeTruthy();
+    expect(app.calculateWaterIntake(70, 'athlete')).toBeTruthy();
+    expect(app.calculateWaterIntake(70, 'unknown')).toBeTruthy();
     expect(app.calculateWaterIntake(0, 'active')).toBeNull();
+    expect(app.calculateWaterIntake(null, 'active')).toBeNull();
+    
     expect(app.calculateBMI(0, 175)).toBeNull();
+    expect(app.calculateBMI(null, null)).toBeNull();
   });
 
   test('body quiz logic', () => {
@@ -94,6 +111,10 @@ describe('Human Body Explorer', () => {
     
     const res2 = app.checkQuizAnswer('obviously_wrong_answer');
     expect(res2.correct).toBe(false);
+    expect(app.checkQuizAnswer(null)).toBeTruthy();
+    
+    app._resetQuiz();
+    expect(app.checkQuizAnswer('anything')).toBeNull();
   });
 
   test('stats work', () => {
@@ -215,5 +236,40 @@ describe('Human Body Explorer', () => {
 
   test('init', () => {
     app.init();
+  });
+
+  test('UI branches with isolated DOM elements', () => {
+    // 257-298 renderOrganDetail
+    document.body.innerHTML = '<div id="organ-detail"></div>';
+    
+    // hit the false branch for foods.length > 0
+    const foodSpy = jest.spyOn(app, 'getFoodsForOrgan').mockReturnValue([]);
+    app.selectOrgan('brain');
+    
+    // hit the true branch (unmock)
+    foodSpy.mockRestore();
+    // mock sys to test sys optional chaining
+    const sysSpy = jest.spyOn(app, 'getSystemById').mockReturnValue(null);
+    app.selectOrgan('brain'); // toggle off
+    app.selectOrgan('brain'); // toggle on again
+    sysSpy.mockRestore();
+    
+    app.selectOrgan('invalid_organ');
+
+    // scenarios 320-339
+    document.body.innerHTML = '<div id="scenario-detail"></div>';
+    app.showScenario('hold-breath');
+    
+    app.showScenario('invalid_scenario');
+
+    // quiz 346-363
+    document.body.innerHTML = '<div id="quiz-question"></div><div id="quiz-options"></div>';
+    app.renderQuiz();
+    app.answerBodyQuiz('wrong');
+
+    // toggles 442, 452
+    document.body.innerHTML = '<div id="human-svg"></div>';
+    app.toggleXray();
+    app.toggleHeartbeat();
   });
 });

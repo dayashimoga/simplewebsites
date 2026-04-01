@@ -10,7 +10,7 @@ describe('Solar System Explorer', () => {
       <div id="distance-result"></div><div id="speed-selector"></div>
       <input id="gravity-weight" type="number" value="70"/>
       <div id="gravity-results"></div>
-      <div id="comparison-grid"></div>
+      <div id="comparison-grid"></div><div id="comparison-panel"></div><div id="canvas-wrap"></div><div id="comparison-bars"></div>
       <div id="quiz-q"></div><div id="quiz-opts"></div><div id="quiz-fb" class="hidden"></div>
       <div id="quiz-score"></div><div id="quiz-streak"></div>
       <div id="mission-result"></div><select id="mission-dest"></select>
@@ -18,6 +18,13 @@ describe('Solar System Explorer', () => {
       <input id="zoom-slider" type="range" value="1"/>
       <div id="shortcuts-overlay" class="hidden"></div>
       <button id="play-btn"></button>
+      <button id="orbits-btn"></button><button id="asteroids-btn"></button><button id="trails-btn"></button><button id="compare-btn"></button>
+      <div id="speed-label"></div>
+      <div id="info-name"></div><div id="info-mass"></div><div id="info-distance"></div><div id="info-temp"></div>
+      <div id="info-period"></div><div id="info-moons"></div><div id="info-facts"></div><div id="info-gravity"></div>
+      <div id="info-diameter"></div><div id="info-dayLength"></div><div id="info-atmosphere"></div><div id="info-size-bar"></div>
+      <button id="btn-mercury" class="planet-btn"></button>
+      <button id="btn-earth" class="planet-btn"></button>
     `;
     window.requestAnimationFrame = jest.fn(cb => setTimeout(cb, 0));
     window.cancelAnimationFrame = jest.fn();
@@ -85,11 +92,15 @@ describe('Solar System Explorer', () => {
     expect(d).toBeTruthy();
   });
 
-  test('getDistanceAU and getLightTravelTime', () => {
+  test('getDistanceAU and getLightTravelTime boundaries', () => {
     expect(app.getDistanceAU('Earth', 'Mars')).toBeTruthy();
     const lt = app.getLightTravelTime('Earth', 'Mars');
     expect(lt).toBeDefined();
     expect(typeof lt).toBe('string');
+    
+    // Test boundaries for getLightTravelTime
+    expect(app.getLightTravelTime('Earth', 'Venus')).toContain('minutes');
+    expect(app.getLightTravelTime('Earth', 'Neptune')).toContain('hours');
   });
 
   test('formatPlanetInfo returns HTML string', () => {
@@ -219,15 +230,28 @@ describe('Solar System Explorer', () => {
   });
 
   test('handleCanvasClick with valid coords', () => {
+    app.setState({ time: 0, zoom: 1 });
     const canvas = document.getElementById('solar-canvas');
     canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 800 });
+    
+    // Click on empty space (selects Sun)
     app.handleCanvasClick({ clientX: 500, clientY: 400, target: canvas });
+    expect(app.getState().selectedPlanet).toBeNull();
+    
+    // Click on Mercury
+    app.handleCanvasClick({ clientX: 560, clientY: 400, target: canvas });
+    expect(app.getState().selectedPlanet).toBe('Mercury');
   });
 
-  test('handleCanvasMouseMove', () => {
+  test('handleCanvasMouseMove triggers hover', () => {
+    app.setState({ time: 0, zoom: 1 });
     const canvas = document.getElementById('solar-canvas');
     canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 1000, height: 800 });
-    app.handleCanvasMouseMove({ clientX: 500, clientY: 400, target: canvas });
+    app.handleCanvasMouseMove({ clientX: 560, clientY: 400, target: canvas }); // Hover Mercury
+    
+    // Force a draw frame so `isPointInPlanet` is called with mouseX/Y correctly set
+    const ctx = canvas.getContext('2d');
+    app.drawSolarSystem(canvas, ctx);
   });
 
   test('handleKeyboard shortcut keys', () => {

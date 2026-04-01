@@ -64,8 +64,12 @@ describe('Ocean & Marine Explorer', () => {
   });
 
   test('getDepthPressure and Temp', () => {
+    expect(app.getDepthPressure(0)).toBe(1);
     expect(app.getDepthPressure(100)).toBe(11); // 1 + 100/10
     expect(app.getDepthTemperature(100)).toBeLessThan(25);
+    expect(app.getDepthTemperature(500)).toBeLessThan(15);
+    expect(app.getDepthTemperature(2000)).toBeLessThan(5);
+    expect(app.getDepthTemperature(5000)).toBe(1); // hit the Math.max(1, ...)
   });
 
   test('Ocean Quiz', () => {

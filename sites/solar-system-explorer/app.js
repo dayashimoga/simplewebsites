@@ -103,10 +103,9 @@
 
     if (!p1 || !p2) return null;
 
-   const d1 = parseFloat(p1.distance);
-
-   const d2 = parseFloat(p2.distance);
-
+   const getKm = (str) => str.includes('B') ? parseFloat(str) * 1000 : parseFloat(str);
+   const d1 = getKm(p1.distance);
+   const d2 = getKm(p2.distance);
    return Math.abs(d1 - d2).toFixed(1) + 'M km (approx)';
 }
 
@@ -125,7 +124,8 @@
 
     if (!p1 || !p2) return null;
 
-   const distKm = Math.abs(parseFloat(p1.distance) - parseFloat(p2.distance)) * 1e6;
+   const getKm = (str) => str.includes('B') ? parseFloat(str) * 1000 : parseFloat(str);
+   const distKm = Math.abs(getKm(p1.distance) - getKm(p2.distance)) * 1e6;
 
    const lightSpeed = 299792;
 

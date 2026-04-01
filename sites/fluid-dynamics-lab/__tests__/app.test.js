@@ -77,11 +77,16 @@ describe('Fluid Dynamics Lab', () => {
     app.clearFluid();
   });
 
-  test('set_bnd applies boundary conditions', () => {
+  test('set_bnd applies boundary conditions and obstacles', () => {
     app.init();
     const state = app.getState();
     const N = state.N;
     const arr = new Float32Array((N + 2) * (N + 2));
+    
+    // Create an obstacle to cover line 75
+    app.setState({ activeMode: 'obstacle' });
+    app.applyInput(50, 50, 10, 10, true); 
+    
     app.set_bnd(0, arr);
     app.set_bnd(1, arr);
     app.set_bnd(2, arr);
@@ -141,10 +146,32 @@ describe('Fluid Dynamics Lab', () => {
     app.stepDensity();
   });
 
-  test('applyInput adds density', () => {
+  test('applyInput adds density and velocity, handles obstacles', () => {
     app.init();
-    app.applyInput(50, 50, 2, 2, true);
-    app.applyInput(50, 50, 0, 0, false);
+    
+    // Simulate mouse movement inside canvas with dye
+    app.setState({ activeMode: 'dye' });
+    document.getElementById('fluid-canvas').width = 400;
+    document.getElementById('fluid-canvas').height = 400;
+    
+    // Mock the internal mouse object indirectly or via canvas events
+    const canvas = document.getElementById('fluid-canvas');
+    canvas.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 400 });
+    
+    // Dispatch events to set mouse.isDown and mouse px, py
+    canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: 200, clientY: 200 }));
+    canvas.dispatchEvent(new MouseEvent('mousemove', { clientX: 205, clientY: 205 }));
+    app.applyInput();
+    
+    // Velocity mode
+    app.setState({ activeMode: 'velocity' });
+    app.applyInput();
+    
+    // Obstacle mode
+    app.setState({ activeMode: 'obstacle' });
+    app.applyInput();
+    
+    window.dispatchEvent(new Event('mouseup'));
   });
 
   test('applyPreset applies settings', () => {
@@ -207,14 +234,27 @@ describe('Fluid Dynamics Lab', () => {
     app.setGravityDirection(0); app.applyGravity();
   });
 
-  test('render does not crash with different display modes', () => {
+  test('render features with data, vorticity, and streamlines', () => {
     app.init();
-    app.setState({ displayMode: 'density' });
+    
+    // Add data so rendering actually enters the loops
+    app.applyPreset('windTunnel');
+    app.stepVelocity();
+    app.stepDensity();
+    
+    app.setState({ displayMode: 'dye' });
     app.render();
+    
     app.setState({ displayMode: 'velocity' });
     app.render();
+    
     app.setState({ displayMode: 'vorticity' });
     app.render();
+    
+    const canvas = document.getElementById('fluid-canvas');
+    const ctx = canvas.getContext('2d');
+    app.renderVorticity(ctx, 5, 5);
+    app.renderStreamlines(ctx, 5, 5);
   });
 
   test('updateFPS updates display', () => {

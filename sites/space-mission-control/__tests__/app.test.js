@@ -59,10 +59,23 @@ describe('Space Mission Control', () => {
   });
 
   test('formatter functions work', () => {
+    expect(app.formatDistance(1500000000)).toContain('billion km');
     expect(app.formatDistance(1500000)).toContain('million');
+    expect(app.formatDistance(5000)).toContain('K km');
+    expect(app.formatDistance(500)).toContain('km');
+    
+    expect(app.formatMass(2000000)).toContain('million kg');
     expect(app.formatMass(2000)).toContain('tonnes');
+    expect(app.formatMass(500)).toContain('kg');
+    
     expect(app.formatDuration(400)).toContain('years');
+    expect(app.formatDuration(50)).toContain('months');
+    expect(app.formatDuration(10)).toContain('days');
+    
     expect(app.getLightTravelTime(3000000)).toContain('seconds');
+    expect(app.getLightTravelTime(600000000)).toContain('minutes');
+    expect(app.getLightTravelTime(15000000000)).toContain('hours');
+    expect(app.getLightTravelTime(300000000000)).toContain('days');
   });
 
   test('mission readiness checks', () => {
@@ -85,7 +98,15 @@ describe('Space Mission Control', () => {
   test('render methods', () => {
     app.renderDestinations();
     app.renderRockets();
+    
+    // Empty summary panel
+    app._resetMission();
+    app.renderMissionPanel(); 
+    
+    // Ready payload issues
+    app.setState({ selectedDestination: 'mars', selectedRocket: 'chemical', payloadKg: 9999999 });
     app.renderMissionPanel();
+    
     app.renderHistory();
     app.renderLog();
   });
@@ -111,21 +132,22 @@ describe('Space Mission Control', () => {
     expect(app.getState().missionName).toBe('Apollo Test');
   });
 
-  test('launch sequence', () => {
+  test('launch sequence and arriving', () => {
     app.setState({ selectedDestination: 'mars', selectedRocket: 'chemical', payloadKg: 1000, missionName: 'Mars 1' });
     app.startLaunch();
     expect(app.getState().launchPhase).toBe('countdown');
 
-    // Fast-forward countdown
-    jest.advanceTimersByTime(2500); // 10 ticks = 2s
+    // Make sure we hit the countdownValue <= 0 branch
+    jest.advanceTimersByTime(2500); // Wait for countdown to finish 10 ticks + extra
     expect(app.getState().launchPhase).toBe('launch');
     
-    // Fast-forward transit delay
-    jest.advanceTimersByTime(2500);
+    // Wait for the timeout to transition to 'transit'
+    jest.advanceTimersByTime(2500); 
     expect(app.getState().launchPhase).toBe('transit');
     
-    // Fast forward to arrival
-    jest.advanceTimersByTime(50000); 
+    // Advance time enormously to complete transit (pct >= 100)
+    jest.advanceTimersByTime(500000); 
+    expect(app.getState().launchPhase).toBe('arrived');
   });
 
   test('resetLaunch resets state', () => {
@@ -147,6 +169,10 @@ describe('Space Mission Control', () => {
   test('switchView changes active UI', () => {
     app.switchView('history');
     expect(app.getState().activeView).toBe('history');
+    app.switchView('log');
+    expect(app.getState().activeView).toBe('log');
+    app.switchView('planner');
+    app.switchView('launch');
   });
 
   test('init runs', () => {
