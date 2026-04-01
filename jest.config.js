@@ -24,7 +24,8 @@ module.exports = {
         '!**/node_modules/**',
         '!**/dist/**',
         '!**/__tests__/**',
-        '!**/jest.config.js'
+        '!**/jest.config.js',
+        '!**/shared-theme-toggle.js'
     ],
     moduleNameMapper: {
         '^shared/(.*)$': path.resolve(__dirname, 'shared/$1')

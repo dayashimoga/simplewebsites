@@ -1,20 +1,14 @@
 # Dependencies
 node_modules/
 .npm
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Build and Coverage
 dist/
 **/dist/
 coverage/
 **/coverage/
-.nyc_output
-coverage_report/
-coverage_report_final/
-jest_output.json
-jest_output.txt
+.nyc_output/
+coverage_report*/
 
 # Required SEO/Ads files (DO NOT IGNORE)
 !ads.txt
@@ -36,6 +30,8 @@ logs/
 jest_output.json
 test_result.json
 test_results*.json
+debug*/
+temp*/
 debug*
 temp*
 
@@ -54,22 +50,13 @@ coverage.json
 gaps.json
 jest_*.json
 jest_*.txt
-test_result.json
-test_*.log
-test_output.txt
-fail_summary.txt
-coverage_output.txt
-chem*.log
-errors.log
-fluid_err.txt
-weather*.log
-implementation_plan_simplewebsites.md
+test_result*.json
 
 # Specialized Artifacts (Gemini/Antigravity)
 .gemini/
 brain/
-implementation_plan.md
-walkthrough.md
+implementation_plan*.md
+walkthrough*.md
 task.md
 
 # OS Files

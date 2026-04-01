@@ -196,6 +196,23 @@ describe('Human Body Explorer', () => {
     expect(state.quizScore).toBe(5);
   });
 
+  test('handles invalid inputs in calculators', () => {
+    document.body.innerHTML = `
+      <input id="bmi-weight" value="0"/>
+      <input id="bmi-height" value="0"/>
+      <div id="bmi-result"></div>
+      <input id="water-weight" value="0"/>
+      <select id="water-activity"><option value="sedentary">Sedentary</option></select>
+      <div id="water-result"></div>
+      <input id="hr-age" value="0"/>
+      <div id="hr-result"></div>
+    `;
+    app.renderHealthCalc();
+    expect(document.getElementById('bmi-result').innerHTML).toContain('Enter weight');
+    expect(document.getElementById('water-result').innerHTML).toContain('Enter your weight');
+    expect(document.getElementById('hr-result').innerHTML).toContain('Enter your age');
+  });
+
   test('init', () => {
     app.init();
   });
