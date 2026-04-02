@@ -242,6 +242,11 @@ function processHtml(html, siteName, manifest) {
   processed = processed.replace(/(?:\.\.\/)+shared\/shared-styles\.css/g, 'shared-styles.css');
   processed = processed.replace(/(?:\.\.\/)+shared\/styles\.css/g, 'shared-styles.css');
 
+  // Inject Cache-Busting timestamps to force Cloudflare edge cache invalidation
+  const forceBust = Date.now();
+  processed = processed.replace(/"app\.js"/g, `"app.js?v=${forceBust}"`);
+  processed = processed.replace(/"style\.css"/g, `"style.css?v=${forceBust}"`);
+
   return processed;
 }
 
