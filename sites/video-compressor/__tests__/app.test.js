@@ -72,15 +72,11 @@ describe('Video Compressor', () => {
             async readFile(name) { return new Uint8Array([1, 2, 3]); }
         }
 
-        global.Function = function(...args) {
-            if (args.length === 2 && args[0] === 'url' && args[1].includes('import(')) {
-                return async (url) => {
-                    if (url.includes('ffmpeg/ffmpeg')) return { FFmpeg: MockFFmpeg };
-                    if (url.includes('ffmpeg/util')) return { toBlobURL: async () => 'mock_url', fetchFile: async () => new Uint8Array([0]) };
-                    throw new Error('Unknown url');
-                };
-            }
-            return new originalFunction(...args);
+        // Fix UMD-based globals for FFmpeg mock
+        global.FFmpegWASM = { FFmpeg: MockFFmpeg };
+        global.FFmpegUtil = { 
+            toBlobURL: async () => 'mock_url', 
+            fetchFile: async () => new Uint8Array([0]) 
         };
 
         app = require('../app');
