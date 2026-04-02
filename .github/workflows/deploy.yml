@@ -142,6 +142,10 @@ jobs:
 
       - name: Sync Terraform State (Fast Import)
         run: |
+          # Purge any corrupted Zone settings from previous cached states (fixes Mirage block)
+          terraform state rm 'cloudflare_zone_settings_override.security[0]' || true
+          terraform state rm 'cloudflare_email_routing_settings.main[0]' || true
+          
           TRACKED=$(terraform state list | grep 'cloudflare_pages_project.sites' | cut -d'"' -f2 || true)
           for site in $(ls ../sites/); do
             if ! echo "$TRACKED" | grep -q "^${site}$"; then
@@ -165,7 +169,7 @@ jobs:
           TF_VAR_custom_domain: ${{ secrets.CUSTOM_DOMAIN }}
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve -parallelism=1 tfplan
         env:
           TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
