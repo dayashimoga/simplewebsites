@@ -138,16 +138,7 @@ jobs:
           TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
-      - name: Terraform Import (Automated Migration)
-        continue-on-error: true
-        run: |
-          # Dynamically loop over sites in the file system
-          for site in $(ls ../sites/); do
-            terraform import "cloudflare_pages_project.sites[\"$site\"]" "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}/$site" || echo "Project $site not found or already in state"
-          done
-        env:
-          TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
 
       - name: Terraform Plan
         id: plan
