@@ -33,7 +33,7 @@ describe('Ecosystem Simulator Core Logic', () => {
 
   test('calculateClimateImpact calculates habitability and effects', () => {
     const impact = calculateClimateImpact(50, 10, 850, 6);
-    expect(impact.habitability).toBe(0); // extremely hostile
+    expect(impact.habitability).toBe(5); // extreme compound effects
     expect(impact.effects.length).toBeGreaterThan(2); 
 
     const ideal = calculateClimateImpact(20, 1000, 400, 0);

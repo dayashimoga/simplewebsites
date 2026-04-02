@@ -186,8 +186,9 @@ describe('Ocean & Marine Explorer', () => {
 
   test('underwaterTick handles diving slowly', () => {
     app.initUnderwaterCanvas(800, 400);
-    app.setDiveDepth(500);
-    app.setState({ diveDepth: 0 }); // reset
+    app.setDiveDepth(500); // starts diveActive=true, target=500
+    // To reset depth without changing target:
+    app.getState().diveDepth = 0; 
     app.underwaterTick();
     const state = app.getState();
     expect(state.diveDepth).toBeGreaterThan(0);

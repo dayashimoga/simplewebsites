@@ -44,6 +44,16 @@ describe('Video Compressor', () => {
         // Mock createObjectURL
         global.URL.createObjectURL = jest.fn(() => 'blob:test');
 
+        // Mock document.createElement to handle script onload
+        const origCreateElement = document.createElement.bind(document);
+        jest.spyOn(document, 'createElement').mockImplementation((tagName) => {
+            const el = origCreateElement(tagName);
+            if (tagName.toLowerCase() === 'script') {
+                setTimeout(() => { if (el.onload) el.onload(); }, 5);
+            }
+            return el;
+        });
+
         // Mock FFmpeg ESM Loader using Function intercept
         originalFunction = global.Function;
         class MockFFmpeg {
