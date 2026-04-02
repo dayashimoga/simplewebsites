@@ -276,13 +276,15 @@ describe('Video Compressor', () => {
         });
         
         test('initFFmpeg failure handles gracefully', async () => {
-            global.Function = () => { throw new Error('Dyn import failed'); };
+            const originalUtil = global.FFmpegUtil;
+            global.FFmpegUtil = null; // Trigger missing lib error
             await expect(app.initFFmpeg()).rejects.toThrow('Could not load video processing engine');
             expect(document.getElementById('processing-status').textContent).toContain('Engine Load Error');
             
             // Hit missing DOM
             document.getElementById('processing-status').remove();
             await expect(app.initFFmpeg()).rejects.toThrow();
+            global.FFmpegUtil = originalUtil; // Restore
         });
 
         test('executeCompression runs successfully (GIF)', async () => {
