@@ -178,4 +178,38 @@ describe('Space Mission Control', () => {
   test('init runs', () => {
     app.init();
   });
+
+  // NEW VISUAL LAUNCH TESTS
+  test('getLaunchPhaseIndex returns correct index', () => {
+    expect(app.getLaunchPhaseIndex('countdown')).toBe(0);
+    expect(app.getLaunchPhaseIndex('complete')).toBe(7);
+  });
+
+  test('getLaunchPhaseName returns descriptive text', () => {
+    expect(app.getLaunchPhaseName('countdown')).toContain('Countdown');
+    expect(app.getLaunchPhaseName('unknown')).toBe('unknown');
+  });
+
+  test('initLaunchCanvas yields default state', () => {
+    app.initLaunchCanvas();
+    const st = app._getRocketLaunchState();
+    expect(st.phase).toBe('idle');
+    expect(st.stars.length).toBeGreaterThan(0);
+  });
+
+  test('startVisualLaunch sets phase to countdown', () => {
+    app.startVisualLaunch();
+    const st = app._getRocketLaunchState();
+    expect(st.phase).toBe('countdown');
+    app._stopVisualLaunch();
+  });
+
+  test('rocketLaunchTick updates simulation over time', () => {
+    app.startVisualLaunch();
+    // Simulate time passing to trigger liftoff
+    app._setRocketLaunchState({ time: 500 });
+    app.rocketLaunchTick(); 
+    expect(app._getRocketLaunchState().phase).toBe('liftoff');
+    app._stopVisualLaunch();
+  });
 });

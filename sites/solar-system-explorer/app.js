@@ -1151,7 +1151,6 @@ const CONSTELLATIONS = [
   { name: 'Cygnus', stars: 6, emoji: '🦢', mythology: 'The Swan. Contains the Northern Cross and Deneb star.' },
 ];
 
-// Planet rotation periods in hours
 const ROTATION_PERIODS = {
   Mercury: 1407.6, Venus: 5832.5, Earth: 24, Mars: 24.6,
   Jupiter: 9.9, Saturn: 10.7, Uranus: 17.2, Neptune: 16.1
@@ -1161,17 +1160,192 @@ function getRotationPeriod(name) {
   return ROTATION_PERIODS[name] || null;
 }
 
+// ===== MOON SYSTEMS =====
+const MOON_DATA = {
+  Mercury: [],
+  Venus: [],
+  Earth: [
+    { name: 'Moon', diameter: 3474, orbitalPeriod: '27.3 days', distance: '384,400 km', color: '#d1d5db', fact: 'The only celestial body humans have visited. It causes Earth\'s tides.' }
+  ],
+  Mars: [
+    { name: 'Phobos', diameter: 22, orbitalPeriod: '7.7 hours', distance: '9,376 km', color: '#9ca3af', fact: 'Slowly spiraling inward — will crash into Mars in 50 million years!' },
+    { name: 'Deimos', diameter: 12, orbitalPeriod: '30.3 hours', distance: '23,460 km', color: '#6b7280', fact: 'The smallest known moon in the solar system. Named after the Greek god of terror.' }
+  ],
+  Jupiter: [
+    { name: 'Io', diameter: 3643, orbitalPeriod: '1.8 days', distance: '421,700 km', color: '#fbbf24', fact: 'Most volcanically active body in the solar system — over 400 active volcanoes!' },
+    { name: 'Europa', diameter: 3122, orbitalPeriod: '3.6 days', distance: '671,034 km', color: '#93c5fd', fact: 'Has a subsurface ocean with more water than all of Earth\'s oceans combined.' },
+    { name: 'Ganymede', diameter: 5268, orbitalPeriod: '7.2 days', distance: '1,070,400 km', color: '#d4a574', fact: 'Largest moon in the solar system — bigger than Mercury!' },
+    { name: 'Callisto', diameter: 4821, orbitalPeriod: '16.7 days', distance: '1,882,700 km', color: '#78716c', fact: 'Most heavily cratered object in the solar system.' }
+  ],
+  Saturn: [
+    { name: 'Titan', diameter: 5149, orbitalPeriod: '15.9 days', distance: '1,221,870 km', color: '#f59e0b', fact: 'Has a thick atmosphere and lakes of liquid methane — only moon with surface liquids!' },
+    { name: 'Enceladus', diameter: 504, orbitalPeriod: '1.4 days', distance: '237,950 km', color: '#e2e8f0', fact: 'Shoots geysers of water ice into space — may harbor microbial life!' },
+    { name: 'Mimas', diameter: 396, orbitalPeriod: '22.6 hours', distance: '185,520 km', color: '#d1d5db', fact: 'Has a giant crater making it look like the Death Star!' },
+    { name: 'Rhea', diameter: 1528, orbitalPeriod: '4.5 days', distance: '527,108 km', color: '#9ca3af', fact: 'Saturn\'s second-largest moon. May have a faint ring system.' }
+  ],
+  Uranus: [
+    { name: 'Titania', diameter: 1578, orbitalPeriod: '8.7 days', distance: '435,910 km', color: '#a3b8cc', fact: 'Largest moon of Uranus. Named after the queen of fairies in Shakespeare.' },
+    { name: 'Oberon', diameter: 1523, orbitalPeriod: '13.5 days', distance: '583,520 km', color: '#8b9dad', fact: 'Has huge mountains — one is 11 km high!' },
+    { name: 'Miranda', diameter: 472, orbitalPeriod: '1.4 days', distance: '129,390 km', color: '#c4d4e0', fact: 'Has bizarre terrain with 20 km deep canyons — the deepest in the solar system!' }
+  ],
+  Neptune: [
+    { name: 'Triton', diameter: 2707, orbitalPeriod: '5.9 days', distance: '354,759 km', color: '#a5b4c8', fact: 'Orbits backwards (retrograde) — likely a captured Kuiper Belt object. Has nitrogen geysers!' },
+    { name: 'Proteus', diameter: 420, orbitalPeriod: '1.1 days', distance: '117,647 km', color: '#6b7280', fact: 'Irregularly shaped — as large as a body can be without being pulled into a sphere.' }
+  ]
+};
+
+// ===== DWARF PLANETS =====
+const DWARF_PLANETS = [
+  { name: 'Pluto', color: '#c4b5a0', radius: 4, orbit: 430, speed: 0.004, emoji: '⚪', distance: '5.9B km', temp: '-230°C', moons: 5, fact: 'Has a heart-shaped glacier! Reclassified as dwarf planet in 2006.', diameter: '2,377 km' },
+  { name: 'Ceres', color: '#8b8680', radius: 3, orbit: 195, speed: 0.055, emoji: '⚫', distance: '414M km', temp: '-105°C', moons: 0, fact: 'Largest object in the asteroid belt. Has bright salt deposits on surface.', diameter: '946 km' },
+  { name: 'Eris', color: '#e8e4de', radius: 4, orbit: 460, speed: 0.001, emoji: '⭐', distance: '10.1B km', temp: '-243°C', moons: 1, fact: 'More massive than Pluto! Its discovery led to Pluto\'s reclassification.', diameter: '2,326 km' },
+  { name: 'Makemake', color: '#d4a574', radius: 3, orbit: 450, speed: 0.002, emoji: '🟤', distance: '6.8B km', temp: '-243°C', moons: 1, fact: 'Named after the Rapa Nui creation deity. Has no known atmosphere.', diameter: '1,430 km' },
+  { name: 'Haumea', color: '#f0e8dc', radius: 3, orbit: 440, speed: 0.003, emoji: '🥚', distance: '6.4B km', temp: '-241°C', moons: 2, fact: 'Egg-shaped! Spins so fast (4 hours) it\'s stretched into an ellipsoid.', diameter: '1,632 km' }
+];
+
+let showDwarfPlanets = false;
+let planetDetailView = null; // null or planet name
+
+function getMoonsForPlanet(planetName) {
+  return MOON_DATA[planetName] || [];
+}
+
+function getDwarfPlanetByName(name) {
+  if (!name) return null;
+  return DWARF_PLANETS.find(p => p.name.toLowerCase() === name.toLowerCase()) || null;
+}
+
+function toggleDwarfPlanets() {
+  showDwarfPlanets = !showDwarfPlanets;
+  if (typeof document !== 'undefined') {
+    const btn = document.getElementById('dwarfs-btn');
+    if (btn) btn.classList.toggle('active', showDwarfPlanets);
+  }
+}
+
+function openPlanetDetail(planetName) {
+  planetDetailView = planetName;
+  if (typeof document !== 'undefined') {
+    const panel = document.getElementById('planet-detail-view');
+    if (panel) {
+      panel.classList.remove('hidden');
+      renderPlanetDetailView();
+    }
+  }
+}
+
+function closePlanetDetail() {
+  planetDetailView = null;
+  if (typeof document !== 'undefined') {
+    const panel = document.getElementById('planet-detail-view');
+    if (panel) panel.classList.add('hidden');
+  }
+}
+
+function renderPlanetDetailView() {
+  if (typeof document === 'undefined' || !planetDetailView) return;
+  const panel = document.getElementById('planet-detail-view');
+  if (!panel) return;
+  const planet = getPlanetByName(planetDetailView);
+  if (!planet) return;
+  const moons = getMoonsForPlanet(planetDetailView);
+  panel.innerHTML = `
+    <div class="pd-header">
+      <button class="pd-close" onclick="closePlanetDetail()">✕ Close</button>
+      <h2>${planet.emoji} ${planet.name} — Moon System</h2>
+      <p>${planet.facts}</p>
+    </div>
+    <div class="pd-body">
+      <canvas id="planet-detail-canvas" width="500" height="400"></canvas>
+      <div class="pd-moons-list">
+        <h3>🌙 ${moons.length} Moon${moons.length !== 1 ? 's' : ''}</h3>
+        ${moons.length === 0 ? '<p class="text-muted">No known moons</p>' :
+          moons.map((m, i) => `<div class="pd-moon-card" style="border-color:${m.color}">
+            <h4>${m.name}</h4>
+            <div class="pd-moon-stats">
+              <span>⌀ ${m.diameter.toLocaleString()} km</span>
+              <span>🔄 ${m.orbitalPeriod}</span>
+              <span>📏 ${m.distance}</span>
+            </div>
+            <p class="pd-moon-fact">${m.fact}</p>
+          </div>`).join('')
+        }
+      </div>
+    </div>`;
+  drawPlanetDetail();
+}
+
+function drawPlanetDetail() {
+  if (typeof document === 'undefined' || !planetDetailView) return;
+  const canvas = document.getElementById('planet-detail-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2;
+  const planet = getPlanetByName(planetDetailView);
+  if (!planet) return;
+  const moons = getMoonsForPlanet(planetDetailView);
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#0a0a14';
+  ctx.fillRect(0, 0, w, h);
+
+  // Planet (large)
+  const pRadius = Math.min(50, planet.radius * 4);
+  const pGrad = ctx.createRadialGradient(cx - pRadius * 0.2, cy - pRadius * 0.2, 0, cx, cy, pRadius);
+  pGrad.addColorStop(0, '#ffffff30'); pGrad.addColorStop(0.3, planet.color); pGrad.addColorStop(1, planet.color + '80');
+  drawPlanetGlow(ctx, cx, cy, pRadius, planet.glowColor);
+  ctx.beginPath(); ctx.arc(cx, cy, pRadius, 0, Math.PI * 2); ctx.fillStyle = pGrad; ctx.fill();
+  if (planet.name === 'Saturn') {
+    ctx.save(); ctx.globalAlpha = 0.6;
+    ctx.beginPath(); ctx.ellipse(cx, cy, pRadius * 2.2, pRadius * 0.5, -0.2, 0, Math.PI * 2);
+    ctx.strokeStyle = '#e8d282'; ctx.lineWidth = 4; ctx.stroke(); ctx.restore();
+  }
+
+  // Moon orbits and moons
+  moons.forEach((moon, i) => {
+    const orbitR = pRadius + 40 + i * 35;
+    ctx.beginPath(); ctx.ellipse(cx, cy, orbitR, orbitR * 0.5, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1; ctx.stroke();
+    const angle = (time * (0.02 - i * 0.003)) % (Math.PI * 2);
+    const mx = cx + Math.cos(angle) * orbitR;
+    const my = cy + Math.sin(angle) * orbitR * 0.5;
+    const mRadius = Math.max(4, Math.min(10, moon.diameter / 600));
+    ctx.beginPath(); ctx.arc(mx, my, mRadius, 0, Math.PI * 2); ctx.fillStyle = moon.color; ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(moon.name, mx, my - mRadius - 4);
+  });
+}
+
+function getEnhancedComparisonData() {
+  return PLANETS.map(p => {
+    const diam = parseFloat(p.diameter.replace(/,/g, ''));
+    const gravVal = parseFloat(p.gravity);
+    return {
+      name: p.name, color: p.color, emoji: p.emoji,
+      diameter: p.diameter, diamPct: Math.max(2, (diam / 139820) * 100),
+      gravity: p.gravity, gravPct: Math.max(2, (gravVal / 24.79) * 100),
+      moons: p.moons, moonPct: Math.max(2, (p.moons / 146) * 100),
+      temp: p.temp, dayLength: p.dayLength, period: p.period
+    };
+  });
+}
+
   if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     PLANETS, SUN, GRAVITY_MAP, SOLAR_QUIZ, TRAVEL_SPEEDS,
     SPACE_FACTS, CONSTELLATIONS, ROTATION_PERIODS,
+    MOON_DATA, DWARF_PLANETS,
     getPlanetPosition, isPointInPlanet, getPlanetByName,
     getDistanceBetween, getDistanceAU, getLightTravelTime, formatPlanetInfo,
     getSizeComparisonData, getSpaceFact, getRotationPeriod,
+    getMoonsForPlanet, getDwarfPlanetByName, getEnhancedComparisonData,
     calculateWeight, calculateAllWeights, renderGravityCalc,
     getSolarQuizQuestion, renderSolarQuiz, answerSolarQuiz,
     calculateTravelTime, renderMissionCalc,
-    toggleAtmosphere,
+    toggleAtmosphere, toggleDwarfPlanets,
+    openPlanetDetail, closePlanetDetail, renderPlanetDetailView, drawPlanetDetail,
     drawSolarSystem, drawTwinklingStars, drawAsteroidBelt, drawTrails, updateTrails,
     drawPlanetGlow, drawTooltip,
     startSimulation, stopSimulation, togglePlay,
@@ -1182,7 +1356,7 @@ function getRotationPeriod(name) {
     toggleFullscreen, toggleShortcuts,
     resizeCanvas, init,
     generateStars, generateAsteroids,
-     getState: () => ({ isPlaying, speedMultiplier, selectedPlanet, time, zoom, showOrbits, showAsteroidBelt, showTrails, hoveredPlanet, comparisonMode, distanceCalcPlanets, showShortcuts, isFullscreen, showAtmosphere, solarQuizScore, solarQuizStreak }),
+     getState: () => ({ isPlaying, speedMultiplier, selectedPlanet, time, zoom, showOrbits, showAsteroidBelt, showTrails, hoveredPlanet, comparisonMode, distanceCalcPlanets, showShortcuts, isFullscreen, showAtmosphere, solarQuizScore, solarQuizStreak, showDwarfPlanets, planetDetailView }),
      setState: (s) => {
        if (s.isPlaying !== undefined) isPlaying = s.isPlaying;
        if (s.time !== undefined) time = s.time;
@@ -1197,6 +1371,8 @@ function getRotationPeriod(name) {
        if (s.mouseX !== undefined) mouseX = s.mouseX;
        if (s.mouseY !== undefined) mouseY = s.mouseY;
        if (s.showAtmosphere !== undefined) showAtmosphere = s.showAtmosphere;
+       if (s.showDwarfPlanets !== undefined) showDwarfPlanets = s.showDwarfPlanets;
+       if (s.planetDetailView !== undefined) planetDetailView = s.planetDetailView;
     },
      _resetTrails: () => { trailParticles = []; },
      _resetStars: () => { stars = []; },

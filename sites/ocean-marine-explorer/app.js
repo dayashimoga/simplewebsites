@@ -384,18 +384,202 @@
   document.addEventListener('DOMContentLoaded', init);
 }
 
+// ===== ANIMATED UNDERWATER CANVAS =====
+let underwaterAnimId = null;
+let underwaterTime = 0;
+let swimCreatures = [];
+let diveDepth = 0;
+let diveTarget = 0;
+let diveActive = false;
+let bubbles = [];
+
+const SWIM_SPECIES = [
+  { type: 'fish', emoji: '🐟', color: '#3b82f6', speed: 2, size: 12, schoolSize: 5, minDepth: 0, maxDepth: 200 },
+  { type: 'tropical', emoji: '🐠', color: '#f59e0b', speed: 1.5, size: 14, schoolSize: 4, minDepth: 0, maxDepth: 100 },
+  { type: 'jellyfish', emoji: '🪼', color: '#c084fc', speed: 0.5, size: 16, schoolSize: 2, minDepth: 50, maxDepth: 800 },
+  { type: 'shark', emoji: '🦈', color: '#6b7280', speed: 3, size: 24, schoolSize: 1, minDepth: 0, maxDepth: 1000 },
+  { type: 'whale', emoji: '🐋', color: '#1d4ed8', speed: 1, size: 32, schoolSize: 1, minDepth: 50, maxDepth: 2000 },
+  { type: 'seahorse', emoji: '🐡', color: '#f97316', speed: 0.3, size: 10, schoolSize: 3, minDepth: 0, maxDepth: 50 },
+  { type: 'octopus', emoji: '🐙', color: '#dc2626', speed: 1, size: 18, schoolSize: 1, minDepth: 100, maxDepth: 3000 },
+  { type: 'turtle', emoji: '🐢', color: '#22c55e', speed: 1.2, size: 20, schoolSize: 1, minDepth: 0, maxDepth: 300 },
+  { type: 'anglerfish', emoji: '🐡', color: '#fbbf24', speed: 0.4, size: 14, schoolSize: 1, minDepth: 1000, maxDepth: 5000 },
+];
+
+function initUnderwaterCanvas(canvasW, canvasH) {
+  swimCreatures = [];
+  bubbles = [];
+  const w = canvasW || 800, h = canvasH || 400;
+  SWIM_SPECIES.forEach(sp => {
+    for (let s = 0; s < sp.schoolSize; s++) {
+      swimCreatures.push({
+        type: sp.type, emoji: sp.emoji, color: sp.color, speed: sp.speed, size: sp.size,
+        x: Math.random() * w, y: Math.random() * h,
+        dx: (Math.random() > 0.5 ? 1 : -1) * sp.speed * (0.5 + Math.random()),
+        dy: (Math.random() - 0.5) * sp.speed * 0.3,
+        wobble: Math.random() * Math.PI * 2,
+        minDepth: sp.minDepth, maxDepth: sp.maxDepth
+      });
+    }
+  });
+}
+
+function updateSwimCreatures(w, h) {
+  swimCreatures.forEach(c => {
+    c.x += c.dx;
+    c.y += c.dy + Math.sin(c.wobble + underwaterTime * 0.03) * 0.3;
+    c.wobble += 0.02;
+    // Wrap around
+    if (c.x > w + 30) { c.x = -30; c.y = Math.random() * h; }
+    if (c.x < -30) { c.x = w + 30; c.y = Math.random() * h; }
+    if (c.y < 10) c.dy = Math.abs(c.dy);
+    if (c.y > h - 10) c.dy = -Math.abs(c.dy);
+  });
+  // Bubbles
+  if (underwaterTime % 10 === 0) {
+    bubbles.push({ x: Math.random() * w, y: h, r: 2 + Math.random() * 4, speed: 1 + Math.random() * 2 });
+  }
+  bubbles = bubbles.filter(b => { b.y -= b.speed; b.x += Math.sin(b.y * 0.05) * 0.5; return b.y > -10; });
+}
+
+function getVisibleCreatures(depth) {
+  return swimCreatures.filter(c => depth >= c.minDepth && depth <= c.maxDepth);
+}
+
+function drawUnderwaterCanvas(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = canvas.width, h = canvas.height;
+  const depthFactor = Math.min(1, diveDepth / 5000);
+
+  ctx.clearRect(0, 0, w, h);
+  // Water gradient (darker with depth)
+  const waterGrad = ctx.createLinearGradient(0, 0, 0, h);
+  const blue = Math.max(10, 100 - depthFactor * 90);
+  const green = Math.max(5, 60 - depthFactor * 55);
+  waterGrad.addColorStop(0, `rgb(0, ${green + 20}, ${blue + 40})`);
+  waterGrad.addColorStop(1, `rgb(0, ${green}, ${blue})`);
+  ctx.fillStyle = waterGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Light rays (surface)
+  if (depthFactor < 0.3) {
+    const rayAlpha = 0.1 * (1 - depthFactor / 0.3);
+    for (let i = 0; i < 5; i++) {
+      ctx.save();
+      ctx.globalAlpha = rayAlpha;
+      ctx.fillStyle = 'rgba(255,255,200,0.1)';
+      const rx = 100 + i * 160 + Math.sin(underwaterTime * 0.01 + i) * 30;
+      ctx.beginPath();
+      ctx.moveTo(rx, 0);
+      ctx.lineTo(rx - 40, h);
+      ctx.lineTo(rx + 40, h);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // Bubbles
+  bubbles.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,220,255,${0.3 + b.r * 0.05})`;
+    ctx.fill();
+  });
+
+  // Draw creatures
+  const visible = getVisibleCreatures(diveDepth);
+  visible.forEach(c => {
+    ctx.save();
+    ctx.font = `${c.size}px system-ui`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (c.dx < 0) { ctx.scale(-1, 1); ctx.fillText(c.emoji, -c.x, c.y); }
+    else { ctx.fillText(c.emoji, c.x, c.y); }
+    ctx.restore();
+  });
+
+  // Bioluminescence in deep water
+  if (depthFactor > 0.5) {
+    for (let i = 0; i < 5; i++) {
+      const bx = (Math.sin(underwaterTime * 0.005 + i * 2) * 0.5 + 0.5) * w;
+      const by = (Math.cos(underwaterTime * 0.007 + i * 3) * 0.5 + 0.5) * h;
+      const glow = ctx.createRadialGradient(bx, by, 0, bx, by, 30);
+      glow.addColorStop(0, `rgba(100,200,255,${0.2 * depthFactor})`);
+      glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow;
+      ctx.fillRect(bx - 30, by - 30, 60, 60);
+    }
+  }
+
+  // Depth HUD
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(10, 10, 160, 60);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 14px system-ui';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Depth: ${Math.round(diveDepth)}m`, 20, 32);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = '11px system-ui';
+  const pressure = (1 + diveDepth / 10).toFixed(1);
+  ctx.fillText(`Pressure: ${pressure} atm`, 20, 52);
+  const temp = getDepthTemperature(diveDepth);
+  ctx.fillText(`Temp: ${temp}°C`, 100, 52);
+
+  // Pressure bar
+  const pressurePct = Math.min(1, diveDepth / 5000);
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fillRect(w - 30, 10, 15, h - 20);
+  ctx.fillStyle = pressurePct > 0.7 ? '#ef4444' : pressurePct > 0.4 ? '#f59e0b' : '#22c55e';
+  ctx.fillRect(w - 30, 10 + (h - 20) * (1 - pressurePct), 15, (h - 20) * pressurePct);
+}
+
+function underwaterTick() {
+  underwaterTime++;
+  const canvas = typeof document !== 'undefined' ? document.getElementById('underwater-canvas') : null;
+  const w = canvas ? canvas.width : 800;
+  const h = canvas ? canvas.height : 400;
+  updateSwimCreatures(w, h);
+  // Smooth dive
+  if (diveActive) {
+    diveDepth += (diveTarget - diveDepth) * 0.02;
+  }
+  drawUnderwaterCanvas(canvas);
+  underwaterAnimId = requestAnimationFrame(underwaterTick);
+}
+
+function startUnderwaterSim() {
+  if (swimCreatures.length === 0) initUnderwaterCanvas();
+  if (underwaterAnimId) cancelAnimationFrame(underwaterAnimId);
+  underwaterTick();
+}
+
+function stopUnderwaterSim() {
+  if (underwaterAnimId) cancelAnimationFrame(underwaterAnimId);
+  underwaterAnimId = null;
+}
+
+function setDiveDepth(depth) {
+  diveTarget = Math.max(0, Math.min(11000, parseFloat(depth) || 0));
+  diveActive = true;
+}
+
 // --- Exports ---
  if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     OCEAN_ZONES, CREATURES, REEF_FACTORS, FOOD_CHAIN, OCEAN_QUIZ,
+    SWIM_SPECIES,
     getZoneById, getCreatureById, getCreaturesByZone, getCreaturesByGroup,
     calculateReefHealth, getReefStatus, getDepthPressure, getDepthTemperature,
     getOceanQuizQuestion, checkOceanQuizAnswer,
+    initUnderwaterCanvas, updateSwimCreatures, getVisibleCreatures,
+    drawUnderwaterCanvas, underwaterTick, startUnderwaterSim, stopUnderwaterSim, setDiveDepth,
     renderDepthChart, renderZoneDetail, renderCreatures, renderCreatureDetail,
     renderReefSimulator, renderFoodChain, renderOceanQuiz,
     selectZone, selectCreatureById, filterCreatures, updateReefParam,
     answerOceanQuiz, switchOceanTab, init,
-    getState: () => ({ activeZone, selectedCreature, activeOceanTab, reefHealth, reefTemp, reefPh, reefSalinity, reefLight, oceanQuizScore, oceanQuizStreak, oceanQuizTotal, currentOceanQuiz, creatureFilter }),
+    getState: () => ({ activeZone, selectedCreature, activeOceanTab, reefHealth, reefTemp, reefPh, reefSalinity, reefLight, oceanQuizScore, oceanQuizStreak, oceanQuizTotal, currentOceanQuiz, creatureFilter, diveDepth, diveTarget, diveActive, underwaterTime }),
     setState: (s) => {
       if (s.activeZone !== undefined) activeZone = s.activeZone;
       if (s.selectedCreature !== undefined) selectedCreature = s.selectedCreature;
@@ -404,7 +588,11 @@
       if (s.reefSalinity !== undefined) reefSalinity = s.reefSalinity;
       if (s.reefLight !== undefined) reefLight = s.reefLight;
       if (s.creatureFilter !== undefined) creatureFilter = s.creatureFilter;
+      if (s.diveDepth !== undefined) { diveDepth = s.diveDepth; diveTarget = s.diveDepth; }
     },
-    _resetQuiz: () => { oceanQuizScore = 0; oceanQuizStreak = 0; oceanQuizTotal = 0; currentOceanQuiz = null; }
+    _resetQuiz: () => { oceanQuizScore = 0; oceanQuizStreak = 0; oceanQuizTotal = 0; currentOceanQuiz = null; },
+    _resetUnderwater: () => { swimCreatures = []; bubbles = []; underwaterTime = 0; diveDepth = 0; diveTarget = 0; diveActive = false; },
+    _getSwimCreatures: () => swimCreatures,
+    _getBubbles: () => bubbles
   };
 }

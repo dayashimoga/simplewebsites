@@ -409,17 +409,213 @@
   document.addEventListener('DOMContentLoaded', init);
 }
 
+// ===== VISUAL ROCKET LAUNCH CANVAS =====
+let rocketLaunchAnimId = null;
+let rocketLaunchState = { phase: 'idle', y: 0, vy: 0, altitude: 0, stagesDropped: 0, particles: [], stars: [], planetSize: 0, time: 0 };
+const LAUNCH_PHASES = ['countdown', 'liftoff', 'stage1_sep', 'space_transit', 'approach', 'orbit', 'landing', 'complete'];
+
+function getLaunchPhaseIndex(phase) {
+  return LAUNCH_PHASES.indexOf(phase);
+}
+
+function getLaunchPhaseName(phase) {
+  const names = { countdown: '🔢 Countdown', liftoff: '🚀 Liftoff!', stage1_sep: '🔩 Stage Separation', space_transit: '🌌 Space Transit', approach: '🪐 Approaching Target', orbit: '🛰️ Orbit Insertion', landing: '🛬 Landing Sequence', complete: '✅ Mission Complete!' };
+  return names[phase] || phase;
+}
+
+function initLaunchCanvas() {
+  rocketLaunchState = { phase: 'idle', y: 0, vy: 0, altitude: 0, stagesDropped: 0, particles: [], stars: [], planetSize: 2, time: 0 };
+  // Generate stars
+  for (let i = 0; i < 100; i++) {
+    rocketLaunchState.stars.push({ x: Math.random() * 600, y: Math.random() * 500, r: Math.random() * 1.5 + 0.3 });
+  }
+}
+
+function startVisualLaunch() {
+  initLaunchCanvas();
+  rocketLaunchState.phase = 'countdown';
+  rocketLaunchState.y = 400;
+  rocketLaunchState.time = 0;
+  if (rocketLaunchAnimId) cancelAnimationFrame(rocketLaunchAnimId);
+  rocketLaunchTick();
+}
+
+function rocketLaunchTick() {
+  const s = rocketLaunchState;
+  s.time++;
+
+  // Phase transitions
+  if (s.phase === 'countdown' && s.time > 180) { s.phase = 'liftoff'; s.time = 0; }
+  else if (s.phase === 'liftoff' && s.altitude > 100) { s.phase = 'stage1_sep'; s.time = 0; s.stagesDropped = 1; }
+  else if (s.phase === 'stage1_sep' && s.time > 90) { s.phase = 'space_transit'; s.time = 0; }
+  else if (s.phase === 'space_transit' && s.time > 200) { s.phase = 'approach'; s.time = 0; }
+  else if (s.phase === 'approach' && s.planetSize > 80) { s.phase = 'orbit'; s.time = 0; }
+  else if (s.phase === 'orbit' && s.time > 150) { s.phase = 'landing'; s.time = 0; }
+  else if (s.phase === 'landing' && s.time > 120) { s.phase = 'complete'; s.time = 0; }
+
+  // Physics
+  if (s.phase === 'liftoff' || s.phase === 'stage1_sep') {
+    s.vy = Math.min(s.vy + 0.08, 4);
+    s.y -= s.vy;
+    s.altitude += s.vy;
+  }
+  if (s.phase === 'space_transit') { s.altitude += 2; }
+  if (s.phase === 'approach') { s.planetSize += 0.5; }
+  if (s.phase === 'orbit') { /* orbiting */ }
+  if (s.phase === 'landing') { s.y += 1; s.altitude = Math.max(0, s.altitude - 2); }
+
+  // Fire particles
+  if (s.phase === 'liftoff' || s.phase === 'stage1_sep') {
+    for (let i = 0; i < 3; i++) {
+      s.particles.push({ x: 300 + (Math.random() - 0.5) * 10, y: s.y + 30, vx: (Math.random() - 0.5) * 2, vy: Math.random() * 3 + 1, life: 30, color: Math.random() > 0.5 ? '#f59e0b' : '#ef4444' });
+    }
+  }
+  s.particles = s.particles.filter(p => { p.x += p.vx; p.y += p.vy; p.life--; return p.life > 0; });
+
+  if (typeof document !== 'undefined') drawRocketLaunch(document.getElementById('rocket-launch-canvas'));
+
+  if (s.phase !== 'complete' && s.phase !== 'idle') {
+    rocketLaunchAnimId = requestAnimationFrame(rocketLaunchTick);
+  }
+}
+
+function drawRocketLaunch(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = canvas.width, h = canvas.height;
+  const s = rocketLaunchState;
+
+  ctx.clearRect(0, 0, w, h);
+
+  // Sky/space gradient based on altitude
+  const spaceBlend = Math.min(1, s.altitude / 200);
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+  bgGrad.addColorStop(0, `rgba(4,6,10,${spaceBlend})`);
+  bgGrad.addColorStop(0.5, spaceBlend > 0.5 ? '#060810' : '#1a2a4a');
+  bgGrad.addColorStop(1, spaceBlend > 0.7 ? '#0a0c14' : '#4a8ab5');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Stars (visible in space)
+  if (spaceBlend > 0.3) {
+    s.stars.forEach(star => {
+      ctx.fillStyle = `rgba(255,255,255,${spaceBlend * 0.8})`;
+      ctx.beginPath();
+      ctx.arc(star.x, (star.y + s.time * 0.3) % h, star.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  // Ground (visible early)
+  if (spaceBlend < 0.8) {
+    ctx.fillStyle = '#1a3a1a';
+    ctx.fillRect(0, h - 50 + Math.min(0, s.y - 400), w, 50);
+    // Launch pad
+    ctx.fillStyle = '#4b5563';
+    ctx.fillRect(260, h - 55 + Math.min(0, s.y - 400), 80, 8);
+  }
+
+  // Fire & smoke particles
+  s.particles.forEach(p => {
+    const alpha = p.life / 30;
+    ctx.fillStyle = p.color === '#f59e0b' ? `rgba(245,158,11,${alpha})` : `rgba(239,68,68,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3 + (30 - p.life) * 0.2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Planet approaching
+  if (s.phase === 'approach' || s.phase === 'orbit' || s.phase === 'landing' || s.phase === 'complete') {
+    const dest = getDestinationById(selectedDestination);
+    const pColor = dest ? dest.color || '#e0603e' : '#e0603e';
+    ctx.beginPath();
+    ctx.arc(w / 2, h + s.planetSize * 0.5 - 50, s.planetSize, 0, Math.PI * 2);
+    const pGrad = ctx.createRadialGradient(w / 2, h + s.planetSize * 0.5 - 50, 0, w / 2, h + s.planetSize * 0.5 - 50, s.planetSize);
+    pGrad.addColorStop(0, pColor); pGrad.addColorStop(1, pColor + '60');
+    ctx.fillStyle = pGrad;
+    ctx.fill();
+  }
+
+  // Rocket
+  if (s.phase !== 'idle' && s.phase !== 'complete') {
+    const rx = s.phase === 'orbit' ? w / 2 + Math.cos(s.time * 0.03) * 60 : 300;
+    const ry = s.phase === 'orbit' ? 200 + Math.sin(s.time * 0.03) * 30 :
+               s.phase === 'space_transit' || s.phase === 'approach' ? 200 :
+               s.phase === 'landing' ? Math.min(h - 80, 200 + s.time) : Math.max(50, s.y);
+    // Body
+    ctx.fillStyle = '#d1d5db';
+    ctx.beginPath();
+    ctx.moveTo(rx, ry - 25);
+    ctx.lineTo(rx - 8, ry + 15);
+    ctx.lineTo(rx + 8, ry + 15);
+    ctx.closePath();
+    ctx.fill();
+    // Nose
+    ctx.fillStyle = '#ef4444';
+    ctx.beginPath();
+    ctx.moveTo(rx, ry - 25);
+    ctx.lineTo(rx - 5, ry - 15);
+    ctx.lineTo(rx + 5, ry - 15);
+    ctx.closePath();
+    ctx.fill();
+    // Fins
+    ctx.fillStyle = '#6b7280';
+    ctx.beginPath(); ctx.moveTo(rx - 8, ry + 15); ctx.lineTo(rx - 14, ry + 22); ctx.lineTo(rx - 6, ry + 15); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(rx + 8, ry + 15); ctx.lineTo(rx + 14, ry + 22); ctx.lineTo(rx + 6, ry + 15); ctx.fill();
+    // Stage markers
+    if (s.stagesDropped < 1) {
+      ctx.fillStyle = '#9ca3af';
+      ctx.fillRect(rx - 10, ry + 15, 20, 8);
+    }
+  }
+
+  // Phase label
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 16px system-ui';
+  ctx.textAlign = 'center';
+  ctx.fillText(getLaunchPhaseName(s.phase), w / 2, 30);
+
+  // Altitude
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '12px system-ui';
+  ctx.fillText(`Altitude: ${Math.round(s.altitude)} km`, w / 2, 50);
+
+  // Countdown
+  if (s.phase === 'countdown') {
+    const count = Math.max(0, 3 - Math.floor(s.time / 60));
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 60px system-ui';
+    ctx.fillText(count > 0 ? count.toString() : 'GO!', w / 2, h / 2);
+  }
+
+  // Complete
+  if (s.phase === 'complete') {
+    ctx.fillStyle = '#22c55e';
+    ctx.font = 'bold 24px system-ui';
+    ctx.fillText('🎉 Mission Successful!', w / 2, h / 2);
+  }
+}
+
+function stopVisualLaunch() {
+  if (rocketLaunchAnimId) cancelAnimationFrame(rocketLaunchAnimId);
+  rocketLaunchAnimId = null;
+  rocketLaunchState.phase = 'idle';
+}
+
 // --- Exports ---
  if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    DESTINATIONS, ROCKETS, HISTORICAL_MISSIONS,
+    DESTINATIONS, ROCKETS, HISTORICAL_MISSIONS, LAUNCH_PHASES,
     getDestinationById, getRocketById, calculateTravelTime, calculateFuelNeeded,
     calculateDeltaV, formatDistance, formatMass, formatDuration, getLightTravelTime,
     getMissionReadiness, getMissionSummary,
+    getLaunchPhaseIndex, getLaunchPhaseName, initLaunchCanvas,
+    startVisualLaunch, stopVisualLaunch, drawRocketLaunch, rocketLaunchTick,
     renderDestinations, renderRockets, renderMissionPanel, renderLaunchView, renderHistory, renderLog,
     selectDestination, selectRocket, updatePayload, updateCrew, updateMissionName,
     startLaunch, resetLaunch, addMissionLog, switchView, init,
-    getState: () => ({ selectedDestination, selectedRocket, payloadKg, crewSize, missionName, missionLog, launchPhase, countdownValue, missionElapsed, activeView }),
+    getState: () => ({ selectedDestination, selectedRocket, payloadKg, crewSize, missionName, missionLog, launchPhase, countdownValue, missionElapsed, activeView, rocketLaunchState }),
     setState: (s) => {
       if (s.selectedDestination !== undefined) selectedDestination = s.selectedDestination;
       if (s.selectedRocket !== undefined) selectedRocket = s.selectedRocket;
@@ -430,6 +626,9 @@
       if (s.activeView !== undefined) activeView = s.activeView;
     },
     _resetMission: () => { selectedDestination = null; selectedRocket = null; payloadKg = 5000; crewSize = 0; launchPhase = null; missionElapsed = 0; missionLog = []; },
-    _clearTimer: () => { if (launchTimer) clearInterval(launchTimer); launchTimer = null; }
+    _clearTimer: () => { if (launchTimer) clearInterval(launchTimer); launchTimer = null; },
+    _stopVisualLaunch: stopVisualLaunch,
+    _getRocketLaunchState: () => rocketLaunchState,
+    _setRocketLaunchState: (s) => { Object.assign(rocketLaunchState, s); }
   };
 }

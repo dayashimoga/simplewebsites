@@ -285,4 +285,34 @@ describe('Solar System Explorer', () => {
     expect(s.zoom).toBe(2.5);
     expect(s.showOrbits).toBe(true);
   });
+
+  // NEW FEATURES TESTS
+  test('getSpaceFact returns a string', () => {
+    expect(typeof app.getSpaceFact()).toBe('string');
+  });
+
+  test('getRotationPeriod returns correct period', () => {
+    expect(app.getRotationPeriod('Earth')).toBe(24);
+    expect(app.getRotationPeriod('Invalid')).toBeNull();
+  });
+
+  test('getMoonsForPlanet returns array of moons', () => {
+    expect(app.getMoonsForPlanet('Earth').length).toBe(1);
+    expect(app.getMoonsForPlanet('Jupiter').length).toBeGreaterThan(0);
+    expect(app.getMoonsForPlanet('Mercury').length).toBe(0);
+  });
+
+  test('getDwarfPlanetByName returns correct dwarf planet', () => {
+    expect(app.getDwarfPlanetByName('pluto').name).toBe('Pluto');
+    expect(app.getDwarfPlanetByName('Invalid')).toBeNull();
+  });
+
+  test('getEnhancedComparisonData calculates percentages correctly', () => {
+    const data = app.getEnhancedComparisonData();
+    expect(data.length).toBeGreaterThan(0);
+    const earth = data.find(p => p.name === 'Earth');
+    expect(earth.diamPct).toBeGreaterThan(0);
+    expect(earth.gravPct).toBeGreaterThan(0);
+    expect(earth.moonPct).toBeGreaterThan(0);
+  });
 });

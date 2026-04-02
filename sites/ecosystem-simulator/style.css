@@ -1,0 +1,86 @@
+.text-gradient-eco { background: linear-gradient(135deg, #22c55e, #10b981, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.eco-tabs { display: flex; gap: 4px; flex-wrap: wrap; padding: 8px; }
+.eco-tab-btn { padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 8px; background: transparent; color: var(--color-text); cursor: pointer; transition: all 0.3s; font-size: 0.85rem; }
+.eco-tab-btn:hover { border-color: #22c55e; }
+.eco-tab-btn.active { background: linear-gradient(135deg, #22c55e, #10b981); color: white; border-color: transparent; }
+.eco-layout { display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
+.eco-canvas-wrap { padding: 0; overflow: hidden; }
+#eco-canvas { width: 100%; display: block; border-radius: 12px 12px 0 0; }
+.eco-controls { display: flex; gap: 8px; padding: 12px; flex-wrap: wrap; align-items: center; border-top: 1px solid var(--color-border); }
+.eco-sidebar { display: flex; flex-direction: column; gap: 12px; }
+.eco-stats-panel, .eco-events-panel { padding: 16px; }
+.pop-stat-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.pop-emoji { font-size: 1.2rem; }
+.pop-name { flex: 1; font-size: 0.85rem; }
+.pop-count { font-weight: bold; min-width: 30px; text-align: right; }
+.pop-bar { width: 60px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden; }
+.pop-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.event-item { padding: 4px 0; font-size: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+.event-time { color: var(--color-text-secondary); margin-right: 8px; }
+.pop-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+.pop-graph-wrap { padding: 16px; }
+#pop-graph-canvas { width: 100%; border-radius: 8px; }
+.pop-info { padding: 16px; }
+.lv-param { margin-bottom: 12px; }
+.lv-param label { display: block; font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 4px; }
+.lv-param input[type="range"] { width: calc(100% - 50px); }
+.lv-param span { font-weight: bold; margin-left: 8px; }
+.gen-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.gen-panel, .gen-info { padding: 20px; }
+.gen-cross { display: flex; align-items: center; gap: 16px; margin: 16px 0; }
+.gen-parent { flex: 1; }
+.gen-parent h4 { margin-bottom: 8px; }
+.gen-parent select { margin-bottom: 8px; }
+.gen-x { font-size: 2rem; color: var(--color-accent); }
+.gen-offspring-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gen-offspring-card { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; text-align: center; border: 1px solid var(--color-border); }
+.gen-off-num { font-size: 0.7rem; color: var(--color-text-secondary); display: block; }
+.gen-off-phenotype { display: block; font-size: 0.85rem; margin: 4px 0; }
+.gen-off-genotype { font-family: monospace; font-size: 0.75rem; color: var(--color-accent); }
+.gen-ratio-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.85rem; }
+.punnett-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.punnett-table th, .punnett-table td { border: 1px solid var(--color-border); padding: 12px; text-align: center; font-family: monospace; font-size: 1.1rem; }
+.punnett-table th { background: rgba(255,255,255,0.05); }
+.punnett-table .dominant { background: rgba(34,197,94,0.15); color: #22c55e; }
+.punnett-table .recessive { background: rgba(239,68,68,0.1); color: #f87171; }
+.climate-layout { display: grid; grid-template-columns: 300px 1fr; gap: 16px; }
+.climate-controls { padding: 20px; }
+.climate-slider { margin-bottom: 16px; }
+.climate-slider label { display: block; font-size: 0.85rem; margin-bottom: 6px; }
+.climate-slider input[type="range"] { width: 100%; }
+.climate-display { padding: 24px; }
+.climate-biome { text-align: center; margin-bottom: 16px; }
+.climate-biome-emoji { font-size: 3rem; display: block; }
+.climate-health-bar { height: 12px; background: rgba(255,255,255,0.1); border-radius: 6px; overflow: hidden; margin: 12px 0; }
+.climate-fill { height: 100%; border-radius: 6px; transition: width 0.5s, background 0.5s; }
+.climate-score { text-align: center; font-size: 1.4rem; font-weight: bold; margin-bottom: 16px; }
+.climate-effects { display: flex; flex-direction: column; gap: 8px; }
+.climate-effect { padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; }
+.climate-effect.good { background: rgba(34,197,94,0.15); border-left: 3px solid #22c55e; }
+.climate-effect.info { background: rgba(59,130,246,0.15); border-left: 3px solid #3b82f6; }
+.climate-effect.warning { background: rgba(245,158,11,0.15); border-left: 3px solid #f59e0b; }
+.climate-effect.danger { background: rgba(239,68,68,0.15); border-left: 3px solid #ef4444; }
+.foodweb-container { padding: 24px; }
+.foodweb-grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; margin-bottom: 20px; }
+.fw-node { padding: 12px 20px; border: 2px solid; border-radius: 12px; cursor: pointer; text-align: center; transition: all 0.3s; background: rgba(255,255,255,0.03); }
+.fw-node:hover { transform: scale(1.05); box-shadow: 0 0 15px rgba(255,255,255,0.1); }
+.fw-emoji { font-size: 1.5rem; display: block; }
+.fw-name { font-weight: bold; font-size: 0.85rem; display: block; }
+.fw-type { font-size: 0.7rem; color: var(--color-text-secondary); text-transform: uppercase; }
+.fw-detail { margin-top: 12px; }
+.fw-section { margin: 12px 0; }
+.fw-section h5 { margin-bottom: 8px; color: var(--color-text-secondary); }
+.fw-tag { display: inline-block; padding: 4px 12px; border: 1px solid; border-radius: 20px; margin: 4px; font-size: 0.85rem; }
+.quiz-layout { max-width: 600px; margin: 0 auto; }
+.quiz-panel { padding: 24px; }
+.quiz-question { font-size: 1.1rem; font-weight: 600; margin: 16px 0; }
+.quiz-options { display: flex; flex-direction: column; gap: 8px; }
+.eq-btn, .oq-btn, .pq-btn { padding: 12px; border: 1px solid var(--color-border); border-radius: 8px; background: transparent; color: var(--color-text); cursor: pointer; transition: all 0.2s; text-align: left; font-size: 0.95rem; }
+.eq-btn:hover, .oq-btn:hover, .pq-btn:hover { border-color: var(--color-accent); background: rgba(255,255,255,0.05); }
+.eq-btn.correct, .oq-btn.correct, .pq-btn.correct { background: rgba(34,197,94,0.2); border-color: #22c55e; }
+.eq-btn.wrong, .oq-btn.wrong, .pq-btn.wrong { background: rgba(239,68,68,0.2); border-color: #ef4444; }
+.quiz-feedback { padding: 10px; text-align: center; font-weight: bold; border-radius: 8px; margin-top: 8px; }
+.quiz-stats { display: flex; justify-content: space-around; }
+@media (max-width: 768px) {
+  .eco-layout, .pop-layout, .gen-layout, .climate-layout { grid-template-columns: 1fr; }
+}

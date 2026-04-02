@@ -68,65 +68,68 @@ async function initFFmpeg() {
      if (statusEl) { statusEl.textContent = 'Loading AI Engine... (This may take a minute)'; statusEl.classList.remove('hidden'); }
 
     try {
-        // Dynamically import both libraries via ESM to avoid cross-origin Worker issues
-        const importFn = new Function('url', 'return import(url)');
+        // Use UMD builds exclusively and toBlobURL for ALL scripts
+        // This avoids cross-origin Worker construction errors
+        const utilUrl = 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js';
         
-        const [ffmpegModule, utilModule] = await Promise.all([
-            importFn('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js'),
-            importFn('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js')
-        ]);
+        // Load util first via script tag to get toBlobURL
+        await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = utilUrl;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+        
+        // Load FFmpeg UMD via script tag
+        await new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js';
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
 
+        const { FFmpeg } = FFmpegWASM || window.FFmpegWASM || {};
+        const { toBlobURL, fetchFile } = FFmpegUtil || window.FFmpegUtil || {};
 
-        const { FFmpeg } = ffmpegModule;
-
-        const { toBlobURL, fetchFile } = utilModule;
+        if (!FFmpeg || !toBlobURL) {
+            throw new Error('Failed to load FFmpeg libraries');
+        }
 
         // Store fetchFile globally for use during compression
-
         window._ffmpegFetchFile = fetchFile;
-
 
         const ff = new FFmpeg();
         
-
         ff.on('log', ({ message }) => {
-
             const logEl = document.getElementById('ffmpeg-log');
-
             if (logEl) logEl.textContent = message;
         });
         
-
         ff.on('progress', ({ progress }) => {
-
             const pct = Math.min(100, Math.max(0, Math.round(progress * 100)));
-
             const bar = document.getElementById('progress-bar');
-
             const sEl = document.getElementById('processing-status');
-
-
             if (bar) bar.style.width = pct + '%';
-
             if (sEl) sEl.textContent = `Processing Video... ${pct}%`;
         });
 
-        // Use toBlobURL for ALL artifacts to bypass cross-origin Worker restrictions
+        // Convert ALL core files to blob URLs (same-origin) to bypass Worker restrictions
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
         const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
         const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
         
+        // Also blob-URL the worker script to ensure same-origin
         let workerURL;
         try {
             workerURL = await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
-        } catch (we) { /* fallback/ignore */ }
+        } catch (we) { /* worker optional — core will use inline worker as fallback */ }
 
         await ff.load(workerURL ? { coreURL, wasmURL, workerURL } : { coreURL, wasmURL });
         
         if (statusEl) statusEl.classList.add('hidden');
-
         ffmpegInstance = ff;
-
         return ff;
     } catch (e) {
         console.error('FFmpeg init error:', e);

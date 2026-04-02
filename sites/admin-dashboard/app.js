@@ -126,11 +126,14 @@ async function showDashboard(showLoader = false) {
         }
 
         if (!statusRes.ok) {
-            // Local fallback for testing without Cloudflare KV
-            if (authKey === 'admin' || authKey === 'mysecretkey123') {
+            // Local/offline fallback: accept any non-empty passkey when API is unavailable
+            // Real authentication is handled by the API when it's accessible
+            if (authKey && authKey.trim().length > 0 && (statusRes.status === 503 || statusRes.status === 0 || !statusRes.status)) {
                 if (typeof document !== 'undefined') {
                     const auth = document.getElementById('auth-modal');
                     if (auth) auth.style.display = 'none';
+                    const notice = document.getElementById('offline-notice');
+                    if (notice) notice.classList.remove('hidden');
                 }
                 renderGrid(sites, {});
                 return true;

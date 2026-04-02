@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem & Evolution Simulator — Interactive Biology</title>
+  <meta name="description" content="Build ecosystems, watch populations evolve, simulate predator-prey dynamics, genetic mutations, and climate change effects. Interactive biology for all ages.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-4">
+      <h1>🧬 <span class="text-gradient-eco">Ecosystem & Evolution Simulator</span></h1>
+      <p>Build ecosystems, watch populations evolve, and explore the balance of nature!</p>
+    </section>
+
+    <div class="eco-tabs card glass mb-4">
+      <button class="eco-tab-btn active" onclick="switchEcoTab('ecosystem')">🌿 Ecosystem</button>
+      <button class="eco-tab-btn" onclick="switchEcoTab('population')">📊 Population</button>
+      <button class="eco-tab-btn" onclick="switchEcoTab('genetics')">🧬 Genetics</button>
+      <button class="eco-tab-btn" onclick="switchEcoTab('climate')">🌡️ Climate</button>
+      <button class="eco-tab-btn" onclick="switchEcoTab('foodweb')">🕸️ Food Web</button>
+      <button class="eco-tab-btn" onclick="switchEcoTab('quiz')">🎯 Quiz</button>
+    </div>
+
+    <!-- Tab: Ecosystem Canvas -->
+    <div class="eco-tab-content" id="etab-ecosystem">
+      <div class="eco-layout">
+        <div class="eco-canvas-wrap card glass">
+          <canvas id="eco-canvas" width="800" height="500"></canvas>
+          <div class="eco-controls">
+            <button class="ctrl-btn active" id="eco-play-btn" onclick="toggleEcoSim()">⏸ Pause</button>
+            <div class="slider-ctrl">
+              <label>Speed</label>
+              <input type="range" min="0.5" max="5" step="0.5" value="1" oninput="setEcoSpeed(parseFloat(this.value))">
+            </div>
+            <button class="ctrl-btn" onclick="addCreatures('rabbit', 5)">🐰 +Rabbits</button>
+            <button class="ctrl-btn" onclick="addCreatures('fox', 2)">🦊 +Foxes</button>
+            <button class="ctrl-btn" onclick="addCreatures('eagle', 1)">🦅 +Eagle</button>
+            <button class="ctrl-btn" onclick="addCreatures('plant', 10)">🌿 +Plants</button>
+            <button class="ctrl-btn" onclick="resetEcosystem()">🔄 Reset</button>
+          </div>
+        </div>
+        <div class="eco-sidebar">
+          <div class="card glass eco-stats-panel">
+            <h3>📊 Live Population</h3>
+            <div id="eco-pop-stats"></div>
+          </div>
+          <div class="card glass eco-events-panel">
+            <h3>📋 Events Log</h3>
+            <div id="eco-events-log"><p class="text-dim">Ecosystem starting...</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Population Graphs -->
+    <div class="eco-tab-content hidden" id="etab-population">
+      <div class="pop-layout">
+        <div class="card glass pop-graph-wrap">
+          <h3>📈 Population Over Time</h3>
+          <canvas id="pop-graph-canvas" width="800" height="400"></canvas>
+        </div>
+        <div class="card glass pop-info">
+          <h3>🔬 Lotka-Volterra Model</h3>
+          <p class="text-dim text-sm">Classic predator-prey dynamics showing oscillating populations</p>
+          <div class="lv-params">
+            <div class="lv-param"><label>Prey Growth Rate</label><input type="range" min="0.01" max="0.2" step="0.01" value="0.05" id="lv-prey-growth" oninput="updateLV()"><span id="lv-prey-growth-val">0.05</span></div>
+            <div class="lv-param"><label>Predation Rate</label><input type="range" min="0.001" max="0.05" step="0.001" value="0.01" id="lv-predation" oninput="updateLV()"><span id="lv-predation-val">0.01</span></div>
+            <div class="lv-param"><label>Predator Death Rate</label><input type="range" min="0.01" max="0.3" step="0.01" value="0.1" id="lv-pred-death" oninput="updateLV()"><span id="lv-pred-death-val">0.1</span></div>
+            <div class="lv-param"><label>Predator Efficiency</label><input type="range" min="0.001" max="0.03" step="0.001" value="0.005" id="lv-efficiency" oninput="updateLV()"><span id="lv-efficiency-val">0.005</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Genetics -->
+    <div class="eco-tab-content hidden" id="etab-genetics">
+      <div class="gen-layout">
+        <div class="card glass gen-panel">
+          <h3>🧬 Genetic Trait Simulator</h3>
+          <p class="text-dim text-sm mb-3">Cross two organisms and observe Mendelian inheritance</p>
+          <div class="gen-cross">
+            <div class="gen-parent">
+              <h4>Parent 1</h4>
+              <select id="gen-p1-color" class="input"><option value="BB">Brown (BB)</option><option value="Bb">Brown (Bb)</option><option value="bb">White (bb)</option></select>
+              <select id="gen-p1-size" class="input"><option value="TT">Tall (TT)</option><option value="Tt">Tall (Tt)</option><option value="tt">Short (tt)</option></select>
+            </div>
+            <span class="gen-x">✕</span>
+            <div class="gen-parent">
+              <h4>Parent 2</h4>
+              <select id="gen-p2-color" class="input"><option value="BB">Brown (BB)</option><option value="Bb">Brown (Bb)</option><option value="bb">White (bb)</option></select>
+              <select id="gen-p2-size" class="input"><option value="TT">Tall (TT)</option><option value="Tt">Tall (Tt)</option><option value="tt">Short (tt)</option></select>
+            </div>
+          </div>
+          <button class="btn btn-primary w-full mt-3" onclick="crossOrganisms()">🧬 Cross & See Offspring</button>
+          <div id="gen-results" class="mt-4"></div>
+        </div>
+        <div class="card glass gen-info">
+          <h3>📚 Punnett Square</h3>
+          <div id="gen-punnett"></div>
+          <div class="gen-ratios mt-3" id="gen-ratios"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Climate -->
+    <div class="eco-tab-content hidden" id="etab-climate">
+      <div class="climate-layout">
+        <div class="card glass climate-controls">
+          <h3>🌡️ Climate Change Simulator</h3>
+          <p class="text-dim text-sm mb-3">Adjust climate factors and see ecosystem impact</p>
+          <div class="climate-slider"><label>🌡️ Temperature: <strong id="climate-temp-val">15</strong>°C</label><input type="range" min="-10" max="50" value="15" step="1" oninput="document.getElementById('climate-temp-val').textContent=this.value; updateClimate('temperature', this.value)"></div>
+          <div class="climate-slider"><label>🌧️ Rainfall: <strong id="climate-rain-val">800</strong> mm/yr</label><input type="range" min="0" max="3000" value="800" step="50" oninput="document.getElementById('climate-rain-val').textContent=this.value; updateClimate('rainfall', this.value)"></div>
+          <div class="climate-slider"><label>💨 CO₂ Level: <strong id="climate-co2-val">420</strong> ppm</label><input type="range" min="200" max="1000" value="420" step="10" oninput="document.getElementById('climate-co2-val').textContent=this.value; updateClimate('co2', this.value)"></div>
+          <div class="climate-slider"><label>🌊 Sea Level: <strong id="climate-sea-val">0</strong> m change</label><input type="range" min="-5" max="20" value="0" step="0.5" oninput="document.getElementById('climate-sea-val').textContent=this.value; updateClimate('seaLevel', this.value)"></div>
+        </div>
+        <div class="card glass climate-display" id="climate-display"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Food Web -->
+    <div class="eco-tab-content hidden" id="etab-foodweb">
+      <h3 class="section-title">🕸️ Ecosystem Food Web</h3>
+      <p class="text-dim text-sm mb-4">Click species to see their connections in the food web</p>
+      <div class="card glass foodweb-container" id="foodweb-container"></div>
+    </div>
+
+    <!-- Tab: Quiz -->
+    <div class="eco-tab-content hidden" id="etab-quiz">
+      <div class="quiz-layout">
+        <div class="quiz-panel card glass">
+          <h3>🎯 Ecology & Evolution Quiz</h3>
+          <p class="quiz-question" id="eq-question"></p>
+          <div class="quiz-options" id="eq-options"></div>
+          <div id="eq-feedback" class="quiz-feedback hidden"></div>
+          <button class="btn btn-primary mt-3 w-full" onclick="renderEcoQuiz()">Next Question ▶</button>
+          <div class="quiz-stats mt-4">
+            <span>Score: <strong id="eq-score">0</strong></span>
+            <span>Streak: <strong id="eq-streak">0</strong> 🔥</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer mt-8"><p>&copy; 2026 Ecosystem & Evolution Simulator. Explore the web of life! 🧬</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

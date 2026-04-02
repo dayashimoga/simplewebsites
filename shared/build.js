@@ -227,12 +227,13 @@ function processHtml(html, siteName, manifest) {
     processed = processed.replace(/<\/body>/i, `<script src="shared-theme-toggle.js"></script>\n</body>`);
   }
 
-  // Add contact email and privacy/terms links to footer if configured
+  // Add contact email, privacy/terms links, and Ko-fi donation to footer if configured
   const currentEmail = process.env.CONTACT_EMAIL || CONTACT_EMAIL;
   if (processed.includes('<footer')) {
     let footerLinks = '';
     if (currentEmail) footerLinks += `<a href="mailto:${currentEmail}">📧 Contact Us</a> · `;
     footerLinks += `<a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a>`;
+    footerLinks += ` · <a href="https://ko-fi.com/dayatin" target="_blank" rel="noopener" style="color:#ff5e5b;font-weight:bold">☕ Support on Ko-fi</a>`;
     processed = processed.replace(/<\/footer>/i, `<br>${footerLinks}\n</footer>`);
   }
 

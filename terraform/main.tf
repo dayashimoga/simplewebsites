@@ -22,11 +22,19 @@ resource "cloudflare_pages_project" "sites" {
   }
 }
 
+locals {
+  # Automatically generate subdomain prefixes for every site (defaults to the site name)
+  # Allows overriding specific prefixes via var.subdomain_config
+  computed_subdomains = {
+    for site in var.site_names : site => lookup(var.subdomain_config, site, site)
+  }
+}
+
 # ========================================
-# Custom Subdomains (only if custom_domain is set)
+# Custom Subdomains (automatically generated for all sites)
 # ========================================
 resource "cloudflare_pages_domain" "subdomains" {
-  for_each     = { for k, v in var.subdomain_config : k => v if var.custom_domain != "" }
+  for_each     = var.custom_domain != "" ? local.computed_subdomains : {}
   account_id   = var.cloudflare_account_id
   project_name = each.key
   domain       = "${each.value}.${var.custom_domain}"
@@ -34,7 +42,7 @@ resource "cloudflare_pages_domain" "subdomains" {
 }
 
 resource "cloudflare_record" "subdomain_cnames" {
-  for_each = { for k, v in var.subdomain_config : k => v if var.cloudflare_zone_id != "" }
+  for_each = var.cloudflare_zone_id != "" ? local.computed_subdomains : {}
   zone_id  = var.cloudflare_zone_id
   name     = each.value
   content  = "${each.key}.pages.dev"

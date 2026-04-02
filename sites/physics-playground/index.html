@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Physics Playground — Interactive Experiments</title>
+  <meta name="description" content="Interactive physics experiments: projectile motion, pendulum waves, optics lab, circuit builder, and electromagnetic spectrum explorer. Fun physics for all ages.">
+  <link rel="stylesheet" href="shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container container-lg">
+    <section class="hero text-center mb-4">
+      <h1>⚡ <span class="text-gradient-physics">Physics Playground</span></h1>
+      <p>Launch projectiles, swing pendulums, bend light, and build circuits!</p>
+    </section>
+
+    <div class="phys-tabs card glass mb-4">
+      <button class="phys-tab-btn active" onclick="switchPhysTab('projectile')">🎯 Projectile</button>
+      <button class="phys-tab-btn" onclick="switchPhysTab('pendulum')">🔔 Pendulum</button>
+      <button class="phys-tab-btn" onclick="switchPhysTab('waves')">🌊 Waves</button>
+      <button class="phys-tab-btn" onclick="switchPhysTab('optics')">🔭 Optics</button>
+      <button class="phys-tab-btn" onclick="switchPhysTab('circuit')">🔌 Circuits</button>
+      <button class="phys-tab-btn" onclick="switchPhysTab('spectrum')">🌈 EM Spectrum</button>
+      <button class="phys-tab-btn" onclick="switchPhysTab('quiz')">🎯 Quiz</button>
+    </div>
+
+    <!-- Projectile Motion -->
+    <div class="phys-tab-content" id="ptab-projectile">
+      <div class="sim-layout">
+        <div class="card glass sim-canvas-wrap"><canvas id="projectile-canvas" width="800" height="400"></canvas>
+          <div class="sim-controls">
+            <button class="ctrl-btn" id="proj-fire-btn" onclick="fireProjectile()">🚀 Fire!</button>
+            <button class="ctrl-btn" onclick="resetProjectile()">🔄 Reset</button>
+            <button class="ctrl-btn" onclick="toggleProjTrail()">✦ Trail</button>
+          </div>
+        </div>
+        <div class="card glass sim-params">
+          <h3>⚙️ Parameters</h3>
+          <div class="param-row"><label>Angle: <strong id="proj-angle-val">45</strong>°</label><input type="range" min="5" max="85" value="45" id="proj-angle" oninput="document.getElementById('proj-angle-val').textContent=this.value; updateProjParams()"></div>
+          <div class="param-row"><label>Velocity: <strong id="proj-vel-val">50</strong> m/s</label><input type="range" min="10" max="100" value="50" id="proj-vel" oninput="document.getElementById('proj-vel-val').textContent=this.value; updateProjParams()"></div>
+          <div class="param-row"><label>Gravity: <strong id="proj-grav-val">9.81</strong> m/s²</label><input type="range" min="1" max="30" step="0.1" value="9.81" id="proj-grav" oninput="document.getElementById('proj-grav-val').textContent=this.value; updateProjParams()"></div>
+          <div class="param-row"><label>Mass: <strong id="proj-mass-val">1</strong> kg</label><input type="range" min="0.1" max="10" step="0.1" value="1" id="proj-mass" oninput="document.getElementById('proj-mass-val').textContent=this.value; updateProjParams()"></div>
+          <div class="proj-results" id="proj-results"><p class="text-dim">Adjust parameters and fire!</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pendulum -->
+    <div class="phys-tab-content hidden" id="ptab-pendulum">
+      <div class="sim-layout">
+        <div class="card glass sim-canvas-wrap"><canvas id="pendulum-canvas" width="800" height="500"></canvas>
+          <div class="sim-controls">
+            <button class="ctrl-btn" id="pend-play-btn" onclick="togglePendulum()">⏸ Pause</button>
+            <button class="ctrl-btn" onclick="resetPendulum()">🔄 Reset</button>
+          </div>
+        </div>
+        <div class="card glass sim-params">
+          <h3>⚙️ Pendulum Settings</h3>
+          <div class="param-row"><label>Length: <strong id="pend-len-val">200</strong> px</label><input type="range" min="50" max="350" value="200" id="pend-length" oninput="document.getElementById('pend-len-val').textContent=this.value; updatePendParams()"></div>
+          <div class="param-row"><label>Gravity: <strong id="pend-grav-val">0.5</strong></label><input type="range" min="0.1" max="2" step="0.05" value="0.5" id="pend-gravity" oninput="document.getElementById('pend-grav-val').textContent=this.value; updatePendParams()"></div>
+          <div class="param-row"><label>Damping: <strong id="pend-damp-val">0.999</strong></label><input type="range" min="0.95" max="1" step="0.001" value="0.999" id="pend-damping" oninput="document.getElementById('pend-damp-val').textContent=this.value; updatePendParams()"></div>
+          <div class="param-row"><label>Count: <strong id="pend-count-val">1</strong></label><input type="range" min="1" max="15" value="1" id="pend-count" oninput="document.getElementById('pend-count-val').textContent=this.value; updatePendParams()"></div>
+          <div id="pend-info" class="mt-3"><p class="text-dim">Drag pendulum to set angle</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waves -->
+    <div class="phys-tab-content hidden" id="ptab-waves">
+      <div class="sim-layout">
+        <div class="card glass sim-canvas-wrap"><canvas id="wave-canvas" width="800" height="400"></canvas></div>
+        <div class="card glass sim-params">
+          <h3>🌊 Wave Properties</h3>
+          <div class="param-row"><label>Amplitude: <strong id="wave-amp-val">50</strong></label><input type="range" min="10" max="150" value="50" id="wave-amp" oninput="document.getElementById('wave-amp-val').textContent=this.value"></div>
+          <div class="param-row"><label>Frequency: <strong id="wave-freq-val">2</strong></label><input type="range" min="0.5" max="10" step="0.5" value="2" id="wave-freq" oninput="document.getElementById('wave-freq-val').textContent=this.value"></div>
+          <div class="param-row"><label>Wavelength: <strong id="wave-wl-val">200</strong></label><input type="range" min="50" max="400" value="200" id="wave-wl" oninput="document.getElementById('wave-wl-val').textContent=this.value"></div>
+          <div class="param-row"><label>Type</label>
+            <select id="wave-type" class="input"><option value="transverse">Transverse</option><option value="longitudinal">Longitudinal</option><option value="standing">Standing Wave</option></select>
+          </div>
+          <div class="wave-info card glass mt-3" id="wave-info"><p class="text-dim">Wave speed = frequency × wavelength</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optics -->
+    <div class="phys-tab-content hidden" id="ptab-optics">
+      <div class="sim-layout">
+        <div class="card glass sim-canvas-wrap"><canvas id="optics-canvas" width="800" height="400"></canvas></div>
+        <div class="card glass sim-params">
+          <h3>🔭 Optics Lab</h3>
+          <div class="param-row"><label>Experiment</label>
+            <select id="optics-mode" class="input" onchange="updateOpticsMode()"><option value="prism">Prism (Dispersion)</option><option value="lens-convex">Convex Lens</option><option value="lens-concave">Concave Lens</option><option value="mirror">Curved Mirror</option><option value="refraction">Refraction</option></select>
+          </div>
+          <div class="param-row"><label>Beam Angle: <strong id="optics-angle-val">30</strong>°</label><input type="range" min="5" max="80" value="30" id="optics-angle" oninput="document.getElementById('optics-angle-val').textContent=this.value"></div>
+          <div class="param-row"><label>Refractive Index: <strong id="optics-ri-val">1.5</strong></label><input type="range" min="1.0" max="2.5" step="0.1" value="1.5" id="optics-ri" oninput="document.getElementById('optics-ri-val').textContent=this.value"></div>
+          <div id="optics-info" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Circuit Builder -->
+    <div class="phys-tab-content hidden" id="ptab-circuit">
+      <div class="sim-layout">
+        <div class="card glass circuit-display" id="circuit-display"></div>
+        <div class="card glass sim-params">
+          <h3>🔌 Circuit Builder</h3>
+          <div class="param-row"><label>Voltage: <strong id="circ-volt-val">9</strong>V</label><input type="range" min="1" max="24" value="9" id="circ-voltage" oninput="document.getElementById('circ-volt-val').textContent=this.value; updateCircuit()"></div>
+          <div class="param-row"><label>Resistance 1: <strong id="circ-r1-val">100</strong>Ω</label><input type="range" min="10" max="1000" step="10" value="100" id="circ-r1" oninput="document.getElementById('circ-r1-val').textContent=this.value; updateCircuit()"></div>
+          <div class="param-row"><label>Resistance 2: <strong id="circ-r2-val">200</strong>Ω</label><input type="range" min="10" max="1000" step="10" value="200" id="circ-r2" oninput="document.getElementById('circ-r2-val').textContent=this.value; updateCircuit()"></div>
+          <div class="param-row"><label>Config</label>
+            <select id="circ-config" class="input" onchange="updateCircuit()"><option value="series">Series</option><option value="parallel">Parallel</option></select>
+          </div>
+          <div id="circ-results" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EM Spectrum -->
+    <div class="phys-tab-content hidden" id="ptab-spectrum">
+      <div class="card glass spectrum-display">
+        <h3>🌈 Electromagnetic Spectrum</h3>
+        <div class="spectrum-bar" id="spectrum-bar"></div>
+        <div class="param-row mt-3"><label>Wavelength: <strong id="spectrum-wl-val">550</strong> nm</label><input type="range" min="1" max="100000" value="550" id="spectrum-wl" oninput="updateSpectrum(this.value)"></div>
+        <div id="spectrum-info" class="mt-3"></div>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="phys-tab-content hidden" id="ptab-quiz">
+      <div class="quiz-layout">
+        <div class="quiz-panel card glass">
+          <h3>🎯 Physics Quiz</h3>
+          <p class="quiz-question" id="pq-question"></p>
+          <div class="quiz-options" id="pq-options"></div>
+          <div id="pq-feedback" class="quiz-feedback hidden"></div>
+          <button class="btn btn-primary mt-3 w-full" onclick="renderPhysQuiz()">Next Question ▶</button>
+          <div class="quiz-stats mt-4"><span>Score: <strong id="pq-score">0</strong></span><span>Streak: <strong id="pq-streak">0</strong> 🔥</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer mt-8"><p>&copy; 2026 Physics Playground. Experiment with the laws of nature! ⚡</p></footer>
+  <script src="app.js"></script>
+  <script src="shared-theme-toggle.js"></script>
+</body>
+</html>

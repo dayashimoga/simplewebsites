@@ -143,4 +143,56 @@ describe('Ocean & Marine Explorer', () => {
   test('init', () => {
     app.init();
   });
+
+  // NEW VISUAL SWIMMING TESTS
+  test('initUnderwaterCanvas seeds creatures', () => {
+    app._resetUnderwater();
+    app.initUnderwaterCanvas(800, 400);
+    const creatures = app._getSwimCreatures();
+    expect(creatures.length).toBeGreaterThan(10);
+    expect(creatures[0].type).toBeDefined();
+    expect(creatures[0].x).toBeGreaterThanOrEqual(0);
+  });
+
+  test('updateSwimCreatures moves creatures and generates bubbles', () => {
+    app.initUnderwaterCanvas(800, 400);
+    const creatures = app._getSwimCreatures();
+    const initialX = creatures[0].x;
+    
+    // Simulate ticks to force movement
+    app.setState({ underwaterTime: 0 });
+    app.updateSwimCreatures(800, 400); // 0
+    app.setState({ underwaterTime: 10 });
+    app.updateSwimCreatures(800, 400); // triggers bubble
+    
+    expect(creatures[0].x).not.toBe(initialX);
+    expect(app._getBubbles().length).toBeGreaterThan(0);
+  });
+
+  test('getVisibleCreatures filters by depth', () => {
+    app.initUnderwaterCanvas(800, 400);
+    // Depth 0: fish, tropical, seahorse, turtle, shark
+    expect(app.getVisibleCreatures(0).length).toBeGreaterThan(0);
+    // Depth 5000: anglerfish only (maxDepth 5000)
+    const deepCreatures = app.getVisibleCreatures(4500);
+    expect(deepCreatures.every(c => c.type === 'anglerfish')).toBe(true);
+  });
+
+  test('setDiveDepth sets target depth and starts dive', () => {
+    app.setDiveDepth(500);
+    expect(app.getState().diveTarget).toBe(500);
+    expect(app.getState().diveActive).toBe(true);
+  });
+
+  test('underwaterTick handles diving slowly', () => {
+    app.initUnderwaterCanvas(800, 400);
+    app.setDiveDepth(500);
+    app.setState({ diveDepth: 0 }); // reset
+    app.underwaterTick();
+    const state = app.getState();
+    expect(state.diveDepth).toBeGreaterThan(0);
+    expect(state.diveDepth).toBeLessThan(500);
+    
+    app.stopUnderwaterSim();
+  });
 });
