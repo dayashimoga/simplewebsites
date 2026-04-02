@@ -169,7 +169,7 @@ jobs:
           TF_VAR_custom_domain: ${{ secrets.CUSTOM_DOMAIN }}
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve -parallelism=1 tfplan
+        run: terraform apply -auto-approve tfplan
         env:
           TF_VAR_cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           TF_VAR_cloudflare_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
