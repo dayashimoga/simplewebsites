@@ -819,7 +819,13 @@
      if (isPointInPlanet(px, py, pos.x, pos.y, Math.max(3, planet.radius * zoom))) {
 
       selectPlanet(planet.name);
-
+      // Trigger cinematic zoom focus and rich moon UI
+      zoom = Math.max(zoom, 2.5); // Instant cinematic snap
+      if (typeof document !== 'undefined') {
+          const zEl = document.getElementById('zoom-range');
+          if(zEl) zEl.value = zoom;
+      }
+      setTimeout(() => openPlanetDetail(planet.name), 200); // 200ms delay for visual snap context
       return;
     }
   }

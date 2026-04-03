@@ -116,17 +116,23 @@ async function initFFmpeg() {
         });
 
         // Convert ALL core files to blob URLs (same-origin) to bypass Worker restrictions
-        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-        const coreURL = await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript');
-        const wasmURL = await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm');
-        
-        // Also blob-URL the worker script to ensure same-origin
-        let workerURL;
-        try {
-            workerURL = await toBlobURL('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js', 'text/javascript');
-        } catch (we) { /* worker optional — core will use inline worker as fallback */ }
+        const coreBase = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+        const ffmpegBase = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd';
 
-        await ff.load(workerURL ? { coreURL, wasmURL, workerURL } : { coreURL, wasmURL });
+        const coreURL = await toBlobURL(`${coreBase}/ffmpeg-core.js`, 'text/javascript');
+        const wasmURL = await toBlobURL(`${coreBase}/ffmpeg-core.wasm`, 'application/wasm');
+        
+        let classWorkerURL;
+        try {
+            // FFMPEG strictly requires `classWorkerURL` mapped to the UMD module chunk (814.ffmpeg.js)
+            classWorkerURL = await toBlobURL(`${ffmpegBase}/814.ffmpeg.js`, 'text/javascript');
+        } catch (we) { /* fallback */ }
+
+        await ff.load({
+            coreURL,
+            wasmURL,
+            ...(classWorkerURL ? { classWorkerURL } : {})
+        });
         
         if (statusEl) statusEl.classList.add('hidden');
         ffmpegInstance = ff;

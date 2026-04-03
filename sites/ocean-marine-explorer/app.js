@@ -423,16 +423,58 @@ function initUnderwaterCanvas(canvasW, canvasH) {
   });
 }
 
-function updateSwimCreatures(w, h) {
+function updateSwimCreatures(w, h, mx, my) {
+  // Advanced Boids Flocking Logic + Mouse Avoidance
   swimCreatures.forEach(c => {
+    let sepX = 0, sepY = 0, alignX = 0, alignY = 0, cohX = 0, cohY = 0;
+    let count = 0;
+
+    swimCreatures.forEach(other => {
+      if (other !== c && other.type === c.type) {
+        const dist = Math.hypot(c.x - other.x, c.y - other.y);
+        if (dist < 40) { // Separation
+          sepX += (c.x - other.x); sepY += (c.y - other.y);
+        }
+        if (dist < 80) { // Alignment & Cohesion
+          alignX += other.dx; alignY += other.dy;
+          cohX += other.x; cohY += other.y;
+          count++;
+        }
+      }
+    });
+
+    if (count > 0) {
+      alignX /= count; alignY /= count;
+      cohX /= count; cohY /= count;
+      c.dx += (alignX * 0.05) + ((cohX - c.x) * 0.01) + (sepX * 0.05);
+      c.dy += (alignY * 0.05) + ((cohY - c.y) * 0.01) + (sepY * 0.05);
+    }
+
+    // Mouse Avoidance
+    if (mx && my) {
+      const distToMouse = Math.hypot(c.x - mx, c.y - my);
+      if (distToMouse < 100) {
+        c.dx += (c.x - mx) * 0.02;
+        c.dy += (c.y - my) * 0.02;
+      }
+    }
+
+    // Speed normalization
+    const speedHypot = Math.hypot(c.dx, c.dy);
+    if (speedHypot > c.speed * 1.5) {
+      c.dx = (c.dx / speedHypot) * c.speed;
+      c.dy = (c.dy / speedHypot) * c.speed;
+    }
+
     c.x += c.dx;
     c.y += c.dy + Math.sin(c.wobble + underwaterTime * 0.03) * 0.3;
     c.wobble += 0.02;
-    // Wrap around
-    if (c.x > w + 30) { c.x = -30; c.y = Math.random() * h; }
-    if (c.x < -30) { c.x = w + 30; c.y = Math.random() * h; }
-    if (c.y < 10) c.dy = Math.abs(c.dy);
-    if (c.y > h - 10) c.dy = -Math.abs(c.dy);
+
+    // Wrap around boundaries smoothly
+    if (c.x > w + 40) c.x = -30;
+    if (c.x < -40) c.x = w + 30;
+    if (c.y < 10) c.dy += 0.5;
+    if (c.y > h - 10) c.dy -= 0.5;
   });
   // Bubbles
   if (underwaterTime % 10 === 0) {
@@ -535,12 +577,29 @@ function drawUnderwaterCanvas(canvas) {
   ctx.fillRect(w - 30, 10 + (h - 20) * (1 - pressurePct), 15, (h - 20) * pressurePct);
 }
 
+let simMouseX = null;
+let simMouseY = null;
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('mousemove', e => {
+    const canvas = document.getElementById('underwater-canvas');
+    if (canvas && canvas.getBoundingClientRect) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      simMouseX = (e.clientX - rect.left) * scaleX;
+      simMouseY = (e.clientY - rect.top) * scaleY;
+    }
+  });
+  document.addEventListener('mouseleave', () => { simMouseX = null; simMouseY = null; });
+}
+
 function underwaterTick() {
   underwaterTime++;
   const canvas = typeof document !== 'undefined' ? document.getElementById('underwater-canvas') : null;
   const w = canvas ? canvas.width : 800;
   const h = canvas ? canvas.height : 400;
-  updateSwimCreatures(w, h);
+  updateSwimCreatures(w, h, simMouseX, simMouseY);
   // Smooth dive
   if (diveActive) {
     diveDepth += (diveTarget - diveDepth) * 0.02;
