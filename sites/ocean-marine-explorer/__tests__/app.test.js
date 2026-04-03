@@ -47,6 +47,7 @@ describe('Ocean & Marine Explorer', () => {
       stroke: jest.fn(),
       save: jest.fn(),
       restore: jest.fn(),
+      scale: jest.fn(),
       createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
       createRadialGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
       fillText: jest.fn(),

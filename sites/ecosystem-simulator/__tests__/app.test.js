@@ -120,4 +120,44 @@ describe('Ecosystem Simulator Core Logic', () => {
     const baby = tryReproduce(c, [c], 800, 500);
     expect(baby).toBeNull();
   });
+
+  // UI Drawing Routine Tests
+  test('rendering pipelines execute without crashing', () => {
+    const canvas = document.createElement('canvas');
+    canvas.id = 'eco-canvas';
+    document.body.appendChild(canvas);
+    
+    const popCanvas = document.createElement('canvas');
+    popCanvas.id = 'pop-chart';
+    document.body.appendChild(popCanvas);
+    
+    canvas.getContext = jest.fn(() => ({
+      clearRect: jest.fn(),
+      fillRect: jest.fn(),
+      fillText: jest.fn(),
+      beginPath: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      stroke: jest.fn(),
+      arc: jest.fn(),
+      fill: jest.fn()
+    }));
+    
+    popCanvas.getContext = canvas.getContext;
+    
+    // Simulate multiple physics frames and render them
+    for (let i = 0; i < 10; i++) {
+        _setCreatures([
+          createCreature('plant', Math.random()*100, Math.random()*100),
+          createCreature('rabbit', Math.random()*100, Math.random()*100),
+          createCreature('fox', Math.random()*100, Math.random()*100)
+        ]);
+        const {drawEcosystem, ecoSimStep, drawPopulationGraph, updateClimate, lotkaVolterra} = require('../app');
+        ecoSimStep();
+        drawEcosystem(canvas);
+        drawPopulationGraph(popCanvas);
+        updateClimate();
+        lotkaVolterra(100, 10, 0.05, 0.01, 0.1, 0.005, 1);
+    }
+  });
 });
