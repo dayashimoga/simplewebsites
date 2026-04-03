@@ -205,11 +205,40 @@ describe('Space Mission Control', () => {
   });
 
   test('rocketLaunchTick updates simulation over time', () => {
+    // Inject Mock Canvas
+    const canvas = document.createElement('canvas');
+    canvas.id = 'rocket-launch-canvas';
+    document.body.appendChild(canvas);
+    canvas.getContext = jest.fn(() => ({
+      clearRect: jest.fn(),
+      createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
+      fillRect: jest.fn(),
+      beginPath: jest.fn(),
+      arc: jest.fn(),
+      fill: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      closePath: jest.fn(),
+      fillText: jest.fn(),
+      createRadialGradient: jest.fn(() => ({ addColorStop: jest.fn() }))
+    }));
+
+    app.setState({ selectedDestination: 'mars' });
     app.startVisualLaunch();
-    // Simulate time passing to trigger liftoff
-    app._setRocketLaunchState({ time: 500 });
+    
+    // Test countdown -> liftoff
+    app._setRocketLaunchState({ time: 200, altitude: 0 });
     app.rocketLaunchTick(); 
     expect(app._getRocketLaunchState().phase).toBe('liftoff');
+    
+    // Force physics loop across all visual states to guarantee drawing and math coverage
+    const states = ['liftoff', 'stage1_sep', 'space_transit', 'approach', 'orbit', 'landing', 'complete'];
+    states.forEach(statePhase => {
+        app._setRocketLaunchState({ phase: statePhase, time: 500, altitude: 150, planetSize: 100, y: 100 });
+        app.rocketLaunchTick();
+        app.drawRocketLaunch(document.getElementById('rocket-launch-canvas'));
+    });
+
     app._stopVisualLaunch();
   });
 });

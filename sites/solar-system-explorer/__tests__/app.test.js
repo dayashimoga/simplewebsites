@@ -23,6 +23,10 @@ describe('Solar System Explorer', () => {
       <div id="info-name"></div><div id="info-mass"></div><div id="info-distance"></div><div id="info-temp"></div>
       <div id="info-period"></div><div id="info-moons"></div><div id="info-facts"></div><div id="info-gravity"></div>
       <div id="info-diameter"></div><div id="info-dayLength"></div><div id="info-atmosphere"></div><div id="info-size-bar"></div>
+      
+      <div id="planet-detail-view" class="hidden"></div>
+      <canvas id="planet-detail-canvas" width="500" height="400"></canvas>
+      <button id="dwarfs-btn"></button>
       <button id="btn-mercury" class="planet-btn"></button>
       <button id="btn-earth" class="planet-btn"></button>
     `;
@@ -314,5 +318,26 @@ describe('Solar System Explorer', () => {
     expect(earth.diamPct).toBeGreaterThan(0);
     expect(earth.gravPct).toBeGreaterThan(0);
     expect(earth.moonPct).toBeGreaterThan(0);
+  });
+  test('Cinematic Raycasting Zoom triggers Planet Detail Matrix', () => {
+    // Render detailed view and test structural logic
+    app.openPlanetDetail('Earth');
+    expect(app.getState().planetDetailView).toBe('Earth');
+
+    const e = document.getElementById('planet-detail-view');
+    expect(e.classList.contains('hidden')).toBe(false);
+
+    // Render underlying graphics logic
+    app.drawPlanetDetail(); // Cover context routines for moons
+
+    app.closePlanetDetail();
+    expect(app.getState().planetDetailView).toBeNull();
+    expect(e.classList.contains('hidden')).toBe(true);
+  });
+
+  test('Toggle Dwarf Planets', () => {
+    app.toggleDwarfPlanets();
+    expect(app.getState().showDwarfPlanets).toBe(true);
+    expect(app.getDwarfPlanetByName('Pluto')).toBeDefined();
   });
 });

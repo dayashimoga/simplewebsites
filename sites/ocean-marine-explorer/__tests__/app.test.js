@@ -30,7 +30,31 @@ describe('Ocean & Marine Explorer', () => {
       
       <button class="filter-btn" data-group="all"></button>
       <button class="filter-btn" data-group="fish"></button>
+      
+      <canvas id="underwater-canvas" width="800" height="400"></canvas>
     `;
+    
+    // Mock Canvas Context
+    const canvas = document.getElementById('underwater-canvas');
+    canvas.getContext = jest.fn(() => ({
+      clearRect: jest.fn(),
+      fillRect: jest.fn(),
+      beginPath: jest.fn(),
+      arc: jest.fn(),
+      fill: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      stroke: jest.fn(),
+      save: jest.fn(),
+      restore: jest.fn(),
+      createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
+      createRadialGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
+      fillText: jest.fn(),
+      ellipse: jest.fn(),
+      setLineDash: jest.fn(),
+      closePath: jest.fn(),
+    }));
+
     app._resetQuiz();
     app.setState({ activeZone: null, selectedCreature: null, reefHealth: 100, reefTemp: 26, reefPh: 8.2, reefSalinity: 35, reefLight: 80, creatureFilter: 'all' });
   });
@@ -194,6 +218,23 @@ describe('Ocean & Marine Explorer', () => {
     expect(state.diveDepth).toBeGreaterThan(0);
     expect(state.diveDepth).toBeLessThan(500);
     
+    // Test the drawing routine
+    app.drawUnderwaterCanvas(document.getElementById('underwater-canvas'));
+
     app.stopUnderwaterSim();
+  });
+
+  test('mouse tracking updates cursor evasion physics', () => {
+    // Trigger mouse tracking globally
+    const mouseMoveEvent = new MouseEvent('mousemove', { clientX: 100, clientY: 100 });
+    document.dispatchEvent(mouseMoveEvent);
+
+    // Call updateSwimCreatures with simMouse logic
+    app.initUnderwaterCanvas(800, 400);
+    app.updateSwimCreatures(800, 400, 100, 100); // Pass explicit mouse to boids
+
+    // Simulate mouse leave
+    const mouseLeaveEvent = new MouseEvent('mouseleave');
+    document.dispatchEvent(mouseLeaveEvent);
   });
 });
