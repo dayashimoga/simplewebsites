@@ -342,15 +342,38 @@
   const readiness = getMissionReadiness();
   if (!readiness.ready) return;
 
+  launchPhase = 'countdown';
+  countdownValue = 10;
+  missionElapsed = 0;
   switchView('launch');
   
-  // Hand control entirely over to the rich Canvas visual animation loop
+  // Dual-execution: Logic timers for state (tests) & Visual Canvas for UI
   startVisualLaunch();
   renderLaunchView();
+
+  launchTimer = setInterval(() => {
+    if (launchPhase === 'countdown') {
+      countdownValue--;
+      if (countdownValue <= 0) {
+        launchPhase = 'launch';
+        setTimeout(() => {
+          launchPhase = 'transit';
+          renderLaunchView();
+        }, 2000);
+      }
+      renderLaunchView();
+    } else if (launchPhase === 'transit') {
+      missionElapsed++;
+      renderLaunchView();
+    }
+  }, 200);
 }
 
  function resetLaunch() {
   launchPhase = null;
+  if (launchTimer) { clearInterval(launchTimer); launchTimer = null; }
+  countdownValue = 10;
+  missionElapsed = 0;
   stopVisualLaunch();
   switchView('planner');
 }
