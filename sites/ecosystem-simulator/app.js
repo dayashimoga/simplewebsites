@@ -305,43 +305,89 @@ function drawEcosystem(canvas) {
   const w = canvas.width;
   const h = canvas.height;
 
-  // Background
-  ctx.fillStyle = '#0a1a0a';
-  ctx.fillRect(0, 0, w, h);
+  // Rich Biome Background
+  // Dynamic sky based on time/climate
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, h * 0.7);
+  skyGrad.addColorStop(0, '#0e2b42');
+  skyGrad.addColorStop(1, '#1b4d70');
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, w, h * 0.7);
 
-  // Ground with gradient
-  const groundGrad = ctx.createLinearGradient(0, h * 0.7, 0, h);
-  groundGrad.addColorStop(0, '#1a3a1a');
-  groundGrad.addColorStop(1, '#0d1f0d');
+  // Sun
+  const sunX = w - 100, sunY = 80;
+  const sunGlow = ctx.createRadialGradient(sunX, sunY, 10, sunX, sunY, 80);
+  sunGlow.addColorStop(0, 'rgba(251,191,36,0.8)');
+  sunGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = sunGlow; ctx.beginPath(); ctx.arc(sunX, sunY, 80, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(sunX, sunY, 20, 0, Math.PI * 2); ctx.fill();
+
+  // Clouds (animated slowly)
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  for (let c = 0; c < 4; c++) {
+    const cx = (ecoTime * 0.1 + c * 250) % (w + 100) - 50;
+    const cy = 40 + (c % 2) * 30;
+    ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2);
+    ctx.arc(cx + 25, cy - 10, 40, 0, Math.PI * 2);
+    ctx.arc(cx + 50, cy, 30, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Terrain/Ground with rich gradient
+  const groundGrad = ctx.createLinearGradient(0, h * 0.65, 0, h);
+  groundGrad.addColorStop(0, '#2d4c1e'); // Grass edge
+  groundGrad.addColorStop(0.2, '#1a3a1a'); // Darker grass
+  groundGrad.addColorStop(1, '#0d1f0d');  // Deep earth
   ctx.fillStyle = groundGrad;
-  ctx.fillRect(0, h * 0.7, w, h * 0.3);
+  ctx.beginPath();
+  ctx.moveTo(0, h * 0.7);
+  ctx.quadraticCurveTo(w / 4, h * 0.65, w / 2, h * 0.7);
+  ctx.quadraticCurveTo(w * 0.75, h * 0.75, w, h * 0.7);
+  ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.closePath();
+  ctx.fill();
 
-  // Draw creatures
+  // Draw creatures with scaling and glowing trails
   creatures.forEach(c => {
     const sp = getSpeciesById(c.species);
     if (!sp) return;
     ctx.save();
-    // Glow effect
+    
+    // Scale based on size property
+    const scale = sp.size / 8; 
+    
+    // Aura/Glow based on energy/health
+    const energyRatio = c.energy / sp.energy;
     ctx.shadowColor = sp.color;
-    ctx.shadowBlur = 8;
-    ctx.fillStyle = sp.color;
+    ctx.shadowBlur = 10 * energyRatio;
+    
+    // Selection/Highlight ring
+    ctx.strokeStyle = `rgba(${parseInt(sp.color.slice(1,3),16)}, ${parseInt(sp.color.slice(3,5),16)}, ${parseInt(sp.color.slice(5,7),16)}, 0.3)`;
     ctx.beginPath();
-    ctx.arc(c.x, c.y, sp.size, 0, Math.PI * 2);
-    ctx.fill();
-    // Emoji
+    ctx.arc(c.x, c.y, sp.size * 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Emoji drawing
     ctx.shadowBlur = 0;
-    ctx.font = `${sp.size + 4}px system-ui`;
+    ctx.font = `${Math.floor(sp.size * 2)}px system-ui`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(sp.emoji, c.x, c.y);
+    
+    // Energy bar (tiny)
+    if (energyRatio < 0.5) {
+      ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(c.x - 8, c.y + sp.size + 2, 16, 3);
+      ctx.fillStyle = energyRatio < 0.2 ? '#ef4444' : '#fbbf24';
+      ctx.fillRect(c.x - 8, c.y + sp.size + 2, 16 * energyRatio, 3);
+    }
     ctx.restore();
   });
 
   // Time display
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = '12px system-ui';
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = 'bold 14px system-ui';
   ctx.textAlign = 'left';
-  ctx.fillText(`Day ${Math.floor(ecoTime / 60)}`, 10, 20);
+  ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
+  ctx.fillText(`📅 Day ${Math.floor(ecoTime / 60)} | 🌍 Pop: ${creatures.length}`, 15, 25);
+  ctx.shadowBlur = 0;
 }
 
 function ecoSimStep() {
@@ -403,7 +449,7 @@ function renderPopStats() {
   el.innerHTML = SPECIES.map(sp => {
     const count = counts[sp.id] || 0;
     const pct = Math.min(100, (count / sp.maxPop) * 100);
-    return `<div class="pop-stat-row"><span class="pop-emoji">${sp.emoji}</span><span class="pop-name">${sp.name}</span><span class="pop-count">${count}</span><div class="pop-bar"><div class="pop-fill" style="width:${pct}%;background:${sp.color}"></div></div></div>`;
+    return `<div class="pop-stat-row"><span class="pop-emoji">${sp.emoji}</span><span class="pop-name">${sp.name}</span><span class="pop-count">${count}</span><div class="pop-bar"><div class="pop-fill" style="width:${pct}%;background:${sp.color};box-shadow: 0 0 8px ${sp.color}"></div></div></div>`;
   }).join('');
 }
 
@@ -430,25 +476,43 @@ function drawPopulationGraph(canvas) {
   // Grid
   ctx.strokeStyle = 'rgba(255,255,255,0.05)';
   ctx.lineWidth = 1;
+  ctx.beginPath();
   for (let i = 0; i <= 5; i++) {
     const y = padding + (h - padding * 2) * i / 5;
-    ctx.beginPath(); ctx.moveTo(padding, y); ctx.lineTo(w - padding, y); ctx.stroke();
+    ctx.moveTo(padding, y); ctx.lineTo(w - padding, y);
   }
+  ctx.stroke();
 
-  // Draw each species line
+  // Calculate max
   const plotW = w - padding * 2;
   const plotH = h - padding * 2;
-  let maxVal = 1;
+  let maxVal = 5; // minimum scale
   SPECIES.forEach(sp => {
     const hist = populationHistory[sp.id] || [];
     hist.forEach(v => { if (v > maxVal) maxVal = v; });
   });
 
+  // Plot lines with fill
   SPECIES.forEach(sp => {
     const hist = populationHistory[sp.id] || [];
     if (hist.length < 2) return;
+    
+    // Fill under line
+    ctx.beginPath();
+    ctx.moveTo(padding, padding + plotH);
+    hist.forEach((v, i) => {
+      const x = padding + (i / (maxHistoryLength - 1)) * plotW;
+      const y = padding + plotH - (v / maxVal) * plotH;
+      ctx.lineTo(x, y);
+    });
+    ctx.lineTo(padding + ((hist.length - 1) / (maxHistoryLength - 1)) * plotW, padding + plotH);
+    ctx.fillStyle = `rgba(${parseInt(sp.color.slice(1,3),16)}, ${parseInt(sp.color.slice(3,5),16)}, ${parseInt(sp.color.slice(5,7),16)}, 0.1)`;
+    ctx.fill();
+
+    // Line stroke
     ctx.strokeStyle = sp.color;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
     ctx.beginPath();
     hist.forEach((v, i) => {
       const x = padding + (i / (maxHistoryLength - 1)) * plotW;
@@ -464,14 +528,16 @@ function drawPopulationGraph(canvas) {
   SPECIES.forEach((sp, i) => {
     ctx.fillStyle = sp.color;
     ctx.fillRect(padding + i * 90, h - 15, 12, 12);
-    ctx.fillStyle = '#aaa';
+    ctx.fillStyle = '#ccc';
     ctx.fillText(sp.name, padding + i * 90 + 16, h - 5);
   });
 
   // Y axis label
-  ctx.fillStyle = '#666';
+  ctx.fillStyle = '#888';
   ctx.textAlign = 'right';
+  ctx.font = '10px system-ui';
   ctx.fillText(maxVal.toString(), padding - 5, padding + 4);
+  ctx.fillText(Math.floor(maxVal/2).toString(), padding - 5, padding + plotH/2 + 4);
   ctx.fillText('0', padding - 5, h - padding + 4);
 }
 

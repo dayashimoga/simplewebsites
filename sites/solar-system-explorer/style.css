@@ -656,3 +656,161 @@ body {
 
   .slider-ctrl input[type="range"] { width: 60px; }
 }
+
+/* === Planet Detail Overlay === */
+.planet-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 6, 10, 0.95);
+  backdrop-filter: blur(20px);
+  z-index: 900;
+  overflow-y: auto;
+  animation: fadeIn 0.3s ease;
+  padding: 24px;
+}
+
+.pd-header {
+  text-align: center;
+  padding: 20px 0 16px;
+  position: relative;
+}
+
+.pd-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b, #ec4899);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pd-header p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  margin-top: 8px;
+  font-style: italic;
+}
+
+.pd-close {
+  position: absolute;
+  top: 10px; right: 10px;
+  padding: 8px 18px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 20px;
+  color: #fca5a5;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pd-close:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.pd-body {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+#planet-detail-canvas {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  background: #0a0a14;
+  border: 1px solid var(--glass-border);
+}
+
+.pd-moons-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pd-moons-list h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.pd-moon-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-left: 3px solid;
+  border-radius: var(--radius-md);
+  padding: 14px;
+  transition: all 0.25s;
+}
+
+.pd-moon-card:hover {
+  background: rgba(255,255,255,0.06);
+  transform: translateX(4px);
+}
+
+.pd-moon-card h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.pd-moon-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.pd-moon-fact {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* === Space Fact Bar === */
+.space-fact-bar {
+  max-width: 1340px;
+  margin: 16px auto;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.08));
+  border: 1px solid rgba(59,130,246,0.15);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  animation: slideIn 0.5s ease;
+}
+
+.fact-refresh {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.fact-refresh:hover {
+  background: rgba(255,255,255,0.08);
+  transform: rotate(180deg);
+}
+
+@media (max-width: 900px) {
+  .pd-body { grid-template-columns: 1fr; }
+}

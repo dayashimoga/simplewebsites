@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive Electricity & Magnetism Lab — explore electromagnetic fields, circuit building, motors, Faraday's law and more.">
+  <title>🧲 Electricity & Magnetism Lab</title>
+  <link rel="stylesheet" href="../../shared/shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="hero">
+      <h1><span class="text-gradient">🧲 Electricity & Magnetism Lab</span></h1>
+      <p>Explore electromagnetic fields, circuits, motors & generators</p>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="card em-tabs">
+      <button class="em-tab-btn active" onclick="switchEMTab('field')">🧲 Magnetic Field</button>
+      <button class="em-tab-btn" onclick="switchEMTab('circuit')">⚡ Circuit Builder</button>
+      <button class="em-tab-btn" onclick="switchEMTab('motor')">🔄 Motor/Generator</button>
+      <button class="em-tab-btn" onclick="switchEMTab('static')">⚡ Static</button>
+      <button class="em-tab-btn" onclick="switchEMTab('faraday')">📐 Faraday's Law</button>
+      <button class="em-tab-btn" onclick="switchEMTab('quiz')">🧠 Quiz</button>
+    </div>
+
+    <!-- Magnetic Field Visualizer -->
+    <div class="card em-tab-content" id="etab-field">
+      <h2>🧲 Magnetic Field Line Visualizer</h2>
+      <p class="section-desc">See magnetic field lines. Click canvas to place/remove magnets.</p>
+      <canvas id="field-canvas" width="800" height="450"></canvas>
+      <div class="field-controls">
+        <button class="btn-secondary" onclick="addMagnet('bar')">+ Bar Magnet</button>
+        <button class="btn-secondary" onclick="addMagnet('dipole')">+ Dipole</button>
+        <button class="btn-secondary" onclick="clearMagnets()">🗑️ Clear All</button>
+        <button class="btn-secondary" onclick="toggleFieldCompass()">🧭 Toggle Compass</button>
+      </div>
+    </div>
+
+    <!-- Circuit Builder -->
+    <div class="card em-tab-content hidden" id="etab-circuit">
+      <h2>⚡ Circuit Builder</h2>
+      <p class="section-desc">Build circuits and see current flow, voltage, and resistance</p>
+      <div class="circuit-layout">
+        <canvas id="circuit-canvas" width="600" height="400"></canvas>
+        <div class="circuit-controls">
+          <div class="control-row">
+            <label>Voltage (V)</label>
+            <input type="range" id="c-voltage" min="1" max="24" value="9" oninput="updateCircuit('voltage', this.value)">
+            <span id="c-voltage-val">9V</span>
+          </div>
+          <div class="control-row">
+            <label>Resistance (Ω)</label>
+            <input type="range" id="c-resistance" min="1" max="100" value="10" oninput="updateCircuit('resistance', this.value)">
+            <span id="c-resistance-val">10Ω</span>
+          </div>
+          <div class="control-row">
+            <label>Switch</label>
+            <button class="btn-toggle" id="circuit-switch" onclick="toggleCircuitSwitch()">🔴 OFF</button>
+          </div>
+          <div id="circuit-info" class="info-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Motor/Generator -->
+    <div class="card em-tab-content hidden" id="etab-motor">
+      <h2>🔄 Motor & Generator Simulator</h2>
+      <p class="section-desc">See how electric motors and generators work</p>
+      <div class="motor-layout">
+        <canvas id="motor-canvas" width="500" height="400"></canvas>
+        <div class="motor-controls">
+          <button class="btn-primary" onclick="setMotorMode('motor')">⚡→🔄 Motor</button>
+          <button class="btn-secondary" onclick="setMotorMode('generator')">🔄→⚡ Generator</button>
+          <div class="control-row">
+            <label id="motor-input-label">Voltage</label>
+            <input type="range" id="motor-input" min="1" max="100" value="50" oninput="updateMotorInput(this.value)">
+            <span id="motor-input-val">50</span>
+          </div>
+          <div id="motor-info" class="info-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Static Electricity -->
+    <div class="card em-tab-content hidden" id="etab-static">
+      <h2>⚡ Static Electricity Simulator</h2>
+      <p class="section-desc">Rub objects to build charge, watch sparks fly!</p>
+      <canvas id="static-canvas" width="700" height="400"></canvas>
+      <div class="field-controls">
+        <button class="btn-primary" onclick="rubBalloon()">🎈 Rub Balloon</button>
+        <button class="btn-secondary" onclick="dischargeStatic()">⚡ Discharge</button>
+        <button class="btn-secondary" onclick="resetStatic()">🔄 Reset</button>
+      </div>
+    </div>
+
+    <!-- Faraday's Law -->
+    <div class="card em-tab-content hidden" id="etab-faraday">
+      <h2>📐 Faraday's Law Demo</h2>
+      <p class="section-desc">Move magnet through coil to induce EMF</p>
+      <canvas id="faraday-canvas" width="700" height="400"></canvas>
+      <div class="field-controls">
+        <span class="info-text">Drag the magnet ↔ through the coil</span>
+      </div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="card em-tab-content hidden" id="etab-quiz">
+      <h2>🧠 EM Quiz <span class="quiz-score-badge">Score: <span id="eq-score">0</span></span></h2>
+      <div class="quiz-card">
+        <p class="quiz-question" id="eq-question"></p>
+        <div class="quiz-options" id="eq-options"></div>
+        <p class="quiz-feedback hidden" id="eq-feedback"></p>
+        <button class="btn-secondary mt-3" onclick="renderEMQuiz()">Next Question →</button>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; 2026 Electricity & Magnetism Lab. Powering discovery. ⚡</p>
+    </footer>
+  </div>
+  <script src="../../shared/shared-theme-toggle.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

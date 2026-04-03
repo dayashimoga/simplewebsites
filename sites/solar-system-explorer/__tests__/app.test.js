@@ -32,18 +32,7 @@ describe('Solar System Explorer', () => {
     `;
     window.requestAnimationFrame = jest.fn(cb => setTimeout(cb, 0));
     window.cancelAnimationFrame = jest.fn();
-    window.HTMLCanvasElement.prototype.getContext = () => ({
-      fillRect: jest.fn(), clearRect: jest.fn(), ellipse: jest.fn(), setLineDash: jest.fn(),
-      putImageData: jest.fn(), createImageData: jest.fn(() => ({ data: new Uint8ClampedArray(400) })),
-      setTransform: jest.fn(), drawImage: jest.fn(), save: jest.fn(), fillText: jest.fn(),
-      restore: jest.fn(), beginPath: jest.fn(), moveTo: jest.fn(), lineTo: jest.fn(),
-      closePath: jest.fn(), stroke: jest.fn(), translate: jest.fn(), scale: jest.fn(),
-      rotate: jest.fn(), arc: jest.fn(), fill: jest.fn(), measureText: jest.fn(() => ({width: 10})),
-      createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
-      createRadialGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
-      roundRect: jest.fn(),
-      canvas: { width: 1000, height: 800 }
-    });
+    // getContext is mocked globally by jest-canvas-mock
   });
 
   test('PLANETS data is well-formed', () => {

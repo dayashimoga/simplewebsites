@@ -23,11 +23,14 @@
 
     <!-- Navigation Tabs -->
     <div class="body-tabs card glass mb-4">
-      <button class="body-tab-btn active" onclick="switchBodyTab('systems')">🫀 Body Systems</button>
-      <button class="body-tab-btn" onclick="switchBodyTab('scenarios')">🤔 What Happens When...</button>
-      <button class="body-tab-btn" onclick="switchBodyTab('nutrition')">🥗 Nutrition Guide</button>
-      <button class="body-tab-btn" onclick="switchBodyTab('quiz')">🎯 Body Quiz</button>
-      <button class="body-tab-btn" onclick="switchBodyTab('health')">📊 Health Calculator</button>
+      <button class="body-tab-btn active" onclick="switchBodyTab('systems')">🫀 Systems</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('anatomy')">🫁 Anatomy</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('cells')">🔬 Cells</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('immune')">💉 Immune</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('scenarios')">🤔 Scenarios</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('nutrition')">🥗 Nutrition</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('quiz')">🎯 Quiz</button>
+      <button class="body-tab-btn" onclick="switchBodyTab('health')">📊 Health</button>
     </div>
 
     <!-- Tab: Body Systems -->
@@ -39,6 +42,34 @@
       </div>
       <div class="organ-detail-panel card glass mt-4" id="organ-detail">
         <div class="empty-state"><p>👆 Select an organ to explore its details</p></div>
+      </div>
+    </div>
+
+    <!-- Tab: Interactive Anatomy Canvas -->
+    <div class="body-tab-content hidden" id="tab-anatomy">
+      <div class="anatomy-layout">
+        <canvas id="anatomy-canvas" width="400" height="600"></canvas>
+        <div class="anatomy-info card glass" id="anatomy-detail">
+          <p class="text-dim">👆 Click on an organ in the body to learn about it</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Cell Explorer -->
+    <div class="body-tab-content hidden" id="tab-cells">
+      <h3 class="section-title">🔬 Cell Explorer — Zoom Into Life</h3>
+      <div class="cell-selector" id="cell-selector"></div>
+      <canvas id="cell-canvas" width="600" height="400"></canvas>
+    </div>
+
+    <!-- Tab: Immune Response -->
+    <div class="body-tab-content hidden" id="tab-immune">
+      <h3 class="section-title">💉 Immune Response Simulator</h3>
+      <p class="text-dim mb-3">Watch your immune system fight pathogens in real-time!</p>
+      <canvas id="immune-canvas" width="700" height="400"></canvas>
+      <div class="flex gap-2 mt-3">
+        <button class="btn btn-primary" onclick="spawnPathogen()">🦠 Add Pathogen</button>
+        <button class="btn btn-secondary" onclick="resetImmune()">🔄 Reset</button>
       </div>
     </div>
 

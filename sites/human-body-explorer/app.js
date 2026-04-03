@@ -501,6 +501,355 @@
   });
 }
 
+ // --- Canvas Features (Phase 3) ---
+
+// Anatomy organ hotspots on body silhouette
+const ANATOMY_HOTSPOTS = [
+  { id: 'brain', x: 200, y: 50, r: 25, label: '🧠 Brain' },
+  { id: 'eyes', x: 200, y: 70, r: 12, label: '👁️ Eyes' },
+  { id: 'thyroid', x: 200, y: 125, r: 12, label: '🦋 Thyroid' },
+  { id: 'lungs', x: 200, y: 190, r: 30, label: '🫁 Lungs' },
+  { id: 'heart', x: 180, y: 200, r: 18, label: '❤️ Heart' },
+  { id: 'liver', x: 230, y: 250, r: 22, label: '🫘 Liver' },
+  { id: 'stomach', x: 185, y: 270, r: 20, label: '🫗 Stomach' },
+  { id: 'kidneys', x: 200, y: 300, r: 18, label: '💧 Kidneys' },
+  { id: 'intestines', x: 200, y: 340, r: 28, label: '🌀 Intestines' },
+  { id: 'muscles', x: 140, y: 250, r: 18, label: '💪 Muscles' },
+  { id: 'bones', x: 200, y: 450, r: 22, label: '🦴 Skeleton' },
+  { id: 'skin', x: 265, y: 200, r: 15, label: '🤲 Skin' }
+];
+
+let anatomyHover = null;
+let immuneAnimId = null;
+let immuneTime = 0;
+let pathogens = [];
+let whiteCells = [];
+let antibodies = [];
+let selectedCell = 'rbc';
+
+const CELL_TYPES = [
+  { id: 'rbc', name: 'Red Blood Cell', emoji: '🔴', color: '#ef4444', description: 'Carries oxygen via hemoglobin. ~5 million per µL of blood. Lives ~120 days.' },
+  { id: 'wbc', name: 'White Blood Cell', emoji: '⚪', color: '#e5e7eb', description: 'Fights infections. Types include neutrophils, lymphocytes, monocytes. ~5000-10000 per µL.' },
+  { id: 'neuron', name: 'Neuron', emoji: '🧠', color: '#8b5cf6', description: 'Transmits electrical signals at up to 268 mph. ~86 billion in the brain. Synapse connections.' },
+  { id: 'muscle', name: 'Muscle Cell', emoji: '💪', color: '#ef4444', description: 'Contractile fibers with multiple nuclei. Contains myosin and actin filaments for movement.' }
+];
+
+function drawAnatomyCanvas(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = canvas.width, h = canvas.height;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#0a0a1a'; ctx.fillRect(0, 0, w, h);
+
+  // Body silhouette
+  ctx.fillStyle = 'rgba(147,197,253,0.08)';
+  ctx.beginPath();
+  // Head
+  ctx.arc(200, 55, 35, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  // Neck
+  ctx.fillRect(190, 90, 20, 25);
+  // Torso
+  ctx.beginPath();
+  ctx.moveTo(150, 115); ctx.lineTo(250, 115); ctx.lineTo(260, 380); ctx.lineTo(140, 380); ctx.closePath();
+  ctx.fill();
+  // Arms
+  ctx.fillRect(110, 120, 40, 180); ctx.fillRect(250, 120, 40, 180);
+  // Legs
+  ctx.fillRect(155, 380, 35, 200); ctx.fillRect(210, 380, 35, 200);
+
+  // Organ hotspots
+  ANATOMY_HOTSPOTS.forEach(hs => {
+    const isHover = anatomyHover === hs.id;
+    const isSelected = selectedOrgan === hs.id;
+    const organ = getOrganById(hs.id);
+    const sys = organ ? getSystemById(organ.system) : null;
+    const color = sys ? sys.color : '#8b5cf6';
+
+    // Glow
+    if (isHover || isSelected) {
+      const glow = ctx.createRadialGradient(hs.x, hs.y, 0, hs.x, hs.y, hs.r * 2);
+      glow.addColorStop(0, color + '40'); glow.addColorStop(1, 'transparent');
+      ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(hs.x, hs.y, hs.r * 2, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Hotspot circle
+    ctx.fillStyle = isSelected ? color + 'aa' : isHover ? color + '60' : color + '30';
+    ctx.beginPath(); ctx.arc(hs.x, hs.y, hs.r, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = color; ctx.lineWidth = isHover || isSelected ? 2 : 1;
+    ctx.beginPath(); ctx.arc(hs.x, hs.y, hs.r, 0, Math.PI * 2); ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#fff'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(hs.label, hs.x, hs.y + hs.r + 14);
+  });
+}
+
+function drawCellExplorer(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = canvas.width, h = canvas.height;
+  const cx = w / 2, cy = h / 2;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#0a0a1a'; ctx.fillRect(0, 0, w, h);
+
+  const cell = CELL_TYPES.find(c => c.id === selectedCell) || CELL_TYPES[0];
+
+  if (cell.id === 'rbc') {
+    // Red blood cell — biconcave disc
+    ctx.fillStyle = 'rgba(239,68,68,0.3)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, 80, 60, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.stroke();
+    // Indent
+    ctx.fillStyle = 'rgba(239,68,68,0.15)';
+    ctx.beginPath(); ctx.ellipse(cx, cy, 40, 30, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#dc2626'; ctx.stroke();
+    // Labels
+    ctx.fillStyle = '#fff'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText('Cell membrane', cx + 85, cy - 10);
+    ctx.fillText('Hemoglobin (O₂ carrier)', cx + 45, cy + 20);
+    ctx.fillText('No nucleus!', cx - 30, cy + 80);
+    // Arrows
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx + 80, cy); ctx.lineTo(cx + 83, cy - 8); ctx.stroke();
+  } else if (cell.id === 'wbc') {
+    // White blood cell — irregular shape
+    ctx.fillStyle = 'rgba(229,231,235,0.2)';
+    ctx.beginPath();
+    for (let a = 0; a < Math.PI * 2; a += 0.1) {
+      const r = 60 + Math.sin(a * 3) * 15 + Math.cos(a * 5) * 10;
+      const px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+      if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#e5e7eb'; ctx.lineWidth = 2; ctx.stroke();
+    // Nucleus (multi-lobed)
+    ctx.fillStyle = 'rgba(139,92,246,0.4)';
+    for (let n = 0; n < 3; n++) {
+      ctx.beginPath(); ctx.arc(cx - 15 + n * 15, cy, 12, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#fff'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText('Multi-lobed nucleus', cx + 70, cy);
+    ctx.fillText('Pseudopods (for movement)', cx + 40, cy + 50);
+    ctx.fillText('Granules (enzymes)', cx - 80, cy - 60);
+  } else if (cell.id === 'neuron') {
+    // Neuron
+    ctx.fillStyle = 'rgba(139,92,246,0.3)';
+    ctx.beginPath(); ctx.arc(cx - 100, cy, 35, 0, Math.PI * 2); ctx.fill(); // Cell body
+    ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 2; ctx.stroke();
+    // Nucleus
+    ctx.fillStyle = 'rgba(139,92,246,0.5)'; ctx.beginPath(); ctx.arc(cx - 100, cy, 15, 0, Math.PI * 2); ctx.fill();
+    // Axon
+    ctx.strokeStyle = '#8b5cf6'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx - 65, cy); ctx.lineTo(cx + 120, cy); ctx.stroke();
+    // Myelin sheath
+    for (let m = 0; m < 5; m++) {
+      ctx.fillStyle = 'rgba(251,191,36,0.3)';
+      ctx.beginPath(); ctx.ellipse(cx - 40 + m * 35, cy, 12, 8, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    // Dendrites
+    ctx.strokeStyle = 'rgba(139,92,246,0.5)'; ctx.lineWidth = 1.5;
+    for (let d = 0; d < 5; d++) {
+      const angle = -Math.PI * 0.3 + d * 0.3;
+      ctx.beginPath(); ctx.moveTo(cx - 130, cy + Math.sin(angle) * 20);
+      ctx.lineTo(cx - 130 - Math.cos(angle) * 40, cy + Math.sin(angle) * 40); ctx.stroke();
+    }
+    // Synaptic terminals
+    ctx.fillStyle = '#22c55e';
+    for (let t = 0; t < 3; t++) {
+      ctx.beginPath(); ctx.arc(cx + 120 + t * 5, cy - 8 + t * 8, 4, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#fff'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText('Cell body (Soma)', cx - 100, cy - 45);
+    ctx.fillText('Axon', cx, cy - 15);
+    ctx.fillText('Myelin sheath', cx - 20, cy + 25);
+    ctx.fillText('Dendrites', cx - 180, cy - 10);
+    ctx.fillText('Synapse', cx + 100, cy + 35);
+  } else {
+    // Muscle cell — striated
+    ctx.fillStyle = 'rgba(239,68,68,0.2)';
+    ctx.beginPath(); ctx.roundRect(cx - 120, cy - 30, 240, 60, 20); ctx.fill();
+    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.stroke();
+    // Striations
+    for (let s = 0; s < 10; s++) {
+      ctx.strokeStyle = 'rgba(239,68,68,0.3)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(cx - 100 + s * 24, cy - 25); ctx.lineTo(cx - 100 + s * 24, cy + 25); ctx.stroke();
+    }
+    // Multiple nuclei
+    ctx.fillStyle = 'rgba(139,92,246,0.4)';
+    for (let n = 0; n < 3; n++) ctx.fillRect(cx - 80 + n * 70, cy - 28, 20, 8);
+    ctx.fillStyle = '#fff'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText('Myofibrils (striations)', cx + 130, cy);
+    ctx.fillText('Multiple nuclei', cx - 80, cy - 38);
+    ctx.fillText('Sarcolemma (membrane)', cx + 130, cy + 30);
+  }
+
+  // Description
+  ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '12px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText(cell.description, w / 2, h - 20);
+}
+
+function drawImmuneResponse(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = canvas.width, h = canvas.height;
+
+  ctx.clearRect(0, 0, w, h);
+  // Blood plasma background
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#2a0a0a'); bg.addColorStop(1, '#1a0505');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+  // Blood cells (background)
+  for (let i = 0; i < 15; i++) {
+    const bx = (i * 89 + immuneTime * 0.3) % w;
+    const by = (i * 53) % h;
+    ctx.fillStyle = 'rgba(239,68,68,0.15)';
+    ctx.beginPath(); ctx.ellipse(bx, by, 8, 6, 0, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Pathogens (green bad guys)
+  pathogens.forEach(p => {
+    if (p.dead) return;
+    ctx.fillStyle = '#22c55e';
+    ctx.beginPath();
+    for (let a = 0; a < Math.PI * 2; a += 0.3) {
+      const r = 8 + Math.sin(a * 5 + immuneTime * 0.1) * 3;
+      const px = p.x + Math.cos(a) * r, py = p.y + Math.sin(a) * r;
+      if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '6px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('🦠', p.x, p.y + 3);
+  });
+
+  // White blood cells (good guys)
+  whiteCells.forEach(wc => {
+    ctx.fillStyle = 'rgba(229,231,235,0.5)';
+    ctx.beginPath();
+    for (let a = 0; a < Math.PI * 2; a += 0.2) {
+      const r = 12 + Math.sin(a * 3 + immuneTime * 0.05) * 4;
+      const px = wc.x + Math.cos(a) * r, py = wc.y + Math.sin(a) * r;
+      if (a === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(139,92,246,0.5)';
+    ctx.beginPath(); ctx.arc(wc.x, wc.y, 5, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Antibodies (Y-shapes)
+  antibodies.forEach(ab => {
+    ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(ab.x, ab.y + 6); ctx.lineTo(ab.x, ab.y - 2);
+    ctx.lineTo(ab.x - 4, ab.y - 6); ctx.moveTo(ab.x, ab.y - 2); ctx.lineTo(ab.x + 4, ab.y - 6); ctx.stroke();
+  });
+
+  // HUD
+  ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(10, 10, 160, 60);
+  ctx.fillStyle = '#22c55e'; ctx.font = '11px monospace'; ctx.textAlign = 'left';
+  const alivePathogens = pathogens.filter(p => !p.dead).length;
+  ctx.fillText(`Pathogens: ${alivePathogens}`, 18, 28);
+  ctx.fillText(`White Cells: ${whiteCells.length}`, 18, 44);
+  ctx.fillText(`Antibodies: ${antibodies.length}`, 18, 60);
+}
+
+function immuneTick() {
+  immuneTime++;
+  // Move pathogens
+  pathogens.forEach(p => {
+    if (p.dead) return;
+    p.x += (Math.random() - 0.5) * 2; p.y += (Math.random() - 0.5) * 2;
+    p.x = Math.max(10, Math.min(690, p.x)); p.y = Math.max(10, Math.min(390, p.y));
+  });
+  // WBCs chase nearest pathogen
+  whiteCells.forEach(wc => {
+    let nearest = null, minD = Infinity;
+    pathogens.forEach(p => { if (p.dead) return; const d = Math.sqrt((p.x - wc.x) ** 2 + (p.y - wc.y) ** 2); if (d < minD) { minD = d; nearest = p; } });
+    if (nearest) {
+      const dx = nearest.x - wc.x, dy = nearest.y - wc.y, d = Math.sqrt(dx * dx + dy * dy);
+      if (d > 0) { wc.x += (dx / d) * 1.2; wc.y += (dy / d) * 1.2; }
+      if (d < 15) { nearest.dead = true; }
+    }
+  });
+  // Spawn antibodies periodically
+  if (immuneTime % 30 === 0 && pathogens.filter(p => !p.dead).length > 0) {
+    antibodies.push({ x: Math.random() * 700, y: Math.random() * 400 });
+  }
+  // Auto-spawn WBCs
+  if (immuneTime % 60 === 0 && whiteCells.length < 8 && pathogens.filter(p => !p.dead).length > 0) {
+    whiteCells.push({ x: 20 + Math.random() * 50, y: Math.random() * 400 });
+  }
+  if (typeof document !== 'undefined') drawImmuneResponse(document.getElementById('immune-canvas'));
+  immuneAnimId = requestAnimationFrame(immuneTick);
+}
+
+function spawnPathogen() {
+  for (let i = 0; i < 5; i++) {
+    pathogens.push({ x: 500 + Math.random() * 150, y: 50 + Math.random() * 300, dead: false });
+  }
+  if (!whiteCells.length) {
+    for (let i = 0; i < 3; i++) whiteCells.push({ x: 30 + Math.random() * 50, y: 100 + Math.random() * 200 });
+  }
+}
+
+function resetImmune() {
+  pathogens = []; whiteCells = []; antibodies = []; immuneTime = 0;
+}
+
+function selectCellType(id) {
+  selectedCell = id;
+  if (typeof document !== 'undefined') {
+    drawCellExplorer(document.getElementById('cell-canvas'));
+    renderCellSelector();
+  }
+}
+
+function renderCellSelector() {
+  if (typeof document === 'undefined') return;
+  const el = document.getElementById('cell-selector');
+  if (!el) return;
+  el.innerHTML = CELL_TYPES.map(c => `<button class="btn ${selectedCell === c.id ? 'btn-primary' : 'btn-secondary'} text-sm" onclick="selectCellType('${c.id}')">${c.emoji} ${c.name}</button>`).join(' ');
+}
+
+function setupAnatomyCanvas() {
+  if (typeof document === 'undefined') return;
+  const canvas = document.getElementById('anatomy-canvas');
+  if (!canvas) return;
+  canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    anatomyHover = null;
+    ANATOMY_HOTSPOTS.forEach(hs => {
+      if (Math.sqrt((mx - hs.x) ** 2 + (my - hs.y) ** 2) < hs.r) anatomyHover = hs.id;
+    });
+    canvas.style.cursor = anatomyHover ? 'pointer' : 'default';
+    drawAnatomyCanvas(canvas);
+  });
+  canvas.addEventListener('click', () => {
+    if (anatomyHover) { selectOrgan(anatomyHover); drawAnatomyCanvas(canvas); updateAnatomyDetail(); }
+  });
+}
+
+function updateAnatomyDetail() {
+  if (typeof document === 'undefined') return;
+  const panel = document.getElementById('anatomy-detail');
+  if (!panel || !selectedOrgan) return;
+  const o = getOrganById(selectedOrgan);
+  if (!o) return;
+  const sys = getSystemById(o.system);
+  panel.innerHTML = `<h3>${o.emoji} ${o.name}</h3><p class="text-dim">${sys ? sys.emoji + ' ' + sys.name : ''}</p>
+    <p style="margin-top:8px">${o.description}</p>
+    <div style="margin-top:8px"><strong>Weight:</strong> ${o.weight} | <strong>Location:</strong> ${o.location}</div>
+    <div style="margin-top:4px"><strong>Nutrients:</strong> ${o.nutrients.join(', ')}</div>`;
+}
+
  function switchBodyTab(tab) {
   activeTab = tab;
   if (typeof document === 'undefined') return;
@@ -512,13 +861,19 @@
   if (target) target.classList.remove('hidden');
 
   const btns = document.querySelectorAll('.body-tab-btn');
-  const tabMap = { systems: 0, scenarios: 1, nutrition: 2, quiz: 3, health: 4 };
+  const tabMap = { systems: 0, anatomy: 1, cells: 2, immune: 3, scenarios: 4, nutrition: 5, quiz: 6, health: 7 };
   if (btns[tabMap[tab]]) btns[tabMap[tab]].classList.add('active');
+
+  // Stop immune animation if leaving
+  if (immuneAnimId && tab !== 'immune') { cancelAnimationFrame(immuneAnimId); immuneAnimId = null; }
 
   if (tab === 'quiz') renderQuiz();
   if (tab === 'nutrition') renderNutrition();
   if (tab === 'health') renderHealthCalc();
   if (tab === 'scenarios') { renderScenarios(); renderScenarioDetail(); }
+  if (tab === 'anatomy') { setupAnatomyCanvas(); drawAnatomyCanvas(document.getElementById('anatomy-canvas')); }
+  if (tab === 'cells') { renderCellSelector(); drawCellExplorer(document.getElementById('cell-canvas')); }
+  if (tab === 'immune') { immuneTick(); }
 }
 
  function init() {
@@ -537,7 +892,7 @@
 // --- Exports ---
  if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    BODY_SYSTEMS, ORGANS, FOODS, SCENARIOS, QUIZ_QUESTIONS,
+    BODY_SYSTEMS, ORGANS, FOODS, SCENARIOS, QUIZ_QUESTIONS, ANATOMY_HOTSPOTS, CELL_TYPES,
     getSystemById, getOrganById, getOrgansBySystem, getScenarioById,
     getFoodsForOrgan, calculateBMI, calculateHeartRate, calculateWaterIntake,
     getQuizQuestion, checkQuizAnswer, getSystemStats,
@@ -545,7 +900,11 @@
     renderScenarios, renderScenarioDetail, renderQuiz, renderNutrition, renderHealthCalc,
     selectSystem, selectOrgan, toggleXray, toggleHeartbeat,
     showScenario, answerBodyQuiz, switchBodyTab, init,
-    getState: () => ({ activeSystem, selectedOrgan, xrayMode, heartbeatActive, quizScore, quizStreak, quizTotal, currentQuiz, activeTab, activeScenario, pulseCount }),
+    // Phase 3 canvas features
+    drawAnatomyCanvas, drawCellExplorer, drawImmuneResponse,
+    spawnPathogen, resetImmune, selectCellType, renderCellSelector,
+    setupAnatomyCanvas, updateAnatomyDetail, immuneTick,
+    getState: () => ({ activeSystem, selectedOrgan, xrayMode, heartbeatActive, quizScore, quizStreak, quizTotal, currentQuiz, activeTab, activeScenario, pulseCount, selectedCell, immuneTime }),
     setState: (s) => {
       if (s.activeSystem !== undefined) activeSystem = s.activeSystem;
       if (s.selectedOrgan !== undefined) selectedOrgan = s.selectedOrgan;
@@ -559,6 +918,7 @@
       if (s.activeScenario !== undefined) activeScenario = s.activeScenario;
     },
     _resetQuiz: () => { quizScore = 0; quizStreak = 0; quizTotal = 0; currentQuiz = null; },
-    _clearHeartbeat: () => { if (heartbeatInterval) clearInterval(heartbeatInterval); heartbeatInterval = null; heartbeatActive = false; pulseCount = 0; }
+    _clearHeartbeat: () => { if (heartbeatInterval) clearInterval(heartbeatInterval); heartbeatInterval = null; heartbeatActive = false; pulseCount = 0; },
+    _stopAnim: () => { if (immuneAnimId) { cancelAnimationFrame(immuneAnimId); immuneAnimId = null; } }
   };
 }

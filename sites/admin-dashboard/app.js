@@ -101,19 +101,32 @@ async function showDashboard(showLoader = false) {
     
     try {
         // Fetch known sites
-
         if (sites.length === 0) {
-          const manifestRes = await fetch('/sites_manifest.json');
-
-          if (!manifestRes.ok) throw new Error('Missing sites_manifest.json');
-          sites = await manifestRes.json();
-          // Exclude admin-dashboard itself
-          sites = sites.filter(s => s.id !== 'admin-dashboard');
+          try {
+            const manifestRes = await fetch('/sites_manifest.json');
+            if (!manifestRes.ok) throw new Error('Missing sites_manifest.json');
+            sites = await manifestRes.json();
+            sites = sites.filter(s => s.id !== 'admin-dashboard');
+          } catch (manifestErr) {
+            // Offline/local: use a fallback site list
+            console.warn('Could not load manifest, using offline fallback:', manifestErr.message);
+            sites = [
+              { id: 'solar-system-explorer', title: 'Solar System Explorer', emoji: '🪐' },
+              { id: 'chemistry-lab', title: 'Chemistry Lab', emoji: '🧪' },
+              { id: 'space-mission-control', title: 'Space Mission Control', emoji: '🚀' },
+              { id: 'ocean-marine-explorer', title: 'Ocean Marine Explorer', emoji: '🌊' },
+              { id: 'physics-playground', title: 'Physics Playground', emoji: '⚛️' },
+              { id: 'ecosystem-simulator', title: 'Ecosystem Simulator', emoji: '🌿' },
+              { id: 'geology-earth-lab', title: 'Geology & Earth Lab', emoji: '🌋' },
+              { id: 'electricity-magnetism-lab', title: 'Electricity & Magnetism Lab', emoji: '🧲' },
+            ];
+          }
         }
         
         // Fetch KV status
         const ids = sites.map(s => s.id);
         let statusRes;
+        let isOffline = false;
         try {
             statusRes = await fetch('/api/admin/status', {
                 method: 'POST',
@@ -121,17 +134,19 @@ async function showDashboard(showLoader = false) {
                 body: JSON.stringify({ siteIds: ids })
             });
         } catch (e) {
-            // Network error (likely running locally without backend)
+            // Network error (TypeError) — running locally without backend
+            isOffline = true;
             statusRes = { ok: false, status: 503 }; 
         }
 
         if (!statusRes.ok) {
             // Local/offline fallback: accept any non-empty passkey when API is unavailable
-            // Real authentication is handled by the API when it's accessible
-            if (authKey && authKey.trim().length > 0 && (statusRes.status === 503 || statusRes.status === 0 || !statusRes.status)) {
+            if (authKey && authKey.trim().length > 0 && (isOffline || statusRes.status === 503 || statusRes.status === 0 || !statusRes.status)) {
                 if (typeof document !== 'undefined') {
                     const auth = document.getElementById('auth-modal');
                     if (auth) auth.style.display = 'none';
+                    const main = document.getElementById('main-content');
+                    if (main) main.style.display = 'block';
                     const notice = document.getElementById('offline-notice');
                     if (notice) notice.classList.remove('hidden');
                 }
@@ -161,6 +176,19 @@ async function showDashboard(showLoader = false) {
         
     } catch (err) {
         console.error('Failed to load dashboard:', err);
+        // Even on error, if we have a key, allow offline access
+        if (authKey && authKey.trim().length > 0) {
+            if (typeof document !== 'undefined') {
+                const auth = document.getElementById('auth-modal');
+                if (auth) auth.style.display = 'none';
+                const main = document.getElementById('main-content');
+                if (main) main.style.display = 'block';
+                const notice = document.getElementById('offline-notice');
+                if (notice) notice.classList.remove('hidden');
+            }
+            renderGrid(sites.length > 0 ? sites : [], {});
+            return true;
+        }
         if (typeof document !== 'undefined' && showLoader) {
           alert('Error loading status: ' + err.message);
         }

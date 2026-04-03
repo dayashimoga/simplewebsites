@@ -131,20 +131,7 @@ describe('Ecosystem Simulator Core Logic', () => {
     popCanvas.id = 'pop-chart';
     document.body.appendChild(popCanvas);
     
-    canvas.getContext = jest.fn(() => ({
-      clearRect: jest.fn(),
-      fillRect: jest.fn(),
-      fillText: jest.fn(),
-      beginPath: jest.fn(),
-      moveTo: jest.fn(),
-      lineTo: jest.fn(),
-      stroke: jest.fn(),
-      arc: jest.fn(),
-      fill: jest.fn(),
-      createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() }))
-    }));
-    
-    popCanvas.getContext = canvas.getContext;
+    // rely on jest-canvas-mock
     
     // Simulate multiple physics frames and render them
     for (let i = 0; i < 10; i++) {

@@ -27,6 +27,7 @@
             <button class="ctrl-btn active" id="orbits-btn" onclick="toggleOrbits()" title="Toggle orbit paths">⊙ Orbits</button>
             <button class="ctrl-btn active" id="trails-btn" onclick="toggleTrails()" title="Toggle orbit trails">✦ Trails</button>
             <button class="ctrl-btn active" id="asteroids-btn" onclick="toggleAsteroidBelt()" title="Toggle asteroid belt">🪨 Belt</button>
+            <button class="ctrl-btn" id="dwarfs-btn" onclick="toggleDwarfPlanets()" title="Toggle dwarf planets">🔮 Dwarfs</button>
           </div>
           <span class="ctrl-divider"></span>
           <div class="slider-ctrl">
@@ -36,7 +37,7 @@
           </div>
           <div class="slider-ctrl">
             <label>Zoom</label>
-            <input type="range" min="0.3" max="1.8" step="0.05" value="1" oninput="setZoom(this.value)">
+            <input type="range" id="zoom-range" min="0.3" max="3" step="0.05" value="1" oninput="setZoom(this.value)">
           </div>
           <span class="ctrl-divider"></span>
           <button class="ctrl-btn" id="compare-btn" onclick="toggleComparisonMode()" title="Size comparison">📊 Compare</button>
@@ -169,6 +170,15 @@
       <div class="shortcut-row"><span class="shortcut-desc">Show Shortcuts</span><span class="shortcut-key">?</span></div>
       <button class="shortcuts-close" onclick="toggleShortcuts()">Close</button>
     </div>
+  </div>
+
+  <!-- Planet Detail Overlay -->
+  <div class="planet-detail-overlay hidden" id="planet-detail-view"></div>
+
+  <!-- Floating Space Fact -->
+  <div class="space-fact-bar" id="space-fact-bar">
+    <span id="space-fact-text"></span>
+    <button onclick="document.getElementById('space-fact-text').textContent = getSpaceFact()" class="fact-refresh">🔄</button>
   </div>
 
   <footer class="footer">

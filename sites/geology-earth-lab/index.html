@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive Geology & Earth Science Lab — explore tectonic plates, volcanoes, rock cycles, seismic waves, and minerals.">
+  <title>🌋 Geology & Earth Science Lab</title>
+  <link rel="stylesheet" href="../../shared/shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="hero">
+      <h1><span class="text-gradient">🌋 Geology & Earth Science Lab</span></h1>
+      <p>Explore Earth's forces — tectonic plates, volcanoes, rock cycles & more</p>
+    </header>
+
+    <!-- Tab Navigation -->
+    <div class="card geo-tabs">
+      <button class="geo-tab-btn active" onclick="switchGeoTab('volcano')">🌋 Volcano</button>
+      <button class="geo-tab-btn" onclick="switchGeoTab('tectonics')">🌍 Tectonics</button>
+      <button class="geo-tab-btn" onclick="switchGeoTab('rocks')">🪨 Rock Cycle</button>
+      <button class="geo-tab-btn" onclick="switchGeoTab('seismic')">📊 Seismic</button>
+      <button class="geo-tab-btn" onclick="switchGeoTab('minerals')">💎 Minerals</button>
+      <button class="geo-tab-btn" onclick="switchGeoTab('quiz')">🧠 Quiz</button>
+    </div>
+
+    <!-- Volcano Simulator -->
+    <div class="card geo-tab-content" id="gtab-volcano">
+      <h2>🌋 Volcano Eruption Simulator</h2>
+      <p class="section-desc">Adjust magma pressure and viscosity to trigger eruptions</p>
+      <div class="volcano-layout">
+        <canvas id="volcano-canvas" width="700" height="450"></canvas>
+        <div class="volcano-controls">
+          <div class="control-row">
+            <label>Magma Pressure</label>
+            <input type="range" id="v-pressure" min="0" max="100" value="30" oninput="updateVolcanoParam('pressure', this.value)">
+            <span id="v-pressure-val">30%</span>
+          </div>
+          <div class="control-row">
+            <label>Viscosity</label>
+            <input type="range" id="v-viscosity" min="1" max="10" value="5" oninput="updateVolcanoParam('viscosity', this.value)">
+            <span id="v-viscosity-val">5</span>
+          </div>
+          <div class="control-row">
+            <label>Gas Content</label>
+            <input type="range" id="v-gas" min="0" max="100" value="40" oninput="updateVolcanoParam('gas', this.value)">
+            <span id="v-gas-val">40%</span>
+          </div>
+          <button class="btn-primary" onclick="triggerEruption()">🌋 Erupt!</button>
+          <button class="btn-secondary" onclick="resetVolcano()">🔄 Reset</button>
+          <div id="volcano-info" class="info-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tectonic Plates -->
+    <div class="card geo-tab-content hidden" id="gtab-tectonics">
+      <h2>🌍 Tectonic Plates Explorer</h2>
+      <p class="section-desc">Explore plate boundaries and their interactions</p>
+      <canvas id="tectonics-canvas" width="800" height="450"></canvas>
+      <div class="plate-info" id="plate-info"></div>
+    </div>
+
+    <!-- Rock Cycle -->
+    <div class="card geo-tab-content hidden" id="gtab-rocks">
+      <h2>🪨 Rock Cycle Visualizer</h2>
+      <p class="section-desc">Trace the journey of rocks through igneous, sedimentary, and metamorphic stages</p>
+      <canvas id="rock-cycle-canvas" width="700" height="500"></canvas>
+      <div id="rock-info" class="info-panel"></div>
+    </div>
+
+    <!-- Seismic Waves -->
+    <div class="card geo-tab-content hidden" id="gtab-seismic">
+      <h2>📊 Seismic Wave Simulator</h2>
+      <p class="section-desc">Visualize P-waves and S-waves propagating through Earth</p>
+      <div class="seismic-layout">
+        <canvas id="seismic-canvas" width="700" height="400"></canvas>
+        <div class="seismic-controls">
+          <div class="control-row">
+            <label>Magnitude</label>
+            <input type="range" id="s-magnitude" min="1" max="10" step="0.1" value="5" oninput="updateSeismicParam('magnitude', this.value)">
+            <span id="s-magnitude-val">5.0</span>
+          </div>
+          <div class="control-row">
+            <label>Depth (km)</label>
+            <input type="range" id="s-depth" min="1" max="700" value="30" oninput="updateSeismicParam('depth', this.value)">
+            <span id="s-depth-val">30</span>
+          </div>
+          <button class="btn-primary" onclick="triggerQuake()">💥 Trigger Earthquake</button>
+          <div id="seismic-info" class="info-panel"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Minerals -->
+    <div class="card geo-tab-content hidden" id="gtab-minerals">
+      <h2>💎 Mineral Identifier</h2>
+      <p class="section-desc">Explore minerals, their properties, and uses</p>
+      <div class="mineral-grid" id="mineral-grid"></div>
+      <div id="mineral-detail" class="info-panel"></div>
+    </div>
+
+    <!-- Quiz -->
+    <div class="card geo-tab-content hidden" id="gtab-quiz">
+      <h2>🧠 Geology Quiz <span class="quiz-score-badge">Score: <span id="gq-score">0</span> | Streak: <span id="gq-streak">0</span></span></h2>
+      <div class="quiz-card">
+        <p class="quiz-question" id="gq-question"></p>
+        <div class="quiz-options" id="gq-options"></div>
+        <p class="quiz-feedback hidden" id="gq-feedback"></p>
+        <button class="btn-secondary mt-3" onclick="renderGeoQuiz()">Next Question →</button>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; 2026 Geology & Earth Science Lab. Explore our planet. 🌍</p>
+    </footer>
+  </div>
+  <script src="../../shared/shared-theme-toggle.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

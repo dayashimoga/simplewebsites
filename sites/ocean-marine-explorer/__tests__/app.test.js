@@ -34,28 +34,7 @@ describe('Ocean & Marine Explorer', () => {
       <canvas id="underwater-canvas" width="800" height="400"></canvas>
     `;
     
-    // Mock Canvas Context
-    const canvas = document.getElementById('underwater-canvas');
-    canvas.getContext = jest.fn(() => ({
-      clearRect: jest.fn(),
-      fillRect: jest.fn(),
-      beginPath: jest.fn(),
-      arc: jest.fn(),
-      fill: jest.fn(),
-      moveTo: jest.fn(),
-      lineTo: jest.fn(),
-      stroke: jest.fn(),
-      save: jest.fn(),
-      restore: jest.fn(),
-      scale: jest.fn(),
-      createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
-      createRadialGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
-      fillText: jest.fn(),
-      ellipse: jest.fn(),
-      setLineDash: jest.fn(),
-      closePath: jest.fn(),
-    }));
-
+    // rely on jest-canvas-mock
     app._resetQuiz();
     app.setState({ activeZone: null, selectedCreature: null, reefHealth: 100, reefTemp: 26, reefPh: 8.2, reefSalinity: 35, reefLight: 80, creatureFilter: 'all' });
   });

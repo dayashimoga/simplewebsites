@@ -116,24 +116,7 @@ describe('Physics Playground Core Logic', () => {
     canvas.id = 'physics-canvas';
     document.body.appendChild(canvas);
     
-    canvas.getContext = jest.fn(() => ({
-      clearRect: jest.fn(),
-      fillRect: jest.fn(),
-      fillText: jest.fn(),
-      beginPath: jest.fn(),
-      moveTo: jest.fn(),
-      lineTo: jest.fn(),
-      stroke: jest.fn(),
-      arc: jest.fn(),
-      fill: jest.fn(),
-      save: jest.fn(),
-      restore: jest.fn(),
-      translate: jest.fn(),
-      rotate: jest.fn(),
-      setLineDash: jest.fn(),
-      ellipse: jest.fn(),
-      closePath: jest.fn()
-    }));
+    // rely on jest-canvas-mock
     
     const {drawProjectile, drawPendulums, drawWaves, drawOptics, switchPhysTab, updateCircuit, fireProjectile, togglePendulum, init} = require('../app');
     drawProjectile(canvas);

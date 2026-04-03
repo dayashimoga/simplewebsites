@@ -209,19 +209,7 @@ describe('Space Mission Control', () => {
     const canvas = document.createElement('canvas');
     canvas.id = 'rocket-launch-canvas';
     document.body.appendChild(canvas);
-    canvas.getContext = jest.fn(() => ({
-      clearRect: jest.fn(),
-      createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
-      fillRect: jest.fn(),
-      beginPath: jest.fn(),
-      arc: jest.fn(),
-      fill: jest.fn(),
-      moveTo: jest.fn(),
-      lineTo: jest.fn(),
-      closePath: jest.fn(),
-      fillText: jest.fn(),
-      createRadialGradient: jest.fn(() => ({ addColorStop: jest.fn() }))
-    }));
+    // Use jest-canvas-mock implicitly
 
     app.setState({ selectedDestination: 'mars' });
     app.startVisualLaunch();

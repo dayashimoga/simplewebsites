@@ -18,6 +18,12 @@
             </div><input type="file" id="video-input" accept="video/*" class="hidden" onchange="handleUpload(event)">
         </div>
 
+        <!-- Video Metadata Panel -->
+        <div class="card hidden mb-4" id="video-metadata">
+            <h3 class="text-lg mb-2">📊 Video Info</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="meta-grid"></div>
+        </div>
+
         <div class="card hidden mb-8" id="compress-ui">
             <!-- Video Preview & Trim Controls -->
             <div class="mb-6 bg-black rounded-lg overflow-hidden flex flex-col">
@@ -67,6 +73,7 @@
                     <select id="video-audio" class="input text-sm w-full p-2 cursor-pointer">
                         <option value="keep" selected>Keep Audio</option>
                         <option value="mute">Mute (Remove Audio)</option>
+                        <option value="extract">Extract Audio Only</option>
                     </select>
                 </div>
                 <div>
@@ -98,6 +105,34 @@
                 </div>
             </div>
 
+            <!-- Audio Management -->
+            <div class="card glass mb-4">
+                <h4 class="mb-2 text-md">🎵 Audio Tools</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="label text-xs mb-1">Replace / Add Audio Track</label>
+                        <input type="file" id="audio-input" accept="audio/*" class="input text-xs w-full p-1">
+                    </div>
+                    <div>
+                        <label class="label text-xs mb-1">Audio Volume</label>
+                        <input type="range" id="audio-volume" min="0" max="200" value="100" class="w-full">
+                        <span class="text-xs text-gray-400" id="audio-vol-label">100%</span>
+                    </div>
+                    <div>
+                        <label class="label text-xs mb-1">Audio Fade</label>
+                        <select id="audio-fade" class="input text-xs w-full p-1">
+                            <option value="none">None</option>
+                            <option value="fadein">Fade In (2s)</option>
+                            <option value="fadeout">Fade Out (2s)</option>
+                            <option value="both">Both</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estimated Output -->
+            <div class="text-center text-sm text-gray-400 mb-3" id="estimate-display"></div>
+
             <button class="btn btn-accent w-full text-lg py-4" id="do-compress-btn" onclick="executeCompression()">🎬 Compress & Edit Video</button>
             
             <div id="processing-status" class="mt-4 text-center font-bold text-gradient hidden" style="font-size:1.1rem"></div>
@@ -107,8 +142,39 @@
             
             <div id="result-ui" class="hidden mt-6 text-center bg-gray-900 border border-gray-700 p-6 rounded-lg">
                 <p class="text-xl mb-4 text-white">Compression finished! <span id="saved-space" class="text-green-500 font-bold block mt-2"></span></p>
-                <button class="btn btn-primary w-full text-lg py-3 shadow-glow" onclick="downloadVideo()">📥 Download Compressed Video</button>
+                <div class="flex gap-2 justify-center mb-3">
+                    <button class="btn btn-primary text-lg py-3 shadow-glow flex-1" onclick="downloadVideo()">📥 Download</button>
+                    <button class="btn btn-secondary text-sm py-3" onclick="showComparison()">🔍 Compare</button>
+                    <button class="btn btn-secondary text-sm py-3" onclick="extractThumbnailFromResult()">📸 Thumbnail</button>
+                </div>
             </div>
+
+            <!-- Comparison Viewer -->
+            <div id="comparison-ui" class="hidden mt-4">
+                <h4 class="text-md mb-2">🔍 Before vs After</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><p class="text-xs text-gray-400 mb-1">Original</p><video id="compare-original" controls class="w-full rounded" style="max-height:200px"></video></div>
+                    <div><p class="text-xs text-gray-400 mb-1">Compressed</p><video id="compare-compressed" controls class="w-full rounded" style="max-height:200px"></video></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Processing -->
+        <div class="card mb-4">
+            <h3 class="text-lg mb-2">📦 Batch Processing</h3>
+            <p class="text-xs text-gray-400 mb-3">Add multiple files to process sequentially with the same settings.</p>
+            <div class="flex gap-2 mb-3">
+                <input type="file" id="batch-input" accept="video/*" multiple class="input text-xs flex-1 p-2">
+                <button class="btn btn-secondary text-xs" onclick="addToBatch()">+ Add to Queue</button>
+            </div>
+            <div id="batch-queue" class="text-xs text-gray-400">Queue is empty</div>
+            <button class="btn btn-accent w-full mt-3 text-sm py-2 hidden" id="batch-start" onclick="processBatch()">🚀 Process All</button>
+        </div>
+
+        <!-- Compression History -->
+        <div class="card mb-8">
+            <h3 class="text-lg mb-2">📜 Compression History</h3>
+            <div id="history-log" class="text-xs text-gray-400">No compressions yet</div>
         </div>
     </div>
     <div class="ad-container ad-banner" id="ad-bottom"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="BOTTOM_SLOT"></ins></div>

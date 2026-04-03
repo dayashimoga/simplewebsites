@@ -2,7 +2,7 @@ const path = require('path');
 
 module.exports = {
     testEnvironment: 'jsdom',
-    setupFiles: ['jest-canvas-mock'],
+    setupFiles: ['jest-canvas-mock', '<rootDir>/jest.setup.js'],
     coverageThreshold: {
         global: {
             branches: 0,
@@ -26,12 +26,15 @@ module.exports = {
         'shared/**/*.js',
         'sites/admin-dashboard/**/*.js',
         'sites/ecosystem-simulator/**/*.js',
+        'sites/electricity-magnetism-lab/**/*.js',
         'sites/fluid-dynamics-lab/**/*.js',
+        'sites/geology-earth-lab/**/*.js',
         'sites/human-body-explorer/**/*.js',
         'sites/ocean-marine-explorer/**/*.js',
         'sites/physics-playground/**/*.js',
         'sites/solar-system-explorer/**/*.js',
         'sites/space-mission-control/**/*.js',
+        'sites/vehicle-simulator/**/*.js',
         'sites/video-compressor/**/*.js',
         '!**/node_modules/**',
         '!**/dist/**',

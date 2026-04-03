@@ -95,7 +95,9 @@ describe('Admin Dashboard', () => {
 
   test('form submission shows error if dashboard fails', async () => {
     app.setAuthKey(null);
-    global.fetch.mockResolvedValueOnce({ ok: false, status: 401 }); // make showDashboard return false
+    global.fetch
+      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // manifest
+      .mockResolvedValueOnce({ ok: false, status: 401 }); // status
     
     const form = document.getElementById('auth-form');
     const input = document.getElementById('passkey-input');

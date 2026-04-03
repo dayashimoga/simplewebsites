@@ -28,8 +28,14 @@ logs/
 *.debug
 *.test.js.output
 jest_output.json
-test_result.json
-test_results*.json
+test_result*.json
+test-output*.json
+test-output*.txt
+coverage.json
+*-cov.txt
+*-fail.txt
+*-curr.txt
+*-out*.txt
 debug*/
 temp*/
 debug*

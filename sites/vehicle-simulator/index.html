@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive Vehicle & Military Simulator — fly jets, pilot helicopters, command warships, drive tanks, and dive submarines with realistic physics.">
+  <title>🎮 Vehicle & Military Simulator</title>
+  <link rel="stylesheet" href="../../shared/shared-styles.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="hero">
+      <h1><span class="text-gradient">🎮 Vehicle & Military Simulator</span></h1>
+      <p>Pilot, Command, Drive, Dive — Full interactive simulations</p>
+    </header>
+    <div class="card sim-tabs">
+      <button class="sim-tab-btn active" onclick="switchSim('flight')">✈️ Flight</button>
+      <button class="sim-tab-btn" onclick="switchSim('heli')">🚁 Helicopter</button>
+      <button class="sim-tab-btn" onclick="switchSim('warship')">🚢 Warship</button>
+      <button class="sim-tab-btn" onclick="switchSim('tank')">🪖 Tank</button>
+      <button class="sim-tab-btn" onclick="switchSim('sub')">🤿 Submarine</button>
+    </div>
+
+    <!-- Flight -->
+    <div class="sim-panel" id="sim-flight">
+      <div class="sim-layout">
+        <canvas id="flight-canvas" width="800" height="500"></canvas>
+        <div class="sim-controls">
+          <h3>✈️ Flight Controls</h3>
+          <div class="ctrl"><label>Throttle</label><input type="range" id="f-throttle" min="0" max="100" value="50" oninput="updateFlight('throttle',this.value)"><span id="f-throttle-v">50%</span></div>
+          <div class="ctrl"><label>Pitch</label><input type="range" id="f-pitch" min="-30" max="30" value="0" oninput="updateFlight('pitch',this.value)"><span id="f-pitch-v">0°</span></div>
+          <div class="ctrl"><label>Roll</label><input type="range" id="f-roll" min="-45" max="45" value="0" oninput="updateFlight('roll',this.value)"><span id="f-roll-v">0°</span></div>
+          <div class="ctrl-row"><button class="btn-sm" onclick="toggleFlightTime()">🌓 Day/Night</button><button class="btn-sm" onclick="toggleGear()">🛞 Gear</button></div>
+          <div class="info-hud" id="f-hud"></div>
+          <p class="hint">Keys: W/S pitch, A/D roll, Q/E throttle</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Helicopter -->
+    <div class="sim-panel hidden" id="sim-heli">
+      <div class="sim-layout">
+        <canvas id="heli-canvas" width="800" height="500"></canvas>
+        <div class="sim-controls">
+          <h3>🚁 Helicopter Controls</h3>
+          <div class="ctrl"><label>Collective (Alt)</label><input type="range" id="h-collective" min="0" max="100" value="30" oninput="updateHeli('collective',this.value)"><span id="h-collective-v">30%</span></div>
+          <div class="ctrl"><label>Cyclic X</label><input type="range" id="h-cyclic-x" min="-50" max="50" value="0" oninput="updateHeli('cyclicX',this.value)"><span id="h-cyclic-x-v">0</span></div>
+          <div class="ctrl"><label>Tail Rotor</label><input type="range" id="h-tail" min="-50" max="50" value="0" oninput="updateHeli('tail',this.value)"><span id="h-tail-v">0</span></div>
+          <div class="info-hud" id="h-hud"></div>
+          <p class="hint">Land on the pad for points!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Warship -->
+    <div class="sim-panel hidden" id="sim-warship">
+      <div class="sim-layout">
+        <canvas id="warship-canvas" width="800" height="500"></canvas>
+        <div class="sim-controls">
+          <h3>🚢 Warship Controls</h3>
+          <div class="ctrl"><label>Engine Power</label><input type="range" id="w-power" min="-30" max="100" value="0" oninput="updateWarship('power',this.value)"><span id="w-power-v">0%</span></div>
+          <div class="ctrl"><label>Rudder</label><input type="range" id="w-rudder" min="-35" max="35" value="0" oninput="updateWarship('rudder',this.value)"><span id="w-rudder-v">0°</span></div>
+          <div class="ctrl-row"><button class="btn-sm" onclick="toggleRadar()">📡 Radar</button><button class="btn-sm" onclick="toggleWeather()">🌧️ Weather</button></div>
+          <div class="info-hud" id="w-hud"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tank -->
+    <div class="sim-panel hidden" id="sim-tank">
+      <div class="sim-layout">
+        <canvas id="tank-canvas" width="800" height="500"></canvas>
+        <div class="sim-controls">
+          <h3>🪖 Tank Controls</h3>
+          <div class="ctrl"><label>Drive</label><input type="range" id="t-drive" min="-50" max="100" value="0" oninput="updateTank('drive',this.value)"><span id="t-drive-v">0</span></div>
+          <div class="ctrl"><label>Turret Angle</label><input type="range" id="t-turret" min="-180" max="180" value="0" oninput="updateTank('turret',this.value)"><span id="t-turret-v">0°</span></div>
+          <div class="ctrl"><label>Gun Elevation</label><input type="range" id="t-gun" min="0" max="45" value="5" oninput="updateTank('gun',this.value)"><span id="t-gun-v">5°</span></div>
+          <div class="ctrl-row"><button class="btn-sm btn-fire" onclick="fireTank()">🔥 FIRE</button></div>
+          <div class="info-hud" id="t-hud"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submarine -->
+    <div class="sim-panel hidden" id="sim-sub">
+      <div class="sim-layout">
+        <canvas id="sub-canvas" width="800" height="500"></canvas>
+        <div class="sim-controls">
+          <h3>🤿 Submarine Controls</h3>
+          <div class="ctrl"><label>Ballast</label><input type="range" id="s-ballast" min="0" max="100" value="50" oninput="updateSub('ballast',this.value)"><span id="s-ballast-v">50%</span></div>
+          <div class="ctrl"><label>Engine</label><input type="range" id="s-engine" min="-30" max="100" value="0" oninput="updateSub('engine',this.value)"><span id="s-engine-v">0%</span></div>
+          <div class="ctrl"><label>Planes</label><input type="range" id="s-planes" min="-20" max="20" value="0" oninput="updateSub('planes',this.value)"><span id="s-planes-v">0°</span></div>
+          <div class="ctrl-row"><button class="btn-sm" onclick="toggleSonar()">📡 Sonar Ping</button><button class="btn-sm" onclick="toggleSilent()">🤫 Silent Run</button></div>
+          <div class="info-hud" id="s-hud"></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer"><p>&copy; 2026 Vehicle & Military Simulator. All simulations are fictional.</p></footer>
+  </div>
+  <script src="../../shared/shared-theme-toggle.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

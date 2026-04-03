@@ -355,13 +355,16 @@
 
   drawTrails(ctx);
 
-  // Draw Sun with enhanced glow
+  // Draw Sun with enhanced pulsating glow
+  const sunPulse = 1 + 0.08 * Math.sin(time * 0.02);
 
-   const sunGlowOuter = ctx.createRadialGradient(cx, cy, 0, cx, cy, SUN.radius * zoom * 3.5);
+   const sunGlowOuter = ctx.createRadialGradient(cx, cy, 0, cx, cy, SUN.radius * zoom * 3.5 * sunPulse);
 
-  sunGlowOuter.addColorStop(0, 'rgba(251,191,36,0.15)');
+  sunGlowOuter.addColorStop(0, 'rgba(251,191,36,0.18)');
 
-  sunGlowOuter.addColorStop(0.6, 'rgba(251,130,0,0.05)');
+  sunGlowOuter.addColorStop(0.3, 'rgba(251,160,0,0.08)');
+
+  sunGlowOuter.addColorStop(0.6, 'rgba(251,130,0,0.03)');
 
   sunGlowOuter.addColorStop(1, 'rgba(251,191,36,0)');
 
@@ -369,9 +372,21 @@
 
   ctx.beginPath();
 
-  ctx.arc(cx, cy, SUN.radius * zoom * 3.5, 0, Math.PI * 2);
+  ctx.arc(cx, cy, SUN.radius * zoom * 3.5 * sunPulse, 0, Math.PI * 2);
 
   ctx.fill();
+
+  // Corona rays
+  for (let cr = 0; cr < 8; cr++) {
+    const crAngle = (cr / 8) * Math.PI * 2 + time * 0.005;
+    const crLen = SUN.radius * zoom * (2.5 + 0.5 * Math.sin(time * 0.03 + cr));
+    ctx.save(); ctx.globalAlpha = 0.08;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(crAngle) * crLen, cy + Math.sin(crAngle) * crLen);
+    ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+  }
 
 
    const sunGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, SUN.radius * zoom * 1.5);
@@ -504,6 +519,25 @@
 
 
   hoveredPlanet = foundHover;
+
+  // Draw dwarf planets if enabled
+  if (showDwarfPlanets) {
+    DWARF_PLANETS.forEach(dp => {
+      const pos = getPlanetPosition(dp, time, cx, cy, zoom);
+      const r = Math.max(2, dp.radius * zoom * 0.7);
+      // Faint orbit
+      ctx.beginPath(); ctx.ellipse(cx, cy, dp.orbit * zoom, dp.orbit * zoom * 0.4, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = 0.5; ctx.setLineDash([3, 6]); ctx.stroke(); ctx.setLineDash([]);
+      // Dwarf planet body
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = dp.color + 'cc'; ctx.fill();
+      // Label
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.font = `${Math.max(7, 8 * zoom)}px system-ui`;
+      ctx.textAlign = 'center';
+      ctx.fillText(dp.name, pos.x, pos.y - r - 5);
+    });
+  }
 
   // Draw tooltip for hovered planet
 
@@ -987,6 +1021,10 @@
     if (d2) d2.addEventListener('change', updateDistanceCalc);
 
   startSimulation();
+
+  // Initialize space fact
+  const factEl = document.getElementById('space-fact-text');
+  if (factEl) factEl.textContent = getSpaceFact();
 }
 
 
@@ -1294,34 +1332,147 @@ function drawPlanetDetail() {
   const moons = getMoonsForPlanet(planetDetailView);
 
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#0a0a14';
+
+  // Deep space background with subtle nebula
+  const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.7);
+  bgGrad.addColorStop(0, '#0d1020'); bgGrad.addColorStop(0.5, '#080c16'); bgGrad.addColorStop(1, '#040610');
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, w, h);
 
-  // Planet (large)
-  const pRadius = Math.min(50, planet.radius * 4);
-  const pGrad = ctx.createRadialGradient(cx - pRadius * 0.2, cy - pRadius * 0.2, 0, cx, cy, pRadius);
-  pGrad.addColorStop(0, '#ffffff30'); pGrad.addColorStop(0.3, planet.color); pGrad.addColorStop(1, planet.color + '80');
-  drawPlanetGlow(ctx, cx, cy, pRadius, planet.glowColor);
-  ctx.beginPath(); ctx.arc(cx, cy, pRadius, 0, Math.PI * 2); ctx.fillStyle = pGrad; ctx.fill();
-  if (planet.name === 'Saturn') {
-    ctx.save(); ctx.globalAlpha = 0.6;
-    ctx.beginPath(); ctx.ellipse(cx, cy, pRadius * 2.2, pRadius * 0.5, -0.2, 0, Math.PI * 2);
-    ctx.strokeStyle = '#e8d282'; ctx.lineWidth = 4; ctx.stroke(); ctx.restore();
+  // Background stars
+  for (let i = 0; i < 80; i++) {
+    const sx = (i * 7919 + 13) % w, sy = (i * 6271 + 37) % h;
+    const alpha = 0.3 + 0.4 * Math.sin(time * 0.01 + i);
+    ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
+    ctx.beginPath(); ctx.arc(sx, sy, ((i * 31) % 3) * 0.3 + 0.3, 0, Math.PI * 2); ctx.fill();
   }
 
-  // Moon orbits and moons
+  // Planet (large, centered)
+  const pRadius = Math.min(65, planet.radius * 5);
+
+  // Outer atmospheric glow
+  const atmoGlow = ctx.createRadialGradient(cx, cy, pRadius * 0.8, cx, cy, pRadius * 2.5);
+  atmoGlow.addColorStop(0, planet.glowColor); atmoGlow.addColorStop(0.5, planet.glowColor.replace('0.3', '0.08')); atmoGlow.addColorStop(1, 'transparent');
+  ctx.fillStyle = atmoGlow;
+  ctx.beginPath(); ctx.arc(cx, cy, pRadius * 2.5, 0, Math.PI * 2); ctx.fill();
+
+  // Planet body gradient with 3D lighting
+  const pGrad = ctx.createRadialGradient(cx - pRadius * 0.35, cy - pRadius * 0.35, 0, cx, cy, pRadius);
+  pGrad.addColorStop(0, '#ffffff40'); pGrad.addColorStop(0.15, planet.color + 'ee'); pGrad.addColorStop(0.7, planet.color); pGrad.addColorStop(1, planet.color + '60');
+  ctx.beginPath(); ctx.arc(cx, cy, pRadius, 0, Math.PI * 2); ctx.fillStyle = pGrad; ctx.fill();
+
+  // Surface features based on planet type
+  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, pRadius, 0, Math.PI * 2); ctx.clip();
+  if (['Jupiter', 'Saturn'].includes(planet.name)) {
+    // Gas giant bands
+    const bandCount = planet.name === 'Jupiter' ? 8 : 6;
+    for (let b = 0; b < bandCount; b++) {
+      const by = cy - pRadius + (b / bandCount) * pRadius * 2;
+      const bh = pRadius * 2 / bandCount;
+      ctx.fillStyle = b % 2 === 0 ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.06)';
+      ctx.fillRect(cx - pRadius, by, pRadius * 2, bh);
+    }
+    // Great Red Spot for Jupiter
+    if (planet.name === 'Jupiter') {
+      const spotAngle = time * 0.005;
+      const spotX = cx + Math.cos(spotAngle) * pRadius * 0.4;
+      const spotY = cy + pRadius * 0.25;
+      ctx.fillStyle = 'rgba(200,80,40,0.5)';
+      ctx.beginPath(); ctx.ellipse(spotX, spotY, 12, 8, 0.2, 0, Math.PI * 2); ctx.fill();
+    }
+  } else if (['Mercury', 'Mars'].includes(planet.name)) {
+    // Craters for rocky planets
+    const craterSeeds = [0.2, 0.5, 0.7, 0.3, 0.8, 0.1, 0.6, 0.9];
+    craterSeeds.forEach((s, i) => {
+      const crX = cx - pRadius * 0.6 + s * pRadius * 1.2;
+      const crY = cy - pRadius * 0.5 + craterSeeds[(i + 3) % craterSeeds.length] * pRadius;
+      const crR = 3 + (i % 4) * 2;
+      ctx.beginPath(); ctx.arc(crX, crY, crR, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 0.5; ctx.stroke();
+    });
+  } else if (planet.name === 'Earth') {
+    // Continents hint — green patches
+    ctx.fillStyle = 'rgba(34,180,80,0.25)';
+    ctx.beginPath(); ctx.ellipse(cx - 10, cy - 5, 18, 12, 0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + 15, cy + 8, 12, 8, -0.2, 0, Math.PI * 2); ctx.fill();
+    // Cloud wisps
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx + 5, cy - 15, 20, 0.5, 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx - 12, cy + 10, 15, 1, 2.8); ctx.stroke();
+  } else if (['Uranus', 'Neptune'].includes(planet.name)) {
+    // Ice giant atmosphere swirls
+    for (let sw = 0; sw < 4; sw++) {
+      const swAngle = time * 0.003 + sw * 1.5;
+      const swX = cx + Math.cos(swAngle) * pRadius * 0.4;
+      const swY = cy + Math.sin(swAngle) * pRadius * 0.3;
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(swX, swY, 8 + sw * 3, 0, Math.PI); ctx.stroke();
+    }
+  }
+  ctx.restore();
+
+  // Atmospheric rim light
+  ctx.beginPath(); ctx.arc(cx, cy, pRadius, 0, Math.PI * 2);
+  ctx.strokeStyle = planet.color + '40'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Saturn/Uranus/Neptune rings
+  if (planet.name === 'Saturn') {
+    ctx.save(); ctx.globalAlpha = 0.7;
+    // Multiple ring bands
+    const ringColors = ['#e8d28200', '#d4b86a', '#e8d282', '#c4a860', '#e8d28200'];
+    for (let r = 0; r < 3; r++) {
+      ctx.beginPath(); ctx.ellipse(cx, cy, pRadius * (1.8 + r * 0.3), pRadius * (0.4 + r * 0.06), -0.15, 0, Math.PI * 2);
+      const ringG = ctx.createLinearGradient(cx - pRadius * 2.5, cy, cx + pRadius * 2.5, cy);
+      ringG.addColorStop(0, '#e8d28200'); ringG.addColorStop(0.3, ringColors[r + 1]); ringG.addColorStop(0.7, ringColors[r + 1]); ringG.addColorStop(1, '#e8d28200');
+      ctx.strokeStyle = ringG; ctx.lineWidth = 3 - r; ctx.stroke();
+    }
+    ctx.restore();
+  } else if (planet.name === 'Uranus' || planet.name === 'Neptune') {
+    ctx.save(); ctx.globalAlpha = 0.25;
+    ctx.beginPath(); ctx.ellipse(cx, cy, pRadius * 1.6, pRadius * 0.15, planet.name === 'Uranus' ? 1.57 : -0.1, 0, Math.PI * 2);
+    ctx.strokeStyle = planet.color; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+  }
+
+  // Planet name label
+  ctx.fillStyle = '#ffffff'; ctx.font = 'bold 16px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText(planet.name, cx, cy + pRadius + 28);
+
+  // Moon orbits and moons with enhanced rendering
   moons.forEach((moon, i) => {
-    const orbitR = pRadius + 40 + i * 35;
-    ctx.beginPath(); ctx.ellipse(cx, cy, orbitR, orbitR * 0.5, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1; ctx.stroke();
-    const angle = (time * (0.02 - i * 0.003)) % (Math.PI * 2);
+    const orbitR = pRadius + 45 + i * 38;
+    const orbitRY = orbitR * 0.45;
+
+    // Orbit path with gradient
+    ctx.beginPath(); ctx.ellipse(cx, cy, orbitR, orbitRY, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255,255,255,${0.06 + i * 0.01})`; ctx.lineWidth = 1; ctx.setLineDash([4, 4]); ctx.stroke(); ctx.setLineDash([]);
+
+    // Animated moon position
+    const speed = 0.025 - i * 0.004;
+    const angle = (time * speed) % (Math.PI * 2);
     const mx = cx + Math.cos(angle) * orbitR;
-    const my = cy + Math.sin(angle) * orbitR * 0.5;
-    const mRadius = Math.max(4, Math.min(10, moon.diameter / 600));
-    ctx.beginPath(); ctx.arc(mx, my, mRadius, 0, Math.PI * 2); ctx.fillStyle = moon.color; ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText(moon.name, mx, my - mRadius - 4);
+    const my = cy + Math.sin(angle) * orbitRY;
+    const mRadius = Math.max(4, Math.min(12, moon.diameter / 500));
+
+    // Moon glow
+    const mGlow = ctx.createRadialGradient(mx, my, 0, mx, my, mRadius * 3);
+    mGlow.addColorStop(0, moon.color + '30'); mGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = mGlow;
+    ctx.beginPath(); ctx.arc(mx, my, mRadius * 3, 0, Math.PI * 2); ctx.fill();
+
+    // Moon body with 3D gradient
+    const mGrad = ctx.createRadialGradient(mx - mRadius * 0.3, my - mRadius * 0.3, 0, mx, my, mRadius);
+    mGrad.addColorStop(0, '#ffffff30'); mGrad.addColorStop(0.3, moon.color); mGrad.addColorStop(1, moon.color + '80');
+    ctx.beginPath(); ctx.arc(mx, my, mRadius, 0, Math.PI * 2); ctx.fillStyle = mGrad; ctx.fill();
+
+    // Moon label
+    ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(moon.name, mx, my - mRadius - 6);
   });
+
+  // Animate continuously
+  requestAnimationFrame(drawPlanetDetail);
 }
 
 function getEnhancedComparisonData() {

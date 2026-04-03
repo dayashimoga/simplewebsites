@@ -181,32 +181,49 @@ function drawProjectile(canvas) {
   const scale = 4;
 
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#0a0a1a';
-  ctx.fillRect(0, 0, w, h);
+  // Sky gradient
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, groundY);
+  skyGrad.addColorStop(0, '#060818'); skyGrad.addColorStop(0.6, '#0a1028'); skyGrad.addColorStop(1, '#0f1a3a');
+  ctx.fillStyle = skyGrad; ctx.fillRect(0, 0, w, h);
 
-  // Ground
-  ctx.fillStyle = '#1a2a1a';
-  ctx.fillRect(0, groundY, w, h - groundY);
+  // Stars
+  for (let i = 0; i < 25; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${0.1 + (i % 5) * 0.05})`;
+    ctx.beginPath(); ctx.arc((i * 317 + 23) % w, (i * 191 + 11) % (groundY * 0.6), 0.8, 0, Math.PI * 2); ctx.fill();
+  }
+
+  // Ground with gradient
+  const gGrad = ctx.createLinearGradient(0, groundY, 0, h);
+  gGrad.addColorStop(0, '#2d5a27'); gGrad.addColorStop(1, '#1a3a1a');
+  ctx.fillStyle = gGrad; ctx.fillRect(0, groundY, w, h - groundY);
+
+  // Distance markers on ground
+  ctx.fillStyle = 'rgba(255,255,255,0.15)'; ctx.font = '8px system-ui'; ctx.textAlign = 'center';
+  for (let d = 50; d < w - 40; d += 50) {
+    ctx.fillRect(d + 40, groundY, 1, 5);
+    ctx.fillText(`${Math.round((d) / scale)}m`, d + 40, groundY + 15);
+  }
 
   // Grid
-  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(255,255,255,0.02)'; ctx.lineWidth = 1;
   for (let i = 0; i < w; i += 50) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, groundY); ctx.stroke(); }
   for (let i = 0; i < groundY; i += 50) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke(); }
 
-  // Trail
+  // Trail with gradient
   if (projShowTrail && projTrail.length > 1) {
-    ctx.strokeStyle = 'rgba(255,165,0,0.6)';
-    ctx.lineWidth = 2;
-    ctx.setLineDash([4, 4]);
-    ctx.beginPath();
-    projTrail.forEach((p, i) => {
-      const sx = 40 + p.x * scale;
-      const sy = groundY - p.y * scale;
-      if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
-    });
-    ctx.stroke();
-    ctx.setLineDash([]);
+    for (let i = 1; i < projTrail.length; i++) {
+      const sx0 = 40 + projTrail[i - 1].x * scale, sy0 = groundY - projTrail[i - 1].y * scale;
+      const sx1 = 40 + projTrail[i].x * scale, sy1 = groundY - projTrail[i].y * scale;
+      const alpha = 0.2 + (i / projTrail.length) * 0.6;
+      ctx.strokeStyle = `rgba(255,165,0,${alpha.toFixed(2)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(sx0, sy0); ctx.lineTo(sx1, sy1); ctx.stroke();
+      // Trail dots
+      if (i % 5 === 0) {
+        ctx.fillStyle = `rgba(255,165,0,${(alpha * 0.5).toFixed(2)})`;
+        ctx.beginPath(); ctx.arc(sx1, sy1, 2, 0, Math.PI * 2); ctx.fill();
+      }
+    }
   }
 
   // Current projectile position
@@ -215,25 +232,73 @@ function drawProjectile(canvas) {
     const sx = 40 + last.x * scale;
     const sy = groundY - last.y * scale;
     // Glow
-    ctx.beginPath();
-    ctx.arc(sx, sy, 12, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,165,0,0.2)';
-    ctx.fill();
+    const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, 20);
+    glow.addColorStop(0, 'rgba(245,158,11,0.3)'); glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(sx, sy, 20, 0, Math.PI * 2); ctx.fill();
     // Ball
-    ctx.beginPath();
-    ctx.arc(sx, sy, 6, 0, Math.PI * 2);
-    ctx.fillStyle = '#f59e0b';
-    ctx.fill();
+    const ballGrad = ctx.createRadialGradient(sx - 2, sy - 2, 0, sx, sy, 7);
+    ballGrad.addColorStop(0, '#fbbf24'); ballGrad.addColorStop(1, '#f59e0b');
+    ctx.beginPath(); ctx.arc(sx, sy, 7, 0, Math.PI * 2); ctx.fillStyle = ballGrad; ctx.fill();
+
+    // Velocity vector (if active)
+    if (projActive && projTrail.length > 2) {
+      const prev = projTrail[projTrail.length - 2];
+      const dvx = (last.x - prev.x) * scale * 3;
+      const dvy = -(last.y - prev.y) * scale * 3;
+      ctx.strokeStyle = 'rgba(34,197,94,0.7)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + dvx, sy + dvy); ctx.stroke();
+      // Arrow head
+      const vAngle = Math.atan2(dvy, dvx);
+      ctx.beginPath(); ctx.moveTo(sx + dvx, sy + dvy);
+      ctx.lineTo(sx + dvx - Math.cos(vAngle - 0.4) * 6, sy + dvy - Math.sin(vAngle - 0.4) * 6);
+      ctx.moveTo(sx + dvx, sy + dvy);
+      ctx.lineTo(sx + dvx - Math.cos(vAngle + 0.4) * 6, sy + dvy - Math.sin(vAngle + 0.4) * 6);
+      ctx.stroke();
+    }
+
+    // Impact marker (if landed)
+    if (!projActive && projTrail.length > 5) {
+      ctx.beginPath(); ctx.arc(sx, groundY, 8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(239,68,68,0.3)'; ctx.fill();
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.arc(sx, groundY, 12, 0, Math.PI * 2); ctx.stroke();
+    }
   }
 
-  // Launcher
+  // Enhanced Launcher
   const rad = projAngle * Math.PI / 180;
-  ctx.save();
-  ctx.translate(40, groundY);
+  ctx.save(); ctx.translate(40, groundY);
+  // Base/wheel
+  ctx.fillStyle = '#374151'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#6b7280'; ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.fill();
+  // Barrel
   ctx.rotate(-rad);
-  ctx.fillStyle = '#6b7280';
-  ctx.fillRect(0, -3, 30, 6);
+  const barrelGrad = ctx.createLinearGradient(0, 0, 35, 0);
+  barrelGrad.addColorStop(0, '#6b7280'); barrelGrad.addColorStop(1, '#9ca3af');
+  ctx.fillStyle = barrelGrad;
+  ctx.fillRect(0, -4, 35, 8);
   ctx.restore();
+
+  // Energy bars (top-right)
+  if (projTrail.length > 0) {
+    const last = projTrail[projTrail.length - 1];
+    const maxH = getProjectileMaxHeight(projVelocity, projAngle, projGravity);
+    const ke = 0.5 * projMass * (last.vx * last.vx + (last.vy || 0) * (last.vy || 0));
+    const pe = projMass * projGravity * last.y;
+    const totalE = 0.5 * projMass * projVelocity * projVelocity;
+    const keRatio = totalE > 0 ? ke / totalE : 0;
+    const peRatio = totalE > 0 ? pe / totalE : 0;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(w - 120, 10, 110, 40);
+    ctx.fillStyle = '#fff'; ctx.font = '8px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText('KE', w - 115, 24);
+    ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(w - 95, 17, 80, 6);
+    ctx.fillStyle = '#f59e0b'; ctx.fillRect(w - 95, 17, 80 * keRatio, 6);
+    ctx.fillStyle = '#fff'; ctx.fillText('PE', w - 115, 40);
+    ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(w - 95, 33, 80, 6);
+    ctx.fillStyle = '#3b82f6'; ctx.fillRect(w - 95, 33, 80 * peRatio, 6);
+  }
 }
 
 function projTick() {
@@ -774,6 +839,6 @@ if (typeof module !== 'undefined' && module.exports) {
     },
     _resetQuiz: () => { physQuizScore = 0; physQuizStreak = 0; currentPhysQuiz = null; },
     _resetAll: () => { projTrail = []; projActive = false; projTime = 0; pendAngles = [Math.PI / 4]; pendVelocities = [0]; physQuizScore = 0; physQuizStreak = 0; currentPhysQuiz = null; },
-    _stopAnimations: () => { if (projAnimId) cancelAnimationFrame(projAnimId); if (pendAnimId) cancelAnimationFrame(pendAnimId); if (waveAnimId) cancelAnimationFrame(waveAnimId); projAnimId = null; pendAnimId = null; waveAnimId = null; }
+    _stopAnim: () => { if (projAnimId) cancelAnimationFrame(projAnimId); if (pendAnimId) cancelAnimationFrame(pendAnimId); if (waveAnimId) cancelAnimationFrame(waveAnimId); projAnimId = null; pendAnimId = null; waveAnimId = null; }
   };
 }

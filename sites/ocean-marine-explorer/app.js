@@ -499,82 +499,284 @@ function drawUnderwaterCanvas(canvas) {
   const waterGrad = ctx.createLinearGradient(0, 0, 0, h);
   const blue = Math.max(10, 100 - depthFactor * 90);
   const green = Math.max(5, 60 - depthFactor * 55);
-  waterGrad.addColorStop(0, `rgb(0, ${green + 20}, ${blue + 40})`);
-  waterGrad.addColorStop(1, `rgb(0, ${green}, ${blue})`);
+  waterGrad.addColorStop(0, `rgb(0, ${Math.round(green + 20)}, ${Math.round(blue + 40)})`);
+  waterGrad.addColorStop(1, `rgb(0, ${Math.round(green)}, ${Math.round(blue)})`);
   ctx.fillStyle = waterGrad;
   ctx.fillRect(0, 0, w, h);
 
-  // Light rays (surface)
+  // Light rays (surface) — enhanced with shimmer
   if (depthFactor < 0.3) {
-    const rayAlpha = 0.1 * (1 - depthFactor / 0.3);
-    for (let i = 0; i < 5; i++) {
+    const rayAlpha = 0.12 * (1 - depthFactor / 0.3);
+    for (let i = 0; i < 6; i++) {
       ctx.save();
-      ctx.globalAlpha = rayAlpha;
-      ctx.fillStyle = 'rgba(255,255,200,0.1)';
-      const rx = 100 + i * 160 + Math.sin(underwaterTime * 0.01 + i) * 30;
-      ctx.beginPath();
-      ctx.moveTo(rx, 0);
-      ctx.lineTo(rx - 40, h);
-      ctx.lineTo(rx + 40, h);
-      ctx.closePath();
-      ctx.fill();
+      ctx.globalAlpha = rayAlpha * (0.7 + 0.3 * Math.sin(underwaterTime * 0.02 + i * 0.8));
+      const rx = 80 + i * 140 + Math.sin(underwaterTime * 0.008 + i) * 40;
+      const rayGrad = ctx.createLinearGradient(rx, 0, rx, h);
+      rayGrad.addColorStop(0, 'rgba(255,255,200,0.15)'); rayGrad.addColorStop(1, 'transparent');
+      ctx.fillStyle = rayGrad;
+      ctx.beginPath(); ctx.moveTo(rx - 10, 0); ctx.lineTo(rx - 50, h); ctx.lineTo(rx + 50, h); ctx.lineTo(rx + 10, 0); ctx.closePath(); ctx.fill();
       ctx.restore();
     }
   }
 
-  // Bubbles
+  // Ocean current particles
+  if (underwaterTime % 4 === 0) {
+    const cy = Math.random() * h;
+    ctx.fillStyle = `rgba(100,200,255,${0.05 + depthFactor * 0.03})`;
+    ctx.fillRect(0, cy, w, 1);
+  }
+
+  // Bubbles with shimmer
   bubbles.forEach(b => {
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(200,220,255,${0.3 + b.r * 0.05})`;
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    const bGrad = ctx.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.3, 0, b.x, b.y, b.r);
+    bGrad.addColorStop(0, 'rgba(255,255,255,0.4)'); bGrad.addColorStop(0.5, 'rgba(200,220,255,0.2)'); bGrad.addColorStop(1, 'rgba(150,200,255,0.05)');
+    ctx.fillStyle = bGrad; ctx.fill();
   });
 
-  // Draw creatures
+  // === CANVAS-DRAWN ANIMATED CREATURES ===
   const visible = getVisibleCreatures(diveDepth);
   visible.forEach(c => {
     ctx.save();
-    ctx.font = `${c.size}px system-ui`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    if (c.dx < 0) { ctx.scale(-1, 1); ctx.fillText(c.emoji, -c.x, c.y); }
-    else { ctx.fillText(c.emoji, c.x, c.y); }
+    const flip = c.dx < 0 ? -1 : 1;
+    ctx.translate(c.x, c.y);
+    ctx.scale(flip, 1);
+    const t = underwaterTime * 0.05 + c.wobble;
+    const sz = c.size * 0.7;
+
+    if (c.type === 'fish' || c.type === 'tropical') {
+      // Fish body
+      const bodyColor = c.type === 'tropical' ? c.color : '#4a9eff';
+      ctx.fillStyle = bodyColor;
+      ctx.beginPath(); ctx.ellipse(0, 0, sz, sz * 0.45, 0, 0, Math.PI * 2); ctx.fill();
+      // Eye
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(sz * 0.5, -sz * 0.1, sz * 0.15, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(sz * 0.55, -sz * 0.1, sz * 0.07, 0, Math.PI * 2); ctx.fill();
+      // Tail fin (wagging)
+      const tailWag = Math.sin(t * 3) * 0.4;
+      ctx.fillStyle = bodyColor + 'cc';
+      ctx.beginPath(); ctx.moveTo(-sz, 0); ctx.lineTo(-sz * 1.5, -sz * 0.4 + tailWag * sz * 0.3); ctx.lineTo(-sz * 1.5, sz * 0.4 + tailWag * sz * 0.3); ctx.closePath(); ctx.fill();
+      // Dorsal fin
+      ctx.beginPath(); ctx.moveTo(-sz * 0.2, -sz * 0.4); ctx.lineTo(sz * 0.2, -sz * 0.6); ctx.lineTo(sz * 0.4, -sz * 0.4); ctx.closePath(); ctx.fill();
+      // Stripes for tropical
+      if (c.type === 'tropical') {
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 1.5;
+        for (let s = -1; s < 2; s++) {
+          ctx.beginPath(); ctx.moveTo(s * sz * 0.35, -sz * 0.4); ctx.lineTo(s * sz * 0.35, sz * 0.4); ctx.stroke();
+        }
+      }
+    } else if (c.type === 'jellyfish') {
+      // Bell (pulsing)
+      const pulse = 1 + 0.15 * Math.sin(t * 2);
+      const bellGrad = ctx.createRadialGradient(0, -sz * 0.2, 0, 0, 0, sz * pulse);
+      bellGrad.addColorStop(0, c.color + '60'); bellGrad.addColorStop(0.5, c.color + '40'); bellGrad.addColorStop(1, c.color + '10');
+      ctx.fillStyle = bellGrad;
+      ctx.beginPath(); ctx.arc(0, 0, sz * pulse, Math.PI, 0); ctx.closePath(); ctx.fill();
+      // Glow
+      ctx.shadowColor = c.color; ctx.shadowBlur = 15;
+      ctx.beginPath(); ctx.arc(0, 0, sz * pulse * 0.8, Math.PI, 0); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Tentacles
+      for (let tn = 0; tn < 6; tn++) {
+        const tx = (tn - 2.5) * sz * 0.3;
+        ctx.strokeStyle = c.color + '50'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(tx, 0);
+        for (let seg = 1; seg <= 8; seg++) {
+          const sy = seg * sz * 0.25;
+          const sx = tx + Math.sin(t * 1.5 + tn + seg * 0.5) * sz * 0.15;
+          ctx.lineTo(sx, sy);
+        }
+        ctx.stroke();
+      }
+    } else if (c.type === 'shark') {
+      // Sleek body
+      ctx.fillStyle = '#6b7280';
+      ctx.beginPath();
+      ctx.moveTo(sz, 0); ctx.quadraticCurveTo(sz * 0.5, -sz * 0.35, -sz, 0);
+      ctx.quadraticCurveTo(sz * 0.5, sz * 0.3, sz, 0); ctx.fill();
+      // Dorsal fin (iconic)
+      ctx.fillStyle = '#4b5563';
+      ctx.beginPath(); ctx.moveTo(0, -sz * 0.35); ctx.lineTo(-sz * 0.3, -sz * 0.8); ctx.lineTo(-sz * 0.5, -sz * 0.35); ctx.closePath(); ctx.fill();
+      // Tail
+      const tailSwing = Math.sin(t * 2) * 0.3;
+      ctx.beginPath(); ctx.moveTo(-sz, 0); ctx.lineTo(-sz * 1.4, -sz * 0.5 + tailSwing * sz); ctx.lineTo(-sz * 1.1, 0); ctx.lineTo(-sz * 1.4, sz * 0.3 + tailSwing * sz); ctx.closePath(); ctx.fill();
+      // Eye
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(sz * 0.6, -sz * 0.1, 2, 0, Math.PI * 2); ctx.fill();
+      // Belly
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+      ctx.beginPath(); ctx.ellipse(0, sz * 0.1, sz * 0.7, sz * 0.12, 0, 0, Math.PI * 2); ctx.fill();
+    } else if (c.type === 'whale') {
+      // Massive body
+      ctx.fillStyle = '#1d4ed8';
+      ctx.beginPath();
+      ctx.moveTo(sz, -sz * 0.1); ctx.quadraticCurveTo(sz * 0.3, -sz * 0.45, -sz * 0.8, -sz * 0.1);
+      ctx.quadraticCurveTo(-sz * 0.5, sz * 0.3, sz, sz * 0.1); ctx.fill();
+      // Belly
+      ctx.fillStyle = '#93c5fd';
+      ctx.beginPath(); ctx.ellipse(0, sz * 0.1, sz * 0.6, sz * 0.15, 0, 0, Math.PI); ctx.fill();
+      // Tail fluke
+      const flukeAngle = Math.sin(t) * 0.2;
+      ctx.fillStyle = '#1d4ed8';
+      ctx.beginPath(); ctx.moveTo(-sz * 0.8, 0); ctx.lineTo(-sz * 1.4, -sz * 0.4 + flukeAngle * sz);
+      ctx.lineTo(-sz * 1.1, 0); ctx.lineTo(-sz * 1.4, sz * 0.35 + flukeAngle * sz); ctx.closePath(); ctx.fill();
+      // Eye
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(sz * 0.6, -sz * 0.05, 2.5, 0, Math.PI * 2); ctx.fill();
+    } else if (c.type === 'turtle') {
+      // Shell
+      ctx.fillStyle = '#166534';
+      ctx.beginPath(); ctx.ellipse(0, 0, sz, sz * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+      // Shell pattern
+      ctx.strokeStyle = '#15803d'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.6, sz * 0.35, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-sz * 0.3, -sz * 0.5); ctx.lineTo(-sz * 0.3, sz * 0.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sz * 0.3, -sz * 0.5); ctx.lineTo(sz * 0.3, sz * 0.5); ctx.stroke();
+      // Head
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath(); ctx.ellipse(sz * 0.8, 0, sz * 0.25, sz * 0.2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(sz * 0.9, -sz * 0.05, 1.5, 0, Math.PI * 2); ctx.fill();
+      // Flippers (rotating)
+      const flipAngle = Math.sin(t * 2) * 0.3;
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath(); ctx.ellipse(sz * 0.3, -sz * 0.5 - flipAngle * sz * 0.2, sz * 0.3, sz * 0.1, -0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(sz * 0.3, sz * 0.5 + flipAngle * sz * 0.2, sz * 0.3, sz * 0.1, 0.3, 0, Math.PI * 2); ctx.fill();
+    } else if (c.type === 'octopus') {
+      // Head
+      ctx.fillStyle = c.color;
+      ctx.beginPath(); ctx.ellipse(0, -sz * 0.2, sz * 0.5, sz * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+      // Eyes
+      ctx.fillStyle = '#fef3c7'; ctx.beginPath(); ctx.ellipse(-sz * 0.15, -sz * 0.3, sz * 0.12, sz * 0.08, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fef3c7'; ctx.beginPath(); ctx.ellipse(sz * 0.15, -sz * 0.3, sz * 0.12, sz * 0.08, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(-sz * 0.15, -sz * 0.3, sz * 0.05, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(sz * 0.15, -sz * 0.3, sz * 0.05, 0, Math.PI * 2); ctx.fill();
+      // Tentacles (8, undulating)
+      for (let tn = 0; tn < 8; tn++) {
+        const baseAngle = (tn / 8) * Math.PI - Math.PI / 2;
+        ctx.strokeStyle = c.color + 'cc'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        const startX = Math.cos(baseAngle) * sz * 0.3;
+        const startY = sz * 0.1 + Math.sin(baseAngle) * sz * 0.1;
+        ctx.moveTo(startX, startY);
+        for (let seg = 1; seg <= 6; seg++) {
+          const segLen = seg * sz * 0.2;
+          const sx = startX + Math.cos(baseAngle) * segLen + Math.sin(t * 1.5 + tn + seg * 0.7) * sz * 0.12;
+          const sy = startY + seg * sz * 0.15 + Math.cos(t + tn * 0.5 + seg) * sz * 0.08;
+          ctx.lineTo(sx, sy);
+        }
+        ctx.stroke();
+      }
+    } else if (c.type === 'seahorse') {
+      // Body curve
+      ctx.fillStyle = c.color;
+      ctx.beginPath(); ctx.ellipse(0, 0, sz * 0.3, sz * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+      // Snout
+      ctx.fillStyle = c.color;
+      ctx.beginPath(); ctx.ellipse(sz * 0.4, -sz * 0.3, sz * 0.2, sz * 0.08, -0.3, 0, Math.PI * 2); ctx.fill();
+      // Eye
+      ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(sz * 0.1, -sz * 0.25, 1.5, 0, Math.PI * 2); ctx.fill();
+      // Curled tail
+      ctx.strokeStyle = c.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(0, sz * 0.6, sz * 0.2, 0, Math.PI * 1.5); ctx.stroke();
+      // Dorsal fin (fluttering)
+      const finFlutter = Math.sin(t * 6) * 0.1;
+      ctx.fillStyle = c.color + '80';
+      ctx.beginPath(); ctx.ellipse(-sz * 0.3, 0, sz * 0.15, sz * 0.2, finFlutter, 0, Math.PI * 2); ctx.fill();
+    } else if (c.type === 'anglerfish') {
+      // Dark body
+      ctx.fillStyle = '#4a3728';
+      ctx.beginPath(); ctx.ellipse(0, 0, sz, sz * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+      // Mouth
+      ctx.fillStyle = '#1a1a1a'; ctx.beginPath();
+      ctx.moveTo(sz * 0.8, -sz * 0.2); ctx.lineTo(sz * 1.1, 0); ctx.lineTo(sz * 0.8, sz * 0.2); ctx.fill();
+      // Teeth
+      ctx.fillStyle = '#e5e7eb';
+      for (let th = 0; th < 4; th++) {
+        ctx.beginPath(); ctx.moveTo(sz * 0.8, -sz * 0.15 + th * sz * 0.1); ctx.lineTo(sz * 0.95, -sz * 0.1 + th * sz * 0.08); ctx.lineTo(sz * 0.8, -sz * 0.05 + th * sz * 0.1); ctx.fill();
+      }
+      // Bioluminescent lure
+      const lureGlow = 0.5 + 0.5 * Math.sin(t * 4);
+      ctx.fillStyle = `rgba(251,191,36,${lureGlow.toFixed(2)})`;
+      ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 15;
+      ctx.beginPath(); ctx.arc(sz * 0.2, -sz * 0.8, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+      // Lure stalk
+      ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(sz * 0.3, -sz * 0.5); ctx.quadraticCurveTo(sz * 0.1, -sz * 0.7, sz * 0.2, -sz * 0.8); ctx.stroke();
+    } else {
+      // Fallback: emoji
+      ctx.font = `${c.size}px system-ui`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(c.emoji, 0, 0);
+    }
     ctx.restore();
   });
 
-  // Bioluminescence in deep water
+  // Bioluminescence in deep water (enhanced)
   if (depthFactor > 0.5) {
-    for (let i = 0; i < 5; i++) {
-      const bx = (Math.sin(underwaterTime * 0.005 + i * 2) * 0.5 + 0.5) * w;
-      const by = (Math.cos(underwaterTime * 0.007 + i * 3) * 0.5 + 0.5) * h;
-      const glow = ctx.createRadialGradient(bx, by, 0, bx, by, 30);
-      glow.addColorStop(0, `rgba(100,200,255,${0.2 * depthFactor})`);
+    const bioCount = Math.floor(depthFactor * 12);
+    for (let i = 0; i < bioCount; i++) {
+      const bx = (Math.sin(underwaterTime * 0.004 + i * 1.8) * 0.5 + 0.5) * w;
+      const by = (Math.cos(underwaterTime * 0.006 + i * 2.5) * 0.5 + 0.5) * h;
+      const glow = ctx.createRadialGradient(bx, by, 0, bx, by, 25 + i * 3);
+      const hue = 180 + i * 15;
+      glow.addColorStop(0, `hsla(${hue},80%,60%,${(0.25 * depthFactor).toFixed(2)})`);
       glow.addColorStop(1, 'transparent');
       ctx.fillStyle = glow;
-      ctx.fillRect(bx - 30, by - 30, 60, 60);
+      ctx.beginPath(); ctx.arc(bx, by, 25 + i * 3, 0, Math.PI * 2); ctx.fill();
     }
   }
 
-  // Depth HUD
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.fillRect(10, 10, 160, 60);
+  // Coral reef foreground (shallow)
+  if (depthFactor < 0.1) {
+    for (let ci = 0; ci < 8; ci++) {
+      const cx = ci * (w / 8) + 30;
+      const crHeight = 20 + (ci * 17) % 30;
+      const sway = Math.sin(underwaterTime * 0.02 + ci) * 3;
+      const colors = ['#f97316', '#ec4899', '#8b5cf6', '#22c55e', '#ef4444', '#f59e0b', '#06b6d4', '#a855f7'];
+      ctx.fillStyle = colors[ci % colors.length];
+      // Branch coral
+      ctx.beginPath(); ctx.moveTo(cx + sway, h); ctx.lineTo(cx - 8 + sway, h - crHeight);
+      ctx.lineTo(cx + sway, h - crHeight - 5); ctx.lineTo(cx + 8 + sway, h - crHeight); ctx.closePath(); ctx.fill();
+      // Side branches
+      ctx.beginPath(); ctx.moveTo(cx + sway, h - crHeight * 0.5);
+      ctx.lineTo(cx + 15 + sway, h - crHeight * 0.7); ctx.lineTo(cx + 5 + sway, h - crHeight * 0.5); ctx.fill();
+    }
+  }
+
+  // Enhanced Depth HUD
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.beginPath(); ctx.roundRect(10, 10, 180, 65, 8); ctx.fill();
+  ctx.strokeStyle = 'rgba(59,130,246,0.3)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.roundRect(10, 10, 180, 65, 8); ctx.stroke();
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 14px system-ui';
   ctx.textAlign = 'left';
-  ctx.fillText(`Depth: ${Math.round(diveDepth)}m`, 20, 32);
+  ctx.fillText(`\u{1F30A} Depth: ${Math.round(diveDepth)}m`, 20, 32);
   ctx.fillStyle = 'rgba(255,255,255,0.6)';
   ctx.font = '11px system-ui';
   const pressure = (1 + diveDepth / 10).toFixed(1);
-  ctx.fillText(`Pressure: ${pressure} atm`, 20, 52);
+  ctx.fillText(`Pressure: ${pressure} atm`, 20, 48);
   const temp = getDepthTemperature(diveDepth);
-  ctx.fillText(`Temp: ${temp}°C`, 100, 52);
+  ctx.fillText(`Temp: ${temp}°C`, 120, 48);
+  // Visibility
+  const visibility = depthFactor < 0.1 ? 'Clear' : depthFactor < 0.3 ? 'Good' : depthFactor < 0.6 ? 'Low' : 'Dark';
+  ctx.fillText(`Vis: ${visibility}`, 20, 63);
+  ctx.fillText(`Species: ${visible.length}`, 120, 63);
 
-  // Pressure bar
+  // Pressure bar (vertical, right side)
   const pressurePct = Math.min(1, diveDepth / 5000);
-  ctx.fillStyle = 'rgba(255,255,255,0.1)';
-  ctx.fillRect(w - 30, 10, 15, h - 20);
-  ctx.fillStyle = pressurePct > 0.7 ? '#ef4444' : pressurePct > 0.4 ? '#f59e0b' : '#22c55e';
-  ctx.fillRect(w - 30, 10 + (h - 20) * (1 - pressurePct), 15, (h - 20) * pressurePct);
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath(); ctx.roundRect(w - 32, 10, 20, h - 20, 4); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(w - 30, 12, 16, h - 24);
+  const barColor = pressurePct > 0.7 ? '#ef4444' : pressurePct > 0.4 ? '#f59e0b' : '#22c55e';
+  ctx.fillStyle = barColor;
+  const barH = (h - 24) * pressurePct;
+  ctx.fillRect(w - 30, h - 12 - barH, 16, barH);
+  // Depth markers
+  ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.font = '8px system-ui'; ctx.textAlign = 'right';
+  [0, 1000, 2000, 3000, 4000, 5000].forEach(d => {
+    const my = 12 + (h - 24) * (d / 5000);
+    ctx.fillText(`${d}m`, w - 36, my + 3);
+  });
 }
 
 let simMouseX = null;
