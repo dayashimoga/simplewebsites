@@ -178,7 +178,7 @@ jobs:
 
 
   deploy:
-    needs: [build, terraform, detect-changes]
+    needs: [build, detect-changes]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.detect-changes.outputs.sites != '[]'
     strategy:
       fail-fast: false
