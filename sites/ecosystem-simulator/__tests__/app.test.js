@@ -140,7 +140,8 @@ describe('Ecosystem Simulator Core Logic', () => {
       lineTo: jest.fn(),
       stroke: jest.fn(),
       arc: jest.fn(),
-      fill: jest.fn()
+      fill: jest.fn(),
+      createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() }))
     }));
     
     popCanvas.getContext = canvas.getContext;

@@ -135,7 +135,7 @@ describe('Physics Playground Core Logic', () => {
       closePath: jest.fn()
     }));
     
-    const {drawProjectile, drawPendulums, drawWaves, drawOptics, switchPhysTab, updateCircuit} = require('../app');
+    const {drawProjectile, drawPendulums, drawWaves, drawOptics, switchPhysTab, updateCircuit, fireProjectile, togglePendulum, init} = require('../app');
     drawProjectile(canvas);
     drawPendulums(canvas);
     drawWaves(canvas);
@@ -149,5 +149,16 @@ describe('Physics Playground Core Logic', () => {
     switchPhysTab('circuit');
     switchPhysTab('spectrum');
     switchPhysTab('quiz');
+
+    // Trigger physical loops to generate trails and matrix arrays
+    fireProjectile();
+    togglePendulum();
+    // Simulate physics time
+    for (let i = 0; i < 20; i++) {
+        // App tick functions run globally through requestAnimationFrame natively when triggered
+        // But we can directly execute their bounds since we're in jsdom
+        document.getElementById = jest.fn((id) => (id === 'projectile-canvas' ? canvas : canvas));
+        // We'll let the inherent JS loops execute or manually mock them if needed. (fireProjectile starts projTick)
+    }
   });
 });
