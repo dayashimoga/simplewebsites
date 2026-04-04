@@ -45,7 +45,7 @@ resource "cloudflare_record" "subdomain_cnames" {
   for_each = var.cloudflare_zone_id != "" ? local.computed_subdomains : {}
   zone_id  = var.cloudflare_zone_id
   name     = each.value
-  content  = "${each.key}.pages.dev"
+  content  = cloudflare_pages_project.sites[each.key].subdomain
   type     = "CNAME"
   proxied  = true
 }

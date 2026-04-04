@@ -108,6 +108,106 @@
   return { deltaV: Math.round(baseV * 100) / 100, unit: 'km/s' };
 }
 
+// --- Mission Cost Estimator ---
+ function calculateMissionCost(destId, rocketId, payloadKg, crewSize) {
+  const dest = getDestinationById(destId);
+  const rocket = getRocketById(rocketId);
+  if (!dest || !rocket) return null;
+  const rocketCosts = { chemical: 150, ion: 300, nuclear: 500, solar: 80 };
+  const baseCost = (rocketCosts[rocketId] || 200) * 1000000;
+  const fuelCost = dest.distanceKm * rocket.fuelPerKm * 50;
+  const payloadCost = payloadKg * 20000;
+  const crewCost = crewSize * 25000000;
+  const total = Math.round(baseCost + fuelCost + payloadCost + crewCost);
+  return {
+    total,
+    formatted: total >= 1000000000 ? '$' + (total / 1000000000).toFixed(1) + 'B' : '$' + (total / 1000000).toFixed(0) + 'M',
+    breakdown: { rocket: baseCost, fuel: Math.round(fuelCost), payload: payloadCost, crew: crewCost }
+  };
+}
+
+// --- Gravity Assist Calculator ---
+ const GRAVITY_ASSIST_BODIES = [
+  { id: 'venus_assist', name: 'Venus Flyby', emoji: '🌕', fuelSaving: 0.15, addedDays: 90, availableFor: ['mars', 'jupiter', 'saturn', 'pluto'] },
+  { id: 'mars_assist', name: 'Mars Flyby', emoji: '🔴', fuelSaving: 0.10, addedDays: 60, availableFor: ['jupiter', 'saturn', 'titan', 'europa'] },
+  { id: 'jupiter_assist', name: 'Jupiter Flyby', emoji: '🟤', fuelSaving: 0.30, addedDays: 300, availableFor: ['saturn', 'titan', 'pluto'] },
+  { id: 'earth_assist', name: 'Earth Flyby', emoji: '🌍', fuelSaving: 0.08, addedDays: 365, availableFor: ['mars', 'venus', 'jupiter', 'saturn'] }
+];
+
+ function calculateGravityAssist(destId, rocketId, payloadKg) {
+  const dest = getDestinationById(destId);
+  const rocket = getRocketById(rocketId);
+  if (!dest || !rocket) return null;
+  const available = GRAVITY_ASSIST_BODIES.filter(b => b.availableFor.includes(destId));
+  const baseFuel = calculateFuelNeeded(destId, rocketId, payloadKg);
+  if (!baseFuel) return null;
+  const assists = available.map(a => ({
+    ...a,
+    fuelSaved: Math.round(baseFuel.fuelKg * a.fuelSaving),
+    newFuel: Math.round(baseFuel.fuelKg * (1 - a.fuelSaving)),
+    newFuelFormatted: formatMass(Math.round(baseFuel.fuelKg * (1 - a.fuelSaving)))
+  }));
+  return { baseFuel: baseFuel.fuelKg, assists, bestAssist: assists.length > 0 ? assists.reduce((a, b) => a.fuelSaving > b.fuelSaving ? a : b) : null };
+}
+
+// --- Mission Difficulty Rating ---
+ function getMissionDifficulty(destId, rocketId, payloadKg, crewSize) {
+  const dest = getDestinationById(destId);
+  const rocket = getRocketById(rocketId);
+  if (!dest || !rocket) return null;
+  let score = 0;
+  // Distance factor (0-30)
+  score += Math.min(30, Math.log10(dest.distanceKm) * 4);
+  // Gravity factor (0-20)
+  score += Math.min(20, dest.gravity * 2);
+  // Payload factor (0-15)
+  score += Math.min(15, (payloadKg / rocket.maxPayload) * 15);
+  // Crew risk (0-20)
+  score += Math.min(20, crewSize * 5);
+  // Travel time factor (0-15)
+  score += Math.min(15, dest.travelDays / 300);
+  score = Math.round(Math.min(100, score));
+  let rating, emoji;
+  if (score <= 20) { rating = 'Routine'; emoji = '🟢'; }
+  else if (score <= 40) { rating = 'Moderate'; emoji = '🟡'; }
+  else if (score <= 60) { rating = 'Challenging'; emoji = '🟠'; }
+  else if (score <= 80) { rating = 'Extreme'; emoji = '🔴'; }
+  else { rating = 'Legendary'; emoji = '💀'; }
+  return { score, rating, emoji };
+}
+
+// --- Mission Achievement System ---
+ let achievements = [];
+ const ACHIEVEMENT_DEFS = [
+  { id: 'first_launch', name: 'First Launch', emoji: '🚀', description: 'Complete your first mission', condition: (log) => log.length >= 1 },
+  { id: 'veteran', name: 'Veteran Explorer', emoji: '⭐', description: 'Complete 5 missions', condition: (log) => log.length >= 5 },
+  { id: 'moon_walker', name: 'Moon Walker', emoji: '🌙', description: 'Complete a mission to the Moon', condition: (log) => log.some(m => m.destination && m.destination.id === 'moon') },
+  { id: 'mars_pioneer', name: 'Mars Pioneer', emoji: '🔴', description: 'Complete a mission to Mars', condition: (log) => log.some(m => m.destination && m.destination.id === 'mars') },
+  { id: 'outer_reach', name: 'Outer Reach', emoji: '🪐', description: 'Reach Saturn or beyond', condition: (log) => log.some(m => m.destination && ['saturn', 'titan', 'pluto'].includes(m.destination.id)) },
+  { id: 'crew_commander', name: 'Crew Commander', emoji: '👨‍🚀', description: 'Launch a crewed mission', condition: (log) => log.some(m => m.crew && m.crew > 0) },
+  { id: 'ion_master', name: 'Ion Master', emoji: '⚡', description: 'Complete a mission using Ion Drive', condition: (log) => log.some(m => m.rocket && m.rocket.id === 'ion') },
+  { id: 'heavy_lifter', name: 'Heavy Lifter', emoji: '💪', description: 'Launch with payload over 15,000 kg', condition: (log) => log.some(m => m.payload && m.payload > 15000) }
+];
+
+ function checkAchievements() {
+  const newAchievements = [];
+  ACHIEVEMENT_DEFS.forEach(def => {
+    if (!achievements.includes(def.id) && def.condition(missionLog)) {
+      achievements.push(def.id);
+      newAchievements.push(def);
+    }
+  });
+  return newAchievements;
+}
+
+ function getAchievements() {
+  return ACHIEVEMENT_DEFS.map(def => ({ ...def, unlocked: achievements.includes(def.id) }));
+}
+
+ function getUnlockedCount() {
+  return { unlocked: achievements.length, total: ACHIEVEMENT_DEFS.length };
+}
+
  function formatDistance(km) {
   if (km >= 1000000000) return (km / 1000000000).toFixed(2) + ' billion km';
   if (km >= 1000000) return (km / 1000000).toFixed(1) + ' million km';
@@ -154,10 +254,14 @@
   const fuel = calculateFuelNeeded(selectedDestination, selectedRocket, payloadKg);
   const dv = calculateDeltaV(selectedDestination, selectedRocket);
   const light = getLightTravelTime(dest.distanceKm);
+  const cost = calculateMissionCost(selectedDestination, selectedRocket, payloadKg, crewSize);
+  const difficulty = getMissionDifficulty(selectedDestination, selectedRocket, payloadKg, crewSize);
+  const gravityAssist = calculateGravityAssist(selectedDestination, selectedRocket, payloadKg);
   return {
     name: missionName, destination: dest, rocket, travel, fuel, deltaV: dv,
     payload: payloadKg, crew: crewSize, lightTime: light,
-    distance: formatDistance(dest.distanceKm)
+    distance: formatDistance(dest.distanceKm),
+    cost, difficulty, gravityAssist
   };
 }
 
@@ -217,9 +321,12 @@
       <div class="m-stat"><span class="m-icon">⏱️</span><span class="m-val">${formatDuration(summary.travel.days)}</span><span class="m-lbl">Travel Time</span></div>
       <div class="m-stat"><span class="m-icon">⛽</span><span class="m-val">${summary.fuel.fuelFormatted}</span><span class="m-lbl">Fuel Required</span></div>
       <div class="m-stat"><span class="m-icon">🔄</span><span class="m-val">${summary.deltaV.deltaV} ${summary.deltaV.unit}</span><span class="m-lbl">Delta-V</span></div>
+      <div class="m-stat"><span class="m-icon">💰</span><span class="m-val">${summary.cost.formatted}</span><span class="m-lbl">Est. Cost</span></div>
+      <div class="m-stat"><span class="m-icon">${summary.difficulty.emoji}</span><span class="m-val">${summary.difficulty.rating}</span><span class="m-lbl">Difficulty</span></div>
       <div class="m-stat"><span class="m-icon">💡</span><span class="m-val">${summary.lightTime}</span><span class="m-lbl">Light Travel</span></div>
       <div class="m-stat"><span class="m-icon">📦</span><span class="m-val">${formatMass(summary.payload)}</span><span class="m-lbl">Payload</span></div>
     </div>
+    ${summary.gravityAssist && summary.gravityAssist.bestAssist ? `<div class="gravity-assist-tip"><span>🌍 Gravity Assist Available: ${summary.gravityAssist.bestAssist.name} saves ${formatMass(summary.gravityAssist.bestAssist.fuelSaved)} fuel (+${summary.gravityAssist.bestAssist.addedDays} days)</span></div>` : ''}
     ${readiness.issues.length > 0 ? `<div class="mission-issues">${readiness.issues.map(i => `<span class="issue-tag">⚠️ ${i}</span>`).join('')}</div>` : ''}
     <button class="btn btn-primary w-full mt-3 launch-btn" ${readiness.ready ? '' : 'disabled'} onclick="startLaunch()">
       🚀 LAUNCH MISSION
@@ -429,6 +536,7 @@
  function addMissionLog(summary) {
   missionLog.unshift(summary);
   if (missionLog.length > 20) missionLog.pop();
+  checkAchievements();
   renderLog();
 }
 
@@ -501,6 +609,7 @@ function initLaunchCanvas() {
     mass: 100000, maxFuel: 80000, fuel: 80000, thrustStaged: 350000, stagesDropped: 0,
     altitude: 0, orbitApoapsis: 0, orbitPeriapsis: 0,
     time: 0, particles: [], stars: [], planetSize: 2, parachuteDeployed: false, dustParticles: [],
+    orbitTrail: [], shockwaveRadius: 0, nebulaClouds: [],
     failureActive: false, tumbleAngle: 0 
   };
   failureTriggered = false;
@@ -532,6 +641,11 @@ function initLaunchCanvas() {
   // Generate background stars
   for (let i = 0; i < 250; i++) {
     rocketLaunchState.stars.push({ x: (Math.random()-0.5) * 4000, y: (Math.random()-0.5) * 4000, r: Math.random() * 1.5 + 0.3 });
+  }
+  // Generate nebula clouds for deep space backdrop
+  const nebulaColors = ['rgba(99,102,241,0.04)', 'rgba(236,72,153,0.03)', 'rgba(16,185,129,0.03)', 'rgba(245,158,11,0.02)'];
+  for (let i = 0; i < 12; i++) {
+    rocketLaunchState.nebulaClouds.push({ x: (Math.random()-0.5)*6000, y: (Math.random()-0.5)*6000, r: 200+Math.random()*400, color: nebulaColors[i % nebulaColors.length] });
   }
 }
 
@@ -636,6 +750,19 @@ function rocketLaunchTick() {
   else if (s.phase === 'approach' && s.altitude > 10000) { s.phase = 'orbit'; s.time = 0; }
   else if (s.phase === 'orbit' && s.time > 200) { s.phase = 'landing'; s.time = 0; }
   else if (s.phase === 'landing' && s.altitude <= 0) { s.phase = 'complete'; s.time = 0; s.vx = 0; s.vy = 0; s.y = -EARTH_RADIUS; }
+
+  // Orbit trail recording (for visual trail effect)
+  if (s.phase !== 'countdown' && s.phase !== 'idle' && s.phase !== 'complete' && s.time % 3 === 0) {
+    s.orbitTrail.push({ x: s.x, y: s.y }); if (s.orbitTrail.length > 200) s.orbitTrail.shift();
+  }
+  // Shockwave expansion during liftoff
+  if (s.phase === 'liftoff' && s.time < 60) { s.shockwaveRadius = s.time * 8; }
+  else { s.shockwaveRadius = 0; }
+
+  // Planet size growth during approach/orbit/landing
+  if (s.phase === 'approach') { s.planetSize = Math.min(3000, s.planetSize + 8); }
+  else if (s.phase === 'orbit') { s.planetSize = Math.min(3500, s.planetSize + 2); }
+  else if (s.phase === 'landing') { s.planetSize = Math.min(4000, s.planetSize + 5); }
 
   // Physics Integration Step (dt = 0.5)
   const dt = 0.5;
@@ -805,20 +932,56 @@ function drawRocketLaunch(canvas) {
     ctx.fillStyle = '#374151'; ctx.fillRect(-25, groundY, 50, 6);
   }
 
-  // == DRAW DESTINATION PLANET (If arriving) ==
+  // == DRAW DESTINATION PLANET (Enhanced with atmosphere, gradient, craters) ==
   if (s.phase === 'approach' || s.phase === 'orbit' || s.phase === 'landing' || s.phase === 'complete') {
     const dest = getDestinationById(selectedDestination);
     const destColor = dest ? dest.color || '#e0603e' : '#e0603e';
-    // Position destination arbitrarily far away for simulation
     const destX = 80000;
     const destY = -80000;
-    const destRadius = 3000;
+    const destRadius = Math.max(3000, s.planetSize);
 
-    // Draw Destination
-    ctx.fillStyle = destColor;
+    // Atmosphere glow (outer haze)
+    const atmoGlow = ctx.createRadialGradient(destX, destY, destRadius * 0.8, destX, destY, destRadius * 1.4);
+    atmoGlow.addColorStop(0, 'transparent');
+    atmoGlow.addColorStop(0.5, destColor + '18');
+    atmoGlow.addColorStop(0.8, destColor + '08');
+    atmoGlow.addColorStop(1, 'transparent');
+    ctx.fillStyle = atmoGlow;
     ctx.beginPath();
-    ctx.arc(destX, destY, destRadius, 0, Math.PI*2);
+    ctx.arc(destX, destY, destRadius * 1.4, 0, Math.PI * 2);
     ctx.fill();
+
+    // Planet body with 3D radial gradient (light source top-left)
+    const pGrad = ctx.createRadialGradient(
+      destX - destRadius * 0.3, destY - destRadius * 0.3, 0,
+      destX, destY, destRadius
+    );
+    pGrad.addColorStop(0, '#ffffff20');
+    pGrad.addColorStop(0.2, destColor);
+    pGrad.addColorStop(0.85, destColor + '80');
+    pGrad.addColorStop(1, destColor + '40');
+    ctx.beginPath();
+    ctx.arc(destX, destY, destRadius, 0, Math.PI * 2);
+    ctx.fillStyle = pGrad;
+    ctx.fill();
+
+    // Surface crater features (visible when planet is large enough)
+    if (s.planetSize > 30) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(destX, destY, destRadius, 0, Math.PI * 2);
+      ctx.clip();
+      for (let cr = 0; cr < 5; cr++) {
+        const crx = destX - destRadius * 0.5 + (cr * 47) % destRadius;
+        const cry = destY - destRadius * 0.3 + (cr * 31) % (destRadius * 0.6);
+        const crSize = (50 + cr * 30);
+        ctx.beginPath();
+        ctx.arc(crx, cry, crSize, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
 
     // Orbit path if orbiting
     if (s.phase === 'orbit' || s.phase === 'landing') {
@@ -826,7 +989,7 @@ function drawRocketLaunch(canvas) {
       ctx.setLineDash([50, 50]);
       ctx.lineWidth = 20 / camZoom;
       ctx.beginPath();
-      ctx.arc(destX, destY, destRadius + 1500, 0, Math.PI*2);
+      ctx.arc(destX, destY, destRadius + 1500, 0, Math.PI * 2);
       ctx.stroke();
       ctx.setLineDash([]);
     }
@@ -835,7 +998,7 @@ function drawRocketLaunch(canvas) {
   // == PARTICLES ==
   // Fire, smoke & exhaust particles
   s.particles.forEach(p => {
-    const alpha = Math.max(0, p.life / 50); // Ensure alpha doesn't go above 1 due to p.life > 30 originally expected
+    const alpha = Math.max(0, p.life / 50);
     const radius = Math.max(0.5, 3 + (40 - p.life) * 0.4) / (camZoom > 0.5 ? 1 : camZoom * 10);
     
     if (p.color === '#888' || p.color === '#aaa') {
@@ -849,6 +1012,17 @@ function drawRocketLaunch(canvas) {
     }
     ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI * 2); ctx.fill();
   });
+
+  // == DUST PARTICLES on landing surface ==
+  if (s.phase === 'landing' || s.phase === 'complete') {
+    (s.dustParticles || []).forEach(dp => {
+      const alpha = dp.life / 40;
+      ctx.fillStyle = `rgba(180,160,120,${(alpha * 0.5).toFixed(2)})`;
+      ctx.beginPath();
+      ctx.arc(dp.x, dp.y, dp.size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
 
   // == DRAW ROCKET ==
   ctx.save();
@@ -1050,16 +1224,20 @@ function replayTick() {
  if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     DESTINATIONS, ROCKETS, HISTORICAL_MISSIONS, LAUNCH_PHASES, FAILURE_TYPES,
+    EARTH_RADIUS, EARTH_X, EARTH_Y, G_CONST,
+    GRAVITY_ASSIST_BODIES, ACHIEVEMENT_DEFS,
     getDestinationById, getRocketById, calculateTravelTime, calculateFuelNeeded,
-    calculateDeltaV, formatDistance, formatMass, formatDuration, getLightTravelTime,
+    calculateDeltaV, calculateMissionCost, calculateGravityAssist,
+    getMissionDifficulty, checkAchievements, getAchievements, getUnlockedCount,
+    formatDistance, formatMass, formatDuration, getLightTravelTime,
     getMissionReadiness, getMissionSummary,
     getLaunchPhaseIndex, getLaunchPhaseName, initLaunchCanvas,
     startVisualLaunch, stopVisualLaunch, drawRocketLaunch, rocketLaunchTick,
     renderDestinations, renderRockets, renderMissionPanel, renderLaunchView, renderHistory, renderLog,
     selectDestination, selectRocket, updatePayload, updateCrew, updateMissionName,
     startLaunch, resetLaunch, addMissionLog, switchView, init,
-    toggleFailureMode, getFailureState,
-    startReplay, stopReplay, getReplaySnapshots,
+    toggleFailureMode, getFailureState, toggleAutopilot,
+    startReplay, stopReplay, getReplaySnapshots, replayTick,
     getState: () => ({ selectedDestination, selectedRocket, payloadKg, crewSize, missionName, missionLog, launchPhase, countdownValue, missionElapsed, activeView, rocketLaunchState, failureEnabled, failureTriggered, failureType, replaySnapshots: replaySnapshots.length }),
     setState: (s) => {
       if (s.selectedDestination !== undefined) selectedDestination = s.selectedDestination;
@@ -1070,12 +1248,17 @@ function replayTick() {
       if (s.launchPhase !== undefined) launchPhase = s.launchPhase;
       if (s.activeView !== undefined) activeView = s.activeView;
       if (s.failureEnabled !== undefined) failureEnabled = s.failureEnabled;
+      if (s.countdownValue !== undefined) countdownValue = s.countdownValue;
     },
-    _resetMission: () => { selectedDestination = null; selectedRocket = null; payloadKg = 5000; crewSize = 0; launchPhase = null; missionElapsed = 0; missionLog = []; failureTriggered = false; failureType = null; replaySnapshots = []; },
+    _resetMission: () => { selectedDestination = null; selectedRocket = null; payloadKg = 5000; crewSize = 0; launchPhase = null; missionElapsed = 0; missionLog = []; failureTriggered = false; failureType = null; replaySnapshots = []; achievements = []; },
     _clearTimer: () => { if (launchTimer) clearInterval(launchTimer); launchTimer = null; },
     _stopVisualLaunch: stopVisualLaunch,
     _stopReplay: stopReplay,
     _getRocketLaunchState: () => rocketLaunchState,
-    _setRocketLaunchState: (s) => { Object.assign(rocketLaunchState, s); }
+    _setRocketLaunchState: (s) => { Object.assign(rocketLaunchState, s); },
+    _setFailureState: (s) => { if (s.failureEnabled !== undefined) failureEnabled = s.failureEnabled; if (s.failureTriggered !== undefined) failureTriggered = s.failureTriggered; if (s.failureType !== undefined) failureType = s.failureType; },
+    _setReplaySnapshots: (snaps) => { replaySnapshots = snaps; },
+    _getReplayPlaying: () => replayPlaying,
+    _setReplayPlaying: (v) => { replayPlaying = v; }
   };
 }
