@@ -108,4 +108,26 @@
 .log-entry { padding: 10px 16px; border-bottom: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; }
 .log-detail { font-size: 0.75rem; color: var(--color-text-secondary); }
 
+/* New Orbital Launch Controls and Telemetry */
+.launch-pad-layout { display: flex; flex-direction: column; gap: 10px; width: 100%; height: 100%; min-height: 500px; padding: 10px; }
+@media (min-width: 900px) { .launch-pad-layout { flex-direction: row; } }
+.launch-canvas-wrapper { flex: 2; position: relative; border-radius: var(--radius-md); overflow: hidden; background: #000; border: 1px solid var(--color-border); aspect-ratio: 16/9; }
+.telemetry-dashboard { flex: 1; display: flex; flex-direction: column; gap: 15px; border-radius: var(--radius-md); padding: 15px; background: rgba(0,0,0,0.2); border: 1px solid var(--color-border); }
+
+.telemetry-panel { flex: 1; display: flex; flex-direction: column; }
+.telemetry-header { font-size: 0.9rem; font-weight: 700; color: #6366f1; border-bottom: 1px solid var(--color-border); padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+.telemetry-gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.t-gauge { background: var(--color-surface); padding: 10px; border-radius: var(--radius-md); text-align: center; border: 1px solid var(--color-border); }
+.t-gauge-label { font-size: 0.6rem; text-transform: uppercase; color: var(--color-text-secondary); letter-spacing: 1px; }
+.t-gauge-val { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.1rem; color: #10b981; }
+
+.telemetry-chart-container { flex: 1; position: relative; min-height: 200px; background: var(--color-surface); border-radius: var(--radius-md); padding: 10px; border: 1px solid var(--color-border); }
+
+/* Autopilot Toggle / Manual Controls */
+.flight-controls { margin-top: 10px; background: var(--color-surface); padding: 10px; border-radius: var(--radius-md); border: 1px solid var(--color-border); }
+.autopilot-toggle { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; }
+.manual-keys { display: flex; gap: 5px; justify-content: center; margin-top: 8px; }
+.key-btn { background: #374151; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-align: center; }
+
 .hidden { display: none !important; }

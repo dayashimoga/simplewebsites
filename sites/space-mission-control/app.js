@@ -235,51 +235,83 @@
   const summary = getMissionSummary();
   if (!summary) return;
 
-  if (launchPhase === 'countdown') {
+  if (!document.getElementById('rocket-launch-canvas')) {
     panel.innerHTML = `
-      <div class="launch-countdown">
-        <h2>🚀 ${summary.name}</h2>
-        <div class="countdown-number">${countdownValue}</div>
-        <p>SYSTEMS CHECK... ALL CLEAR</p>
-      </div>`;
-  } else if (launchPhase === 'launch') {
-    panel.innerHTML = `
-      <div class="launch-active">
-        <div class="rocket-animation">🚀</div>
-        <h2>LIFTOFF!</h2>
-        <p>${summary.destination.emoji} Heading to ${summary.destination.name}</p>
-        <div class="telemetry">
-          <span>Speed: ${summary.rocket.speed.toLocaleString()} km/h</span>
-          <span>Elapsed: ${missionElapsed}s</span>
+      <div class="launch-pad-layout w-full h-full">
+        <div class="launch-canvas-wrapper">
+          <canvas id="rocket-launch-canvas" width="800" height="600" style="width: 100%; height: 100%; display: block; object-fit: cover;"></canvas>
+          <div id="mission-success-overlay" class="hidden absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-center p-4">
+            <div class="text-6xl mb-4 animate-bounce">${summary.destination.emoji}</div>
+            <h2 class="text-3xl text-green-400 font-bold mb-2">Mission Success!</h2>
+            <p class="text-gray-300">Arrived at ${summary.destination.name}</p>
+            <button class="btn btn-secondary mt-6" onclick="resetLaunch()">🔄 Plan New Mission</button>
+          </div>
         </div>
-      </div>`;
-  } else if (launchPhase === 'transit') {
-    const pct = Math.min(100, (missionElapsed / (summary.travel.days * 10)) * 100);
-    panel.innerHTML = `
-      <div class="mission-transit">
-        <h3>${summary.destination.emoji} In Transit to ${summary.destination.name}</h3>
-        <div class="transit-bar"><div class="transit-fill" style="width:${pct}%"></div></div>
-        <span class="transit-pct">${pct.toFixed(1)}% complete</span>
-        <div class="telemetry mt-3">
-          <span>Day ${Math.floor(missionElapsed / 10)} of ${summary.travel.days}</span>
-          <span>Distance covered: ${formatDistance(Math.round(summary.destination.distanceKm * pct / 100))}</span>
+        <div class="telemetry-dashboard">
+          <div class="telemetry-panel">
+            <div class="telemetry-header">
+              <span>🚀 ${summary.name}</span>
+              <span id="tel-phase" class="text-xs px-2 py-1 bg-blue-900 rounded-full text-white">${getLaunchPhaseName(rocketLaunchState.phase)}</span>
+            </div>
+            <div class="telemetry-gauges">
+              <div class="t-gauge"><span class="t-gauge-label">Altitude</span><span id="tel-alt" class="t-gauge-val">0 km</span></div>
+              <div class="t-gauge"><span class="t-gauge-label">Velocity</span><span id="tel-vel" class="t-gauge-val">0 m/s</span></div>
+              <div class="t-gauge"><span class="t-gauge-label">Apoapsis</span><span id="tel-apo" class="t-gauge-val">-</span></div>
+              <div class="t-gauge"><span class="t-gauge-label">Periapsis</span><span id="tel-per" class="t-gauge-val">-</span></div>
+              <div class="t-gauge"><span class="t-gauge-label">Fuel %</span><span id="tel-fuel" class="t-gauge-val text-amber-500">100%</span></div>
+              <div class="t-gauge"><span class="t-gauge-label">T-Minus</span><span id="tel-time" class="t-gauge-val text-red-500">${countdownValue}</span></div>
+            </div>
+            <div class="telemetry-chart-container">
+              <canvas id="telemetry-chart"></canvas>
+            </div>
+            <div class="flight-controls">
+              <button id="autopilot-btn" class="autopilot-toggle w-full p-2 rounded bg-indigo-900/50 hover:bg-indigo-800 text-white transition-colors" onclick="toggleAutopilot()">🟢 Autopilot ON</button>
+              <div class="manual-keys">
+                <span class="key-btn">W/▲ Thrust</span>
+                <span class="key-btn">A/◀ Left</span>
+                <span class="key-btn">D/▶ Right</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>`;
-    if (pct >= 100) {
-      launchPhase = 'arrived';
-      renderLaunchView();
+      </div>
+    `;
+    setTimeout(() => { if (typeof initTelemetryChart !== 'undefined' && !telemetryChart) initTelemetryChart(); }, 100);
+  } else {
+    // Update existing elements continuously
+    const pEl = document.getElementById('tel-phase');
+    if (pEl) pEl.textContent = getLaunchPhaseName(rocketLaunchState.phase);
+    
+    const altEl = document.getElementById('tel-alt');
+    if (altEl) altEl.textContent = (Math.max(0, rocketLaunchState.altitude) / 1000).toFixed(1) + ' km';
+    
+    const velEl = document.getElementById('tel-vel');
+    if (velEl) velEl.textContent = Math.round(Math.sqrt(rocketLaunchState.vx*rocketLaunchState.vx + rocketLaunchState.vy*rocketLaunchState.vy)).toLocaleString() + ' m/s';
+    
+    const apoEl = document.getElementById('tel-apo');
+    if (apoEl) apoEl.textContent = rocketLaunchState.orbitApoapsis > 1000 ? (rocketLaunchState.orbitApoapsis / 1000).toFixed(0) + ' km' : '-';
+    
+    const perEl = document.getElementById('tel-per');
+    if (perEl) perEl.textContent = rocketLaunchState.orbitPeriapsis > 1000 || rocketLaunchState.orbitPeriapsis < -100 ? (rocketLaunchState.orbitPeriapsis / 1000).toFixed(0) + ' km' : '-';
+    
+    const fuelEl = document.getElementById('tel-fuel');
+    if (fuelEl) fuelEl.textContent = Math.max(0, Math.round((rocketLaunchState.fuel / rocketLaunchState.maxFuel) * 100)) + '%';
+    
+    const timeEl = document.getElementById('tel-time');
+    if (timeEl) {
+      if (rocketLaunchState.phase === 'countdown') {
+         timeEl.textContent = countdownValue;
+         timeEl.className = 't-gauge-val text-red-500';
+      } else {
+         timeEl.textContent = 'T+' + rocketLaunchState.time;
+         timeEl.className = 't-gauge-val text-emerald-500';
+      }
     }
-  } else if (launchPhase === 'arrived') {
-    panel.innerHTML = `
-      <div class="mission-arrived">
-        <div class="arrived-emoji">${summary.destination.emoji}</div>
-        <h2>🎉 Mission Success!</h2>
-        <p>Arrived at ${summary.destination.name}!</p>
-        <p class="arrived-desc">${summary.destination.description}</p>
-        <button class="btn btn-secondary mt-4" onclick="resetLaunch()">🔄 Plan New Mission</button>
-      </div>`;
-    if (launchTimer) { clearInterval(launchTimer); launchTimer = null; }
-    addMissionLog(summary);
+
+    if (launchPhase === 'arrived') {
+       const overlay = document.getElementById('mission-success-overlay');
+       if (overlay) overlay.classList.remove('hidden');
+    }
   }
 }
 
@@ -429,10 +461,29 @@
   document.addEventListener('DOMContentLoaded', init);
 }
 
-// ===== VISUAL ROCKET LAUNCH CANVAS =====
+// ===== VISUAL ROCKET LAUNCH CANVAS & 2D PHYSICS =====
 let rocketLaunchAnimId = null;
-let rocketLaunchState = { phase: 'idle', y: 0, vy: 0, altitude: 0, stagesDropped: 0, particles: [], stars: [], planetSize: 0, time: 0, parachuteDeployed: false, dustParticles: [], failureActive: false, tumbleAngle: 0 };
+let telemetryChart = null;
+let telemetryDataHistory = [];
+
+let rocketLaunchState = { 
+  phase: 'idle', 
+  // Position and Velocity
+  x: 0, y: 0, vx: 0, vy: 0, 
+  // Attitude and Control
+  pitchAngle: 0, thrustActive: false, autopilot: true,
+  // Ship Properties
+  mass: 100000, maxFuel: 80000, fuel: 80000, thrustStaged: 500000, stagesDropped: 0,
+  // Environment
+  altitude: 0, orbitApoapsis: 0, orbitPeriapsis: 0,
+  // Other Simulation Constants
+  time: 0, particles: [], stars: [], planetSize: 0, parachuteDeployed: false, dustParticles: [],
+  failureActive: false, tumbleAngle: 0
+};
 const LAUNCH_PHASES = ['countdown', 'liftoff', 'stage1_sep', 'space_transit', 'approach', 'orbit', 'landing', 'complete'];
+
+// Earth constants for simplified math
+const EARTH_X = 0; const EARTH_Y = 6000; const EARTH_RADIUS = 6000; const G_CONST = 9.81 * 800000; 
 
 function getLaunchPhaseIndex(phase) {
   return LAUNCH_PHASES.indexOf(phase);
@@ -444,20 +495,84 @@ function getLaunchPhaseName(phase) {
 }
 
 function initLaunchCanvas() {
-  rocketLaunchState = { phase: 'idle', y: 0, vy: 0, altitude: 0, stagesDropped: 0, particles: [], stars: [], planetSize: 2, time: 0, parachuteDeployed: false, dustParticles: [], failureActive: false, tumbleAngle: 0 };
+  rocketLaunchState = { 
+    phase: 'idle', x: 0, y: -EARTH_RADIUS, vx: 0, vy: 0, 
+    pitchAngle: 0, thrustActive: false, autopilot: true,
+    mass: 100000, maxFuel: 80000, fuel: 80000, thrustStaged: 350000, stagesDropped: 0,
+    altitude: 0, orbitApoapsis: 0, orbitPeriapsis: 0,
+    time: 0, particles: [], stars: [], planetSize: 2, parachuteDeployed: false, dustParticles: [],
+    failureActive: false, tumbleAngle: 0 
+  };
   failureTriggered = false;
   failureType = null;
   replaySnapshots = [];
-  // Generate stars
-  for (let i = 0; i < 100; i++) {
-    rocketLaunchState.stars.push({ x: Math.random() * 600, y: Math.random() * 500, r: Math.random() * 1.5 + 0.3 });
+  telemetryDataHistory = [];
+  
+  // Set up chart if available
+  if (typeof document !== 'undefined' && document.getElementById('telemetry-chart')) {
+    initTelemetryChart();
   }
+
+  // Handle manual keys
+  if (typeof window !== 'undefined' && !window.rocketKeysBound) {
+    window.rocketKeysMap = { left: false, right: false, up: false };
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') window.rocketKeysMap.left = true;
+      if (e.key === 'ArrowRight' || e.key === 'd') window.rocketKeysMap.right = true;
+      if (e.key === 'ArrowUp' || e.key === 'w') window.rocketKeysMap.up = true;
+    });
+    window.addEventListener('keyup', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') window.rocketKeysMap.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd') window.rocketKeysMap.right = false;
+      if (e.key === 'ArrowUp' || e.key === 'w') window.rocketKeysMap.up = false;
+    });
+    window.rocketKeysBound = true;
+  }
+
+  // Generate background stars
+  for (let i = 0; i < 250; i++) {
+    rocketLaunchState.stars.push({ x: (Math.random()-0.5) * 4000, y: (Math.random()-0.5) * 4000, r: Math.random() * 1.5 + 0.3 });
+  }
+}
+
+function toggleAutopilot() {
+  rocketLaunchState.autopilot = !rocketLaunchState.autopilot;
+  const btn = document.getElementById('autopilot-btn');
+  if (btn) btn.textContent = rocketLaunchState.autopilot ? '🟢 Autopilot ON' : '🔴 Manual Control';
+}
+
+function initTelemetryChart() {
+  if (typeof Chart === 'undefined') return;
+  if (telemetryChart) telemetryChart.destroy();
+  const canvas = document.getElementById('telemetry-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  telemetryChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [
+        { label: 'Altitude (km)', data: [], borderColor: '#3b82f6', tension: 0.2, yAxisID: 'y' },
+        { label: 'Velocity (m/s)', data: [], borderColor: '#10b981', tension: 0.2, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { display: false },
+        y: { type: 'linear', display: true, position: 'left', grid: { color: 'rgba(255,255,255,0.1)' } },
+        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false } }
+      },
+      plugins: { legend: { labels: { color: '#fff' } } }
+    }
+  });
 }
 
 function startVisualLaunch() {
   initLaunchCanvas();
   rocketLaunchState.phase = 'countdown';
-  rocketLaunchState.y = 400;
   rocketLaunchState.time = 0;
   if (rocketLaunchAnimId) cancelAnimationFrame(rocketLaunchAnimId);
   rocketLaunchTick();
@@ -469,11 +584,42 @@ function rocketLaunchTick() {
 
   // Record replay snapshot every 5 frames
   if (s.time % 5 === 0 && !replayPlaying) {
-    replaySnapshots.push(JSON.parse(JSON.stringify({ phase: s.phase, y: s.y, altitude: s.altitude, planetSize: s.planetSize, time: s.time, stagesDropped: s.stagesDropped, failureActive: s.failureActive, tumbleAngle: s.tumbleAngle, parachuteDeployed: s.parachuteDeployed })));
+    replaySnapshots.push(JSON.parse(JSON.stringify({
+       phase: s.phase, x: s.x, y: s.y, vx: s.vx, vy: s.vy, pitchAngle: s.pitchAngle, 
+       stagesDropped: s.stagesDropped, failureActive: s.failureActive, tumbleAngle: s.tumbleAngle, parachuteDeployed: s.parachuteDeployed 
+    })));
     if (replaySnapshots.length > 600) replaySnapshots.shift();
   }
 
-  // Failure check during critical phases
+  // Record telemetry data (every 10 ticks)
+  if (s.time % 10 === 0 && (s.phase !== 'idle' && s.phase !== 'countdown')) {
+    const spd = Math.sqrt(s.vx*s.vx + s.vy*s.vy);
+    telemetryDataHistory.push({ time: s.time, alt: Math.max(0, s.altitude), vel: spd * 1000 }); // simulate km and m/s scale
+    if (telemetryChart && telemetryDataHistory.length > 0) {
+      telemetryChart.data.labels = telemetryDataHistory.map(d => d.time);
+      telemetryChart.data.datasets[0].data = telemetryDataHistory.map(d => d.alt);
+      telemetryChart.data.datasets[1].data = telemetryDataHistory.map(d => d.vel);
+      telemetryChart.update();
+    }
+  }
+
+  // Altitude above Earth surface
+  const distFromEarthCenter = Math.sqrt(s.x*s.x + s.y*s.y);
+  s.altitude = distFromEarthCenter - EARTH_RADIUS; // in km
+
+  // Orbital Mechanics (Vis-viva equation to find apoapsis/periapsis bounds roughly)
+  // v^2 = GM (2/r - 1/a) => semi-major axis 'a'
+  const vSq = s.vx*s.vx + s.vy*s.vy;
+  if (vSq > 0.01) {
+    const semiMajor = 1 / ( (2/distFromEarthCenter) - (vSq / G_CONST) );
+    if (semiMajor > 0) {
+       // approximation for circular orbit display
+       s.orbitApoapsis = semiMajor * 2 - EARTH_RADIUS;
+       s.orbitPeriapsis = s.altitude;
+    }
+  }
+
+  // Failures Trigger
   if (failureEnabled && !failureTriggered && !s.failureActive) {
     if (s.phase === 'stage1_sep' && s.time === 1 && Math.random() < 0.3) {
       s.failureActive = true;
@@ -482,79 +628,107 @@ function rocketLaunchTick() {
     }
   }
 
-  // If failure is active, show failure sequence
-  if (s.failureActive) {
-    s.tumbleAngle += 0.05;
-    s.vy = Math.max(s.vy - 0.02, -1);
-    s.y += 0.5;
-    s.altitude = Math.max(0, s.altitude - 0.5);
-    // Explosion particles
-    for (let i = 0; i < 8; i++) {
-      s.particles.push({ x: 300 + (Math.random() - 0.5) * 40, y: s.y + (Math.random() - 0.5) * 30, vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5, life: 25, color: Math.random() > 0.3 ? '#ef4444' : '#f59e0b' });
-    }
-    if (s.time > 180) { s.phase = 'complete'; }
-    s.particles = s.particles.filter(p => { p.x += p.vx; p.y += p.vy; p.life--; return p.life > 0; });
-    if (typeof document !== 'undefined') drawRocketLaunch(document.getElementById('rocket-launch-canvas'));
-    if (s.phase !== 'complete') rocketLaunchAnimId = requestAnimationFrame(rocketLaunchTick);
-    return;
-  }
-
   // Phase transitions
-  if (s.phase === 'countdown' && s.time > 180) { s.phase = 'liftoff'; s.time = 0; }
-  else if (s.phase === 'liftoff' && s.altitude > 100) { s.phase = 'stage1_sep'; s.time = 0; s.stagesDropped = 1; }
-  else if (s.phase === 'stage1_sep' && s.time > 90) { s.phase = 'space_transit'; s.time = 0; }
-  else if (s.phase === 'space_transit' && s.time > 200) { s.phase = 'approach'; s.time = 0; }
-  else if (s.phase === 'approach' && s.planetSize > 80) { s.phase = 'orbit'; s.time = 0; }
-  else if (s.phase === 'orbit' && s.time > 150) { s.phase = 'landing'; s.time = 0; s.parachuteDeployed = false; }
-  else if (s.phase === 'landing' && s.time > 120) { s.phase = 'complete'; s.time = 0; }
+  if (s.phase === 'countdown' && s.time > 180) { s.phase = 'liftoff'; s.time = 0; s.thrustActive = true; }
+  else if (s.phase === 'liftoff' && s.fuel < s.maxFuel * 0.4 && !s.failureActive) { s.phase = 'stage1_sep'; s.time = 0; s.stagesDropped = 1; s.mass *= 0.6; }
+  else if (s.phase === 'stage1_sep' && s.fuel <= 0 && !s.failureActive) { s.phase = 'space_transit'; s.time = 0; s.thrustActive = false; }
+  else if (s.phase === 'space_transit' && s.altitude > 8000) { s.phase = 'approach'; s.time = 0; }
+  else if (s.phase === 'approach' && s.altitude > 10000) { s.phase = 'orbit'; s.time = 0; }
+  else if (s.phase === 'orbit' && s.time > 200) { s.phase = 'landing'; s.time = 0; }
+  else if (s.phase === 'landing' && s.altitude <= 0) { s.phase = 'complete'; s.time = 0; s.vx = 0; s.vy = 0; s.y = -EARTH_RADIUS; }
 
-  // Physics
-  if (s.phase === 'liftoff' || s.phase === 'stage1_sep') {
-    s.vy = Math.min(s.vy + 0.08, 4);
-    s.y -= s.vy;
-    s.altitude += s.vy;
-  }
-  if (s.phase === 'space_transit') { s.altitude += 2; }
-  if (s.phase === 'approach') { s.planetSize += 0.5; }
-  if (s.phase === 'orbit') { /* orbiting */ }
-  if (s.phase === 'landing') {
-    // Deploy parachute at start of landing
-    if (s.time === 20) s.parachuteDeployed = true;
-    s.y += s.parachuteDeployed ? 0.6 : 1.2;
-    s.altitude = Math.max(0, s.altitude - 2);
+  // Physics Integration Step (dt = 0.5)
+  const dt = 0.5;
+
+  if (s.phase !== 'countdown' && s.phase !== 'idle' && s.phase !== 'complete') {
+     // Gravity vector towards (0,0)
+     let gravMps = G_CONST / (distFromEarthCenter * distFromEarthCenter);
+     let angleToEarth = Math.atan2(0 - s.y, 0 - s.x);
+     s.vx += Math.cos(angleToEarth) * gravMps * dt;
+     s.vy += Math.sin(angleToEarth) * gravMps * dt;
+
+     // Controls & Pitch
+     if (typeof window !== 'undefined' && window.rocketKeysMap) {
+       if (window.rocketKeysMap.left) s.pitchAngle -= 0.05;
+       if (window.rocketKeysMap.right) s.pitchAngle += 0.05;
+       if (!s.autopilot) s.thrustActive = window.rocketKeysMap.up;
+     }
+
+     // Autopilot logic (Gravity turn profile)
+     if (s.autopilot && s.phase === 'liftoff') {
+        s.thrustActive = true;
+        // slowly pitch right (towards 1.57 radians / 90 degrees horizontal)
+        if (s.altitude > 100 && s.pitchAngle < 1.3) s.pitchAngle += 0.005;
+     } else if (s.autopilot && s.phase === 'stage1_sep') {
+        s.thrustActive = true;
+     } else if (s.autopilot && s.phase === 'space_transit') {
+        s.thrustActive = false; // coasting
+     }
+
+     if (s.failureActive) {
+        s.tumbleAngle += 0.1;
+        s.thrustActive = false;
+     }
+
+     // Thrust Integration
+     if (s.thrustActive && s.fuel > 0 && !s.failureActive) {
+        let thrustAccel = (s.thrustStaged / s.mass) * dt; 
+        s.vx += Math.sin(s.pitchAngle) * thrustAccel;
+        s.vy -= Math.cos(s.pitchAngle) * thrustAccel; // 0 pitch is pointing UP (-Y) assuming origin is 0,0 and -Y is standard up visually locally
+        s.fuel -= 15;
+        
+        // Exahaust Particles
+        for (let i = 0; i < 5; i++) {
+           let exAngle = s.pitchAngle + Math.PI + (Math.random() - 0.5) * 0.2;
+           s.particles.push({ 
+             x: s.x - Math.sin(s.pitchAngle)*20, y: s.y + Math.cos(s.pitchAngle)*20, 
+             vx: s.vx + Math.sin(exAngle)*15, vy: s.vy - Math.cos(exAngle)*15, 
+             life: 40, color: Math.random() > 0.4 ? '#f59e0b' : Math.random() > 0.6 ? '#ef4444' : '#fff' 
+           });
+        }
+     }
+
+     // Atmospheric Drag
+     if (s.altitude < 500) {
+       let dens = Math.exp(-s.altitude / 100);
+       s.vx *= (1 - 0.02 * dens * dt);
+       s.vy *= (1 - 0.02 * dens * dt);
+     }
+
+     // Step position
+     s.x += s.vx * dt;
+     s.y += s.vy * dt * (Math.abs(s.y) > EARTH_RADIUS ? 1 : 1); // just standard cartesian
+
+     // Ground collision
+     if (distFromEarthCenter < EARTH_RADIUS) {
+         if (s.phase === 'landing') {
+             s.phase = 'complete'; s.vx = 0; s.vy = 0; s.altitude = 0; s.y = -EARTH_RADIUS; s.x = 0;
+         } else {
+             // Boom
+             s.vx = 0; s.vy = 0; s.y = -EARTH_RADIUS; s.altitude = 0;
+         }
+     }
+
+     if (s.phase === 'landing' && s.altitude < 1000) {
+        s.parachuteDeployed = true;
+        s.vx *= 0.90; s.vy *= 0.90; // massive drag
+        // Retro dust
+        if (s.altitude < 50) {
+           for (let i = 0; i < 4; i++) {
+             s.dustParticles.push({ x: s.x + (Math.random() - 0.5) * 80, y: s.y + 40 + Math.random() * 5, vx: (Math.random() - 0.5) * 4, vy: -(Math.random() * 2 + 0.3), life: 40, size: 2 + Math.random() * 4 });
+           }
+        }
+     }
   }
 
-  // Fire and smoke particles (enhanced with more variation)
-  if (s.phase === 'liftoff' || s.phase === 'stage1_sep') {
-    for (let i = 0; i < 7; i++) {
-      const intensity = s.phase === 'liftoff' ? 1 : 0.7;
-      s.particles.push({ x: 300 + (Math.random() - 0.5) * 14, y: s.y + 30, vx: (Math.random() - 0.5) * 3, vy: Math.random() * 4 + 1.5, life: 35, color: Math.random() > 0.4 ? '#f59e0b' : Math.random() > 0.5 ? '#ef4444' : '#fef3c7' });
-    }
-    // Dense smoke trail
-    if (s.time % 2 === 0) {
-      s.particles.push({ x: 300 + (Math.random() - 0.5) * 25, y: s.y + 38, vx: (Math.random() - 0.5) * 4, vy: Math.random() * 2 + 0.3, life: 50, color: '#888' });
-      s.particles.push({ x: 300 + (Math.random() - 0.5) * 15, y: s.y + 35, vx: (Math.random() - 0.5) * 2, vy: Math.random() * 1.5 + 0.5, life: 45, color: '#aaa' });
-    }
-  }
-  // Landing retro-rocket particles + dust
-  if (s.phase === 'landing') {
-    const ry = Math.min(420, 200 + s.time * 1.5);
-    // Retro-burn
-    for (let i = 0; i < 3; i++) {
-      s.particles.push({ x: 300 + (Math.random() - 0.5) * 8, y: ry - 30, vx: (Math.random() - 0.5) * 1.5, vy: -(Math.random() * 2 + 0.5), life: 20, color: '#f59e0b' });
-    }
-    // Dust particles kicked up from surface on approach
-    if (s.time > 60) {
-      for (let i = 0; i < 4; i++) {
-        s.dustParticles.push({ x: 300 + (Math.random() - 0.5) * 80, y: 420 + Math.random() * 5, vx: (Math.random() - 0.5) * 4, vy: -(Math.random() * 2 + 0.3), life: 40, size: 2 + Math.random() * 4 });
-      }
-    }
-  }
-  // Update dust particles
+  // Update particles
   s.dustParticles = (s.dustParticles || []).filter(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.life--; return p.life > 0; });
-  s.particles = s.particles.filter(p => { p.x += p.vx; p.y += p.vy; p.life--; return p.life > 0; });
+  s.particles = s.particles.filter(p => { p.x += p.vx*dt; p.y += p.vy*dt; p.life--; return p.life > 0; });
 
-  if (typeof document !== 'undefined') drawRocketLaunch(document.getElementById('rocket-launch-canvas'));
+  if (typeof document !== 'undefined') {
+     drawRocketLaunch(document.getElementById('rocket-launch-canvas'));
+     renderLaunchView();
+  }
 
   if (s.phase !== 'complete' && s.phase !== 'idle') {
     rocketLaunchAnimId = requestAnimationFrame(rocketLaunchTick);
@@ -570,238 +744,169 @@ function drawRocketLaunch(canvas) {
 
   ctx.clearRect(0, 0, w, h);
 
-  // Sky/space gradient with atmospheric layers
-  const spaceBlend = Math.min(1, s.altitude / 200);
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
-  if (spaceBlend < 0.3) {
-    // Troposphere — blue sky
-    bgGrad.addColorStop(0, '#1e3a5f'); bgGrad.addColorStop(0.6, '#4a8ab5'); bgGrad.addColorStop(1, '#87ceeb');
-  } else if (spaceBlend < 0.5) {
-    // Stratosphere — deep blue
-    bgGrad.addColorStop(0, '#0a1a3a'); bgGrad.addColorStop(0.5, '#1e3a5f'); bgGrad.addColorStop(1, '#3a6a8f');
-  } else if (spaceBlend < 0.7) {
-    // Mesosphere — dark blue
-    bgGrad.addColorStop(0, '#050a1a'); bgGrad.addColorStop(0.5, '#0a1a3a'); bgGrad.addColorStop(1, '#1a2a4a');
-  } else {
-    // Space — black
-    bgGrad.addColorStop(0, '#040610'); bgGrad.addColorStop(0.5, '#060810'); bgGrad.addColorStop(1, '#0a0c14');
-  }
-  ctx.fillStyle = bgGrad;
+  // Background Space Color (Sky gradient if low alt, space if high)
+  const spaceBlend = Math.min(1, s.altitude / 80000);
+  const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+  skyGrad.addColorStop(0, `rgba(4,6,16,1)`);
+  skyGrad.addColorStop(1, `rgba(135,206,235,${1 - spaceBlend})`);
+  ctx.fillStyle = skyGrad;
   ctx.fillRect(0, 0, w, h);
 
-  // Atmosphere layer labels during ascent
-  if (s.phase === 'liftoff' || s.phase === 'stage1_sep') {
-    const layers = [
-      { name: 'Troposphere', alt: 12, color: '#4a8ab5' },
-      { name: 'Stratosphere', alt: 50, color: '#1e4a7a' },
-      { name: 'Mesosphere', alt: 85, color: '#0e2a4a' },
-      { name: 'Thermosphere', alt: 150, color: '#061020' }
-    ];
-    layers.forEach(l => {
-      if (Math.abs(s.altitude - l.alt) < 30) {
-        const fade = 1 - Math.abs(s.altitude - l.alt) / 30;
-        ctx.fillStyle = `rgba(255,255,255,${(fade * 0.4).toFixed(2)})`;
-        ctx.font = '11px system-ui'; ctx.textAlign = 'right';
-        ctx.fillText(`── ${l.name} (${l.alt}km)`, w - 15, h / 2);
-      }
-    });
-  }
-
-  // Stars (visible in space)
-  if (spaceBlend > 0.3) {
+  // Background Stars
+  if (s.altitude > 10000) {
     s.stars.forEach(star => {
       const twinkle = 0.4 + 0.4 * Math.sin(s.time * 0.05 + star.x);
-      ctx.fillStyle = `rgba(255,255,255,${(spaceBlend * twinkle).toFixed(2)})`;
+      ctx.fillStyle = `rgba(255,255,255,${twinkle})`;
       ctx.beginPath();
-      ctx.arc(star.x, (star.y + s.time * 0.3) % h, star.r, 0, Math.PI * 2);
+      // parallax effect based on camera
+      ctx.arc((star.x - s.x*0.01 + 4000) % 4000, (star.y - s.y*0.01 + 4000) % 4000, star.r, 0, Math.PI * 2);
       ctx.fill();
     });
   }
 
-  // Ground with detail (visible early)
-  if (spaceBlend < 0.8) {
-    const groundY = h - 50 + Math.min(0, s.y - 400);
-    // Terrain gradient
-    const gGrad = ctx.createLinearGradient(0, groundY, 0, h);
-    gGrad.addColorStop(0, '#2d5a27'); gGrad.addColorStop(0.3, '#1a3a1a'); gGrad.addColorStop(1, '#0d1f0d');
-    ctx.fillStyle = gGrad;
-    ctx.fillRect(0, groundY, w, h - groundY);
-    // Launch pad with tower
-    ctx.fillStyle = '#6b7280'; ctx.fillRect(260, groundY - 8, 80, 8);
-    ctx.fillStyle = '#4b5563'; ctx.fillRect(340, groundY - 60, 6, 60); // tower
-    ctx.fillStyle = '#9ca3af'; ctx.fillRect(335, groundY - 55, 16, 4); // arm
-    // Flame trench
-    ctx.fillStyle = '#374151'; ctx.fillRect(275, groundY, 50, 6);
+  // == CAMERA SYSTEM ==
+  ctx.save();
+  // We want the rocket to be roughly at center (w/2, h/2), or slightly lower during liftoff
+  let camZoom = s.altitude > 50000 ? 0.05 : s.altitude > 1000 ? 0.3 : 1.0;
+  // If approaching destination, zoom out more
+  if (s.phase === 'approach' || s.phase === 'orbit') camZoom = 0.02;
+
+  const cx = w/2; 
+  const cy = s.altitude > 1000 ? h/2 : h - 150; // keep rocket low on screen at launch
+
+  ctx.translate(cx, cy);
+  ctx.scale(camZoom, camZoom);
+  ctx.translate(-s.x, -s.y);
+
+  // == DRAW EARTH ==
+  ctx.fillStyle = '#1e3a8a'; // Deep ocean blue
+  ctx.beginPath();
+  ctx.arc(EARTH_X, EARTH_Y, EARTH_RADIUS, 0, Math.PI * 2);
+  ctx.fill();
+  // Earth Atmosphere Glow
+  ctx.lineWidth = 100 / camZoom;
+  ctx.strokeStyle = `rgba(135, 206, 235, 0.2)`;
+  ctx.stroke();
+
+  // == DRAW DESTINATION PLANET (If arriving) ==
+  if (s.phase === 'approach' || s.phase === 'orbit' || s.phase === 'landing' || s.phase === 'complete') {
+    const dest = getDestinationById(selectedDestination);
+    const destColor = dest ? dest.color || '#e0603e' : '#e0603e';
+    // Position destination arbitrarily far away for simulation
+    const destX = 80000;
+    const destY = -80000;
+    const destRadius = 3000;
+
+    // Draw Destination
+    ctx.fillStyle = destColor;
+    ctx.beginPath();
+    ctx.arc(destX, destY, destRadius, 0, Math.PI*2);
+    ctx.fill();
+
+    // Orbit path if orbiting
+    if (s.phase === 'orbit' || s.phase === 'landing') {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.setLineDash([50, 50]);
+      ctx.lineWidth = 20 / camZoom;
+      ctx.beginPath();
+      ctx.arc(destX, destY, destRadius + 1500, 0, Math.PI*2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
   }
 
-  // Fire, smoke & exhaust particles
+  // == PARTICLES ==
   s.particles.forEach(p => {
-    const alpha = Math.max(0, p.life / 50); // Ensure alpha doesn't go above 1 due to p.life > 30 originally expected
-    const radius = Math.max(0.5, 3 + (40 - p.life) * 0.4);
-    if (p.color === '#888' || p.color === '#aaa') {
-      // Smoke
-      ctx.fillStyle = `rgba(150,150,150,${(alpha * 0.4).toFixed(2)})`;
-    } else {
-      const r = p.color === '#f59e0b' ? 245 : 239;
-      const g = p.color === '#f59e0b' ? 158 : 68;
-      const b = p.color === '#f59e0b' ? 11 : 68;
-      ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
-    }
+    const alpha = Math.max(0, p.life / 50); 
+    const radius = Math.max(0.5, 3 + (40 - p.life) * 0.4) / (camZoom > 0.5 ? 1 : camZoom * 10);
+    ctx.fillStyle = p.color === '#888' ? `rgba(150,150,150,${alpha})` : p.color;
     ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI * 2); ctx.fill();
   });
 
-  // Planet approaching (enhanced)
-  if (s.phase === 'approach' || s.phase === 'orbit' || s.phase === 'landing' || s.phase === 'complete') {
-    const dest = getDestinationById(selectedDestination);
-    const pColor = dest ? dest.color || '#e0603e' : '#e0603e';
-    const px = w / 2, py = h + s.planetSize * 0.3 - 40;
-    // Atmosphere glow
-    const atmoGlow = ctx.createRadialGradient(px, py, s.planetSize * 0.8, px, py, s.planetSize * 1.3);
-    atmoGlow.addColorStop(0, 'transparent'); atmoGlow.addColorStop(0.7, pColor + '15'); atmoGlow.addColorStop(1, 'transparent');
-    ctx.fillStyle = atmoGlow; ctx.beginPath(); ctx.arc(px, py, s.planetSize * 1.3, 0, Math.PI * 2); ctx.fill();
-    // Planet body
-    const pGrad = ctx.createRadialGradient(px - s.planetSize * 0.3, py - s.planetSize * 0.3, 0, px, py, s.planetSize);
-    pGrad.addColorStop(0, '#ffffff20'); pGrad.addColorStop(0.2, pColor); pGrad.addColorStop(1, pColor + '40');
-    ctx.beginPath(); ctx.arc(px, py, s.planetSize, 0, Math.PI * 2); ctx.fillStyle = pGrad; ctx.fill();
-    // Surface features
-    if (s.planetSize > 30) {
-      ctx.save(); ctx.beginPath(); ctx.arc(px, py, s.planetSize, 0, Math.PI * 2); ctx.clip();
-      for (let cr = 0; cr < 5; cr++) {
-        const crx = px - s.planetSize * 0.5 + (cr * 47) % (s.planetSize);
-        const cry = py - s.planetSize * 0.3 + (cr * 31) % (s.planetSize * 0.6);
-        ctx.beginPath(); ctx.arc(crx, cry, 5 + cr * 2, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fill();
-      }
-      ctx.restore();
-    }
-  }
+  // == DRAW ROCKET ==
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  
+  if (s.failureActive) ctx.rotate(s.tumbleAngle);
+  else ctx.rotate(s.pitchAngle);
 
-  // Dust particles on landing surface
-  if (s.phase === 'landing' || s.phase === 'complete') {
-    (s.dustParticles || []).forEach(dp => {
-      const alpha = dp.life / 40;
-      ctx.fillStyle = `rgba(180,160,120,${(alpha * 0.5).toFixed(2)})`;
-      ctx.beginPath(); ctx.arc(dp.x, dp.y, dp.size, 0, Math.PI * 2); ctx.fill();
-    });
-  }
+  // Rocket scale depends on zoom so it's always visible
+  const rDrawScale = camZoom < 0.2 ? Math.max(1, 0.1 / camZoom) : 1;
+  ctx.scale(rDrawScale, rDrawScale);
 
-  // ROCKET — detailed multi-stage
-  if (s.phase !== 'idle' && s.phase !== 'complete') {
-    const rx = s.phase === 'orbit' ? w / 2 + Math.cos(s.time * 0.03) * 80 : 300;
-    const ry = s.phase === 'orbit' ? 180 + Math.sin(s.time * 0.03) * 40 :
-               s.phase === 'space_transit' || s.phase === 'approach' ? 200 :
-               s.phase === 'landing' ? Math.min(h - 80, 200 + s.time * 1.5) : Math.max(50, s.y);
-    const rScale = s.phase === 'orbit' ? 0.7 : 1;
-
-    ctx.save(); ctx.translate(rx, ry);
-    // Apply tumble rotation during failure
-    if (s.failureActive) ctx.rotate(s.tumbleAngle);
-    ctx.scale(rScale, rScale);
-
-    // Parachute (during landing phase)
-    if (s.parachuteDeployed && s.phase === 'landing') {
+  // Parachute
+  if (s.parachuteDeployed) {
       ctx.save();
       const chuteSway = Math.sin(s.time * 0.08) * 5;
-      // Chute canopy
       ctx.fillStyle = 'rgba(239,68,68,0.7)';
-      ctx.beginPath();
-      ctx.moveTo(-30 + chuteSway, -60); ctx.quadraticCurveTo(0 + chuteSway, -85, 30 + chuteSway, -60);
-      ctx.lineTo(0, -30); ctx.closePath(); ctx.fill();
-      // White stripes on chute
-      ctx.fillStyle = 'rgba(255,255,255,0.5)';
-      ctx.beginPath(); ctx.moveTo(-10 + chuteSway, -60); ctx.quadraticCurveTo(0 + chuteSway, -78, 10 + chuteSway, -60); ctx.lineTo(0, -30); ctx.closePath(); ctx.fill();
-      // Chute lines
+      ctx.beginPath(); ctx.moveTo(-30 + chuteSway, -60); ctx.quadraticCurveTo(0 + chuteSway, -85, 30 + chuteSway, -60); ctx.lineTo(0, -30); ctx.closePath(); ctx.fill();
       ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 0.5;
-      for (let cl = -2; cl <= 2; cl++) {
-        ctx.beginPath(); ctx.moveTo(cl * 12 + chuteSway, -60); ctx.lineTo(0, -25); ctx.stroke();
-      }
+      for (let cl = -2; cl <= 2; cl++) { ctx.beginPath(); ctx.moveTo(cl * 12 + chuteSway, -60); ctx.lineTo(0, -25); ctx.stroke(); }
       ctx.restore();
-    }
+  }
 
-    // Engine glow (during thrust phases)
-    if ((s.phase === 'liftoff' || s.phase === 'stage1_sep' || s.phase === 'landing') && !s.failureActive) {
-      const flameLen = s.phase === 'landing' ? (s.parachuteDeployed ? 8 : 15) : 25 + Math.random() * 10;
-      const flameGrad = ctx.createLinearGradient(0, 20, 0, 20 + flameLen);
-      flameGrad.addColorStop(0, '#fef3c7'); flameGrad.addColorStop(0.3, '#f59e0b'); flameGrad.addColorStop(0.7, '#ef4444'); flameGrad.addColorStop(1, 'transparent');
-      ctx.fillStyle = flameGrad;
+  // Flame
+  if (s.thrustActive && !s.failureActive) {
+      const flameLen = 25 + Math.random() * 10;
+      const fG = ctx.createLinearGradient(0, 20, 0, 20 + flameLen);
+      fG.addColorStop(0, '#fef3c7'); fG.addColorStop(0.5, '#ef4444'); fG.addColorStop(1, 'transparent');
+      ctx.fillStyle = fG;
       ctx.beginPath(); ctx.moveTo(-6, 20); ctx.lineTo(0, 20 + flameLen); ctx.lineTo(6, 20); ctx.fill();
-      // Side flames
-      ctx.beginPath(); ctx.moveTo(-8, 18); ctx.lineTo(-4, 20 + flameLen * 0.6); ctx.lineTo(-2, 18); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(8, 18); ctx.lineTo(4, 20 + flameLen * 0.6); ctx.lineTo(2, 18); ctx.fill();
-    }
+  }
 
-    // Stage 1 (booster) — only if not dropped
-    if (s.stagesDropped < 1) {
-      ctx.fillStyle = '#9ca3af';
-      ctx.fillRect(-10, 8, 20, 14);
-      ctx.fillStyle = '#6b7280';
-      ctx.fillRect(-11, 18, 22, 4); // engine bell
-      // Stage 1 markings
-      ctx.fillStyle = '#374151'; ctx.fillRect(-8, 10, 16, 1);
-    }
-
-    // Stage 2 (main body)
-    ctx.fillStyle = '#e5e7eb';
-    ctx.beginPath(); ctx.moveTo(-8, -12); ctx.lineTo(-8, 8); ctx.lineTo(8, 8); ctx.lineTo(8, -12); ctx.fill();
-    // Blue stripe
-    ctx.fillStyle = '#3b82f6'; ctx.fillRect(-8, -2, 16, 3);
-
-    // Payload fairing
-    ctx.fillStyle = '#f3f4f6';
-    ctx.beginPath(); ctx.moveTo(-8, -12); ctx.lineTo(-6, -20); ctx.lineTo(6, -20); ctx.lineTo(8, -12); ctx.fill();
-
-    // Nose cone (red)
-    ctx.fillStyle = '#ef4444';
-    ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(-6, -20); ctx.lineTo(6, -20); ctx.closePath(); ctx.fill();
-
-    // Fins
-    ctx.fillStyle = '#6b7280';
-    ctx.beginPath(); ctx.moveTo(-8, 8); ctx.lineTo(-15, 20); ctx.lineTo(-6, 8); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(8, 8); ctx.lineTo(15, 20); ctx.lineTo(6, 8); ctx.fill();
-
-    // Window
-    ctx.fillStyle = '#93c5fd'; ctx.beginPath(); ctx.arc(0, -16, 2.5, 0, Math.PI * 2); ctx.fill();
-
-    ctx.restore();
+  // Rocket Body
+  if (s.stagesDropped < 1) {
+    ctx.fillStyle = '#9ca3af'; ctx.fillRect(-10, 8, 20, 14); // stage 1
+    ctx.fillStyle = '#6b7280'; ctx.fillRect(-11, 18, 22, 4); // bell
+  }
+  ctx.fillStyle = '#e5e7eb'; ctx.beginPath(); ctx.moveTo(-8, -12); ctx.lineTo(-8, 8); ctx.lineTo(8, 8); ctx.lineTo(8, -12); ctx.fill(); // stage 2
+  ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(0, -30); ctx.lineTo(-6, -20); ctx.lineTo(6, -20); ctx.closePath(); ctx.fill(); // nose
+  ctx.fillStyle = '#6b7280'; ctx.beginPath(); ctx.moveTo(-8, 8); ctx.lineTo(-15, 20); ctx.lineTo(-6, 8); ctx.fill(); // fins
+  ctx.beginPath(); ctx.moveTo(8, 8); ctx.lineTo(15, 20); ctx.lineTo(6, 8); ctx.fill();
 
     // Stage separation debris
     if (s.phase === 'stage1_sep' && s.time < 40) {
-      const sepY = ry + 40 + s.time * 2;
+      // In the new coordinate system, stage drops back
       ctx.fillStyle = `rgba(156,163,175,${(1 - s.time / 40).toFixed(2)})`;
-      ctx.fillRect(rx - 10, sepY, 20, 12);
+      ctx.fillRect(-10, 40 + s.time * 5, 20, 12);
       // Separation bolts
       for (let b = 0; b < 4; b++) {
-        const bx = rx + (Math.random() - 0.5) * 40;
-        const by = sepY - 5 + Math.random() * 20;
-        ctx.fillStyle = `rgba(251,191,36,${(0.5 - s.time / 80).toFixed(2)})`;
+        const bx = (Math.random() - 0.5) * 40;
+        const by = 35 + s.time * 5 + Math.random() * 20;
+        ctx.fillStyle = `rgba(251,191,36,${Math.max(0, 0.5 - s.time / 80).toFixed(2)})`;
         ctx.beginPath(); ctx.arc(bx, by, 1.5, 0, Math.PI * 2); ctx.fill();
       }
     }
-  }
+
+  ctx.restore(); // restore rocket transform
+  ctx.restore(); // restore camera transform
+
+  // ============================================
+  // == HEADS UP DISPLAY (HUD) IN SCREEN SPACE ==
+  // ============================================
 
   // === TELEMETRY HUD ===
   if (s.phase !== 'idle' && s.phase !== 'countdown') {
-    const speed = s.phase === 'liftoff' || s.phase === 'stage1_sep' ? Math.round(s.vy * 1000) :
-                  s.phase === 'space_transit' ? 28000 : s.phase === 'landing' ? 500 : 7800;
-    const gForce = s.phase === 'liftoff' ? (1 + s.vy * 0.5).toFixed(1) : s.phase === 'stage1_sep' ? '3.2' : '0.0';
+    const speed = Math.round(Math.sqrt(s.vx*s.vx + s.vy*s.vy) * 1000); // simulate km/h
+    const gForce = (s.phase === 'liftoff' ? (1 + s.vy * -0.5) : (s.thrustActive ? 3.2 : 0)).toFixed(1);
     const temp = s.phase === 'liftoff' ? Math.round(20 - s.altitude * 0.5) : s.phase === 'space_transit' ? '-270' : '-180';
-    const fuel = Math.max(0, 100 - s.altitude * 0.3).toFixed(0);
+    const fuel = Math.max(0, Math.round((s.fuel / s.maxFuel) * 100));
 
     ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(8, h - 55, 160, 48); ctx.strokeStyle = 'rgba(99,102,241,0.3)'; ctx.lineWidth = 1; ctx.strokeRect(8, h - 55, 160, 48);
     ctx.fillStyle = '#93c5fd'; ctx.font = '9px monospace'; ctx.textAlign = 'left';
     ctx.fillText(`SPD: ${speed} km/h`, 14, h - 42);
-    ctx.fillText(`ALT: ${Math.round(s.altitude)} km`, 14, h - 31);
+    ctx.fillText(`ALT: ${Math.round(Math.max(0, s.altitude))} km`, 14, h - 31);
     ctx.fillText(`G: ${gForce}g`, 100, h - 42);
     ctx.fillText(`TMP: ${temp}°C`, 100, h - 31);
     ctx.fillText(`FUEL: ${fuel}%`, 14, h - 20);
     // Fuel bar
     ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.fillRect(70, h - 23, 80, 6);
-    ctx.fillStyle = parseFloat(fuel) > 30 ? '#22c55e' : '#ef4444'; ctx.fillRect(70, h - 23, parseFloat(fuel) * 0.8, 6);
+    ctx.fillStyle = fuel > 30 ? '#22c55e' : '#ef4444'; ctx.fillRect(70, h - 23, fuel * 0.8, 6);
   }
 
   // === MISSION TIMELINE BAR ===
   if (s.phase !== 'idle') {
-    const phaseIdx = getLaunchPhaseIndex(s.phase);
+    const phaseIdx = Math.max(0, getLaunchPhaseIndex(s.phase));
     const totalPhases = LAUNCH_PHASES.length - 1;
     const progress = (phaseIdx / totalPhases) * 100;
     const barY = 60, barX = 40, barW = w - 80;
@@ -827,11 +932,11 @@ function drawRocketLaunch(canvas) {
   // Altitude
   ctx.fillStyle = 'rgba(255,255,255,0.5)';
   ctx.font = '12px system-ui';
-  ctx.fillText(`Altitude: ${Math.round(s.altitude)} km`, w / 2, 50);
+  ctx.fillText(`Altitude: ${Math.max(0, Math.round(s.altitude))} km`, w / 2, 50);
 
   // Countdown
   if (s.phase === 'countdown') {
-    const count = Math.max(0, 3 - Math.floor(s.time / 60));
+    const count = typeof countdownValue !== 'undefined' ? countdownValue : Math.max(0, 3 - Math.floor(s.time / 60));
     ctx.fillStyle = '#fbbf24';
     ctx.font = 'bold 60px system-ui';
     ctx.fillText(count > 0 ? count.toString() : 'GO!', w / 2, h / 2);
@@ -839,11 +944,11 @@ function drawRocketLaunch(canvas) {
 
   // Failure indicator
   if (s.failureActive) {
-    ctx.fillStyle = simTime % 10 < 5 ? '#ef4444' : 'transparent';
+    ctx.fillStyle = s.time % 10 < 5 ? '#ef4444' : 'transparent';
     ctx.font = 'bold 20px system-ui'; ctx.textAlign = 'center';
-    ctx.fillText(`⚠️ ${failureType ? failureType.name : 'ANOMALY DETECTED'}`, w / 2, h / 2 - 10);
+    ctx.fillText(`⚠️ ${typeof failureType !== 'undefined' && failureType ? failureType.name : 'ANOMALY DETECTED'}`, w / 2, h / 2 - 10);
     ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '12px system-ui';
-    ctx.fillText(failureType ? failureType.description : 'Mission compromised', w / 2, h / 2 + 15);
+    ctx.fillText(typeof failureType !== 'undefined' && failureType ? failureType.description : 'Mission compromised', w / 2, h / 2 + 15);
   }
 
   // Complete
@@ -853,7 +958,7 @@ function drawRocketLaunch(canvas) {
       ctx.font = 'bold 24px system-ui';
       ctx.fillText('💥 Mission Failed', w / 2, h / 2 - 20);
       ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '14px system-ui';
-      ctx.fillText(failureType ? failureType.description : 'Anomaly during flight.', w / 2, h / 2 + 15);
+      ctx.fillText(typeof failureType !== 'undefined' && failureType ? failureType.description : 'Anomaly during flight.', w / 2, h / 2 + 15);
     } else {
       ctx.fillStyle = '#22c55e';
       ctx.font = 'bold 24px system-ui';
@@ -863,6 +968,8 @@ function drawRocketLaunch(canvas) {
     }
   }
 }
+
+
 
 function stopVisualLaunch() {
   if (rocketLaunchAnimId) cancelAnimationFrame(rocketLaunchAnimId);

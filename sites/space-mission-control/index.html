@@ -6,6 +6,7 @@
   <meta name="description" content="Plan virtual space missions, calculate trajectories, manage fuel budgets, and explore historical missions. Interactive space science for all ages.">
   <link rel="stylesheet" href="shared-styles.css">
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container container-lg">
@@ -61,7 +62,7 @@
 
     <!-- View: Launch Pad -->
     <div class="space-view hidden" id="view-launch">
-      <div class="launch-pad card glass" id="launch-view">
+      <div class="launch-pad-layout card glass" id="launch-view">
         <div class="mission-empty"><p>🚀 Plan a mission first, then come back to launch!</p></div>
       </div>
     </div>
