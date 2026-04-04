@@ -788,6 +788,23 @@ function drawRocketLaunch(canvas) {
   ctx.strokeStyle = `rgba(135, 206, 235, 0.2)`;
   ctx.stroke();
 
+  // Ground with detail (visible early)
+  if (spaceBlend < 0.8) {
+    const groundY = -EARTH_RADIUS;
+    const gGrad = ctx.createLinearGradient(0, groundY, 0, groundY + 100);
+    gGrad.addColorStop(0, '#2d5a27'); gGrad.addColorStop(1, '#0d1f0d');
+    ctx.fillStyle = gGrad;
+    // Draw some local terrain width at x=0
+    ctx.fillRect(-2000, groundY, 4000, 100);
+    
+    // Launch pad with tower
+    ctx.fillStyle = '#6b7280'; ctx.fillRect(-40, groundY - 8, 80, 8);
+    ctx.fillStyle = '#4b5563'; ctx.fillRect(40, groundY - 60, 6, 60); // tower
+    ctx.fillStyle = '#9ca3af'; ctx.fillRect(35, groundY - 55, 16, 4); // arm
+    // Flame trench
+    ctx.fillStyle = '#374151'; ctx.fillRect(-25, groundY, 50, 6);
+  }
+
   // == DRAW DESTINATION PLANET (If arriving) ==
   if (s.phase === 'approach' || s.phase === 'orbit' || s.phase === 'landing' || s.phase === 'complete') {
     const dest = getDestinationById(selectedDestination);
@@ -816,10 +833,20 @@ function drawRocketLaunch(canvas) {
   }
 
   // == PARTICLES ==
+  // Fire, smoke & exhaust particles
   s.particles.forEach(p => {
-    const alpha = Math.max(0, p.life / 50); 
+    const alpha = Math.max(0, p.life / 50); // Ensure alpha doesn't go above 1 due to p.life > 30 originally expected
     const radius = Math.max(0.5, 3 + (40 - p.life) * 0.4) / (camZoom > 0.5 ? 1 : camZoom * 10);
-    ctx.fillStyle = p.color === '#888' ? `rgba(150,150,150,${alpha})` : p.color;
+    
+    if (p.color === '#888' || p.color === '#aaa') {
+      // Smoke
+      ctx.fillStyle = `rgba(150,150,150,${(alpha * 0.4).toFixed(2)})`;
+    } else {
+      const r = p.color === '#f59e0b' ? 245 : 239;
+      const g = p.color === '#f59e0b' ? 158 : 68;
+      const b = p.color === '#f59e0b' ? 11 : 68;
+      ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(2)})`;
+    }
     ctx.beginPath(); ctx.arc(p.x, p.y, radius, 0, Math.PI * 2); ctx.fill();
   });
 
