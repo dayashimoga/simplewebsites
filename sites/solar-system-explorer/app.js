@@ -34,6 +34,11 @@
  let distanceCalcPlanets = [null, null];
  let showShortcuts = false;
  let isFullscreen = false;
+ let cameraMode = 'free'; // 'free', 'follow', 'flythrough'
+ let cameraOffsetX = 0;
+ let cameraOffsetY = 0;
+ let flythroughPlanetIdx = 0;
+ let flythroughTimer = 0;
 
 // Twinkling star data (generated once)
  let stars = [];
@@ -298,16 +303,42 @@
 
    const h = canvas.height;
 
-   const cx = w / 2;
+   let cx = w / 2;
 
-   const cy = h / 2;
+   let cy = h / 2;
+
+   // Camera follow mode: offset the center to track selected planet
+   if (cameraMode === 'follow' && selectedPlanet) {
+     const targetP = getPlanetByName(selectedPlanet);
+     if (targetP) {
+       const pos = getPlanetPosition(targetP, time, w / 2, h / 2, zoom);
+       const targetOffX = w / 2 - pos.x;
+       const targetOffY = h / 2 - pos.y;
+       cameraOffsetX += (targetOffX - cameraOffsetX) * 0.08;
+       cameraOffsetY += (targetOffY - cameraOffsetY) * 0.08;
+     }
+   } else if (cameraMode === 'flythrough') {
+     flythroughTimer++;
+     if (flythroughTimer > 300) { flythroughTimer = 0; flythroughPlanetIdx = (flythroughPlanetIdx + 1) % PLANETS.length; }
+     const fp = PLANETS[flythroughPlanetIdx];
+     const pos = getPlanetPosition(fp, time, w / 2, h / 2, zoom);
+     const targetOffX = w / 2 - pos.x;
+     const targetOffY = h / 2 - pos.y;
+     cameraOffsetX += (targetOffX - cameraOffsetX) * 0.03;
+     cameraOffsetY += (targetOffY - cameraOffsetY) * 0.03;
+   } else {
+     cameraOffsetX *= 0.95;
+     cameraOffsetY *= 0.95;
+   }
+   cx += cameraOffsetX;
+   cy += cameraOffsetY;
 
 
   ctx.clearRect(0, 0, w, h);
 
   // Deep space gradient background
 
-   const bgGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.7);
+   const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, Math.max(w, h) * 0.7);
 
   bgGrad.addColorStop(0, '#0d1117');
 
@@ -622,7 +653,18 @@
 
      if (btn) btn.classList.toggle('active', showOrbits);
   }
-}
+ }
+
+  function setCameraMode(mode) {
+    cameraMode = mode;
+    if (mode === 'flythrough') { flythroughTimer = 0; flythroughPlanetIdx = 0; }
+    if (mode === 'free') { cameraOffsetX = 0; cameraOffsetY = 0; }
+    if (typeof document !== 'undefined') {
+      document.querySelectorAll('.camera-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById('cam-' + mode);
+      if (btn) btn.classList.add('active');
+    }
+  }
 
   function toggleAsteroidBelt() {
   showAsteroidBelt = !showAsteroidBelt;
@@ -1508,12 +1550,13 @@ function getEnhancedComparisonData() {
     startSimulation, stopSimulation, togglePlay,
     setSpeed, setZoom, selectPlanet,
     toggleOrbits, toggleAsteroidBelt, toggleTrails, toggleComparisonMode, renderComparison,
+    setCameraMode,
     updateDistanceCalc,
     handleCanvasClick, handleCanvasMouseMove, handleKeyboard,
     toggleFullscreen, toggleShortcuts,
     resizeCanvas, init,
     generateStars, generateAsteroids,
-     getState: () => ({ isPlaying, speedMultiplier, selectedPlanet, time, zoom, showOrbits, showAsteroidBelt, showTrails, hoveredPlanet, comparisonMode, distanceCalcPlanets, showShortcuts, isFullscreen, showAtmosphere, solarQuizScore, solarQuizStreak, showDwarfPlanets, planetDetailView }),
+     getState: () => ({ isPlaying, speedMultiplier, selectedPlanet, time, zoom, showOrbits, showAsteroidBelt, showTrails, hoveredPlanet, comparisonMode, distanceCalcPlanets, showShortcuts, isFullscreen, showAtmosphere, solarQuizScore, solarQuizStreak, showDwarfPlanets, planetDetailView, cameraMode }),
      setState: (s) => {
        if (s.isPlaying !== undefined) isPlaying = s.isPlaying;
        if (s.time !== undefined) time = s.time;
@@ -1530,6 +1573,7 @@ function getEnhancedComparisonData() {
        if (s.showAtmosphere !== undefined) showAtmosphere = s.showAtmosphere;
        if (s.showDwarfPlanets !== undefined) showDwarfPlanets = s.showDwarfPlanets;
        if (s.planetDetailView !== undefined) planetDetailView = s.planetDetailView;
+       if (s.cameraMode !== undefined) cameraMode = s.cameraMode;
     },
      _resetTrails: () => { trailParticles = []; },
      _resetStars: () => { stars = []; },

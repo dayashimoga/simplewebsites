@@ -264,7 +264,8 @@ async function showDashboard(showLoader = false) {
 async function toggleSite(siteId, currentlyEnabled) {
      const newState = currentlyEnabled ? 'disabled' : 'enabled';
     try {
-        if (authKey === 'admin' || authKey === 'mysecretkey123') {
+        // Offline/local mode: toggle locally if API is unavailable
+        if (!navigator.onLine || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             lastStatuses[siteId] = newState;
             renderGrid(sites, lastStatuses);
             return;
@@ -311,7 +312,8 @@ async function bulkToggle(enable) {
 
     try {
 
-        if (authKey === 'admin' || authKey === 'mysecretkey123') {
+        // Offline/local mode: toggle locally if API is unavailable
+        if (!navigator.onLine || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             listToToggle.forEach(s => lastStatuses[s.id] = newState);
             renderGrid(sites, lastStatuses);
             return;

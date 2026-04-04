@@ -71,6 +71,13 @@ let physQuizScore = 0;
 let physQuizStreak = 0;
 let currentPhysQuiz = null;
 
+// N-Body / Gravity Wells state
+let gravBodies = []; // { x, y, mass, vx, vy, trail: [] }
+let gravWells = [];  // { x, y, mass }
+let gravAnimId = null;
+let gravTime = 0;
+const G_CONST = 0.5; // gravitational constant (scaled for visual effect)
+
 // --- Pure Logic ---
 
 function calculateProjectile(v0, angleDeg, g, t) {
@@ -799,6 +806,7 @@ function switchPhysTab(tab) {
   if (tab === 'circuit') updateCircuit();
   if (tab === 'spectrum') { renderSpectrumBar(); updateSpectrum('550'); }
   if (tab === 'quiz') renderPhysQuiz();
+  if (tab === 'gravity') { initGravityWells(); gravTick(); }
 }
 
 function init() {
@@ -811,20 +819,188 @@ if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', init);
 }
 
+// ===== N-BODY GRAVITY WELLS =====
+
+function initGravityWells() {
+  gravBodies = [];
+  gravWells = [
+    { x: 200, y: 200, mass: 500 },
+    { x: 400, y: 200, mass: 300 }
+  ];
+  // Spawn orbiting particles
+  for (let i = 0; i < 15; i++) {
+    const angle = (i / 15) * Math.PI * 2;
+    const dist = 80 + Math.random() * 60;
+    const well = gravWells[i % 2];
+    const speed = Math.sqrt(G_CONST * well.mass / dist) * (0.8 + Math.random() * 0.4);
+    gravBodies.push({
+      x: well.x + Math.cos(angle) * dist,
+      y: well.y + Math.sin(angle) * dist,
+      vx: -Math.sin(angle) * speed,
+      vy: Math.cos(angle) * speed,
+      mass: 1 + Math.random() * 2,
+      trail: [],
+      color: `hsl(${Math.floor(Math.random() * 360)},70%,60%)`
+    });
+  }
+}
+
+function addGravityWell(x, y, mass) {
+  gravWells.push({ x: x || 300, y: y || 200, mass: mass || 400 });
+}
+
+function removeGravityWell(index) {
+  if (index >= 0 && index < gravWells.length) gravWells.splice(index, 1);
+}
+
+function addGravityBody(x, y) {
+  const nearestWell = gravWells[0];
+  if (!nearestWell) return;
+  const dx = x - nearestWell.x, dy = y - nearestWell.y;
+  const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+  const speed = Math.sqrt(G_CONST * nearestWell.mass / dist) * 0.9;
+  gravBodies.push({
+    x, y,
+    vx: -dy / dist * speed,
+    vy: dx / dist * speed,
+    mass: 1 + Math.random() * 2,
+    trail: [],
+    color: `hsl(${Math.floor(Math.random() * 360)},70%,60%)`
+  });
+}
+
+function gravityStep() {
+  gravTime++;
+  const dt = 0.3;
+  gravBodies.forEach(b => {
+    let ax = 0, ay = 0;
+    // Attraction to wells
+    gravWells.forEach(w => {
+      const dx = w.x - b.x, dy = w.y - b.y;
+      const distSq = dx * dx + dy * dy + 100; // softening
+      const dist = Math.sqrt(distSq);
+      const force = G_CONST * w.mass * b.mass / distSq;
+      ax += (dx / dist) * force / b.mass;
+      ay += (dy / dist) * force / b.mass;
+    });
+    // Body-body interactions (simplified)
+    gravBodies.forEach(other => {
+      if (other === b) return;
+      const dx = other.x - b.x, dy = other.y - b.y;
+      const distSq = dx * dx + dy * dy + 50;
+      const dist = Math.sqrt(distSq);
+      if (dist < 5) return; // avoid extreme forces
+      const force = G_CONST * other.mass * b.mass / distSq;
+      ax += (dx / dist) * force / b.mass * 0.3;
+      ay += (dy / dist) * force / b.mass * 0.3;
+    });
+    b.vx += ax * dt;
+    b.vy += ay * dt;
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+    // Trail
+    b.trail.push({ x: b.x, y: b.y });
+    if (b.trail.length > 60) b.trail.shift();
+  });
+  // Remove bodies that go too far off-screen
+  gravBodies = gravBodies.filter(b => b.x > -200 && b.x < 800 && b.y > -200 && b.y < 600);
+}
+
+function drawGravityWells(canvas) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = canvas.width, h = canvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  // Deep space background
+  const bg = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w * 0.6);
+  bg.addColorStop(0, '#0a0e1a'); bg.addColorStop(1, '#030508');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)'; ctx.lineWidth = 1;
+  for (let gx = 0; gx < w; gx += 40) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke(); }
+  for (let gy = 0; gy < h; gy += 40) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke(); }
+
+  // Gravitational field visualization (warped grid)
+  gravWells.forEach(well => {
+    // Gravity well visual
+    const wellGrad = ctx.createRadialGradient(well.x, well.y, 0, well.x, well.y, 100);
+    wellGrad.addColorStop(0, 'rgba(147,51,234,0.25)'); wellGrad.addColorStop(0.3, 'rgba(99,102,241,0.1)'); wellGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = wellGrad;
+    ctx.beginPath(); ctx.arc(well.x, well.y, 100, 0, Math.PI * 2); ctx.fill();
+    // Well body
+    const wRadius = Math.max(6, Math.sqrt(well.mass) * 0.5);
+    const wGrad = ctx.createRadialGradient(well.x - wRadius * 0.3, well.y - wRadius * 0.3, 0, well.x, well.y, wRadius);
+    wGrad.addColorStop(0, '#e0e7ff'); wGrad.addColorStop(0.5, '#818cf8'); wGrad.addColorStop(1, '#4338ca');
+    ctx.beginPath(); ctx.arc(well.x, well.y, wRadius, 0, Math.PI * 2); ctx.fillStyle = wGrad; ctx.fill();
+    // Pulsing ring
+    const pulse = 1 + Math.sin(gravTime * 0.05) * 0.2;
+    ctx.beginPath(); ctx.arc(well.x, well.y, wRadius * 2 * pulse, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(129,140,248,${(0.2 + Math.sin(gravTime * 0.03) * 0.1).toFixed(2)})`; ctx.lineWidth = 1; ctx.stroke();
+    // Mass label
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(`M=${well.mass}`, well.x, well.y + wRadius + 14);
+  });
+
+  // Draw body trails and bodies
+  gravBodies.forEach(b => {
+    // Trail
+    if (b.trail.length > 1) {
+      ctx.beginPath();
+      b.trail.forEach((pt, i) => {
+        const alpha = (i / b.trail.length * 0.4).toFixed(2);
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.strokeStyle = b.color + '60'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    // Body glow
+    const bglow = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 8);
+    bglow.addColorStop(0, b.color + '40'); bglow.addColorStop(1, 'transparent');
+    ctx.fillStyle = bglow; ctx.beginPath(); ctx.arc(b.x, b.y, 8, 0, Math.PI * 2); ctx.fill();
+    // Body
+    ctx.fillStyle = b.color;
+    ctx.beginPath(); ctx.arc(b.x, b.y, 2 + b.mass * 0.5, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // HUD
+  ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText(`Bodies: ${gravBodies.length} | Wells: ${gravWells.length} | Time: ${gravTime}`, 10, h - 10);
+  ctx.fillText('Click canvas to add particle | Right-click to add gravity well', 10, 18);
+}
+
+function gravTick() {
+  gravityStep();
+  if (typeof document !== 'undefined') {
+    drawGravityWells(document.getElementById('gravity-canvas'));
+  }
+  gravAnimId = requestAnimationFrame(gravTick);
+}
+
+function resetGravityWells() {
+  if (gravAnimId) cancelAnimationFrame(gravAnimId);
+  gravAnimId = null;
+  initGravityWells();
+  gravTick();
+}
+
 // --- Exports ---
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    GRAVITY_EARTH, SPEED_OF_LIGHT, EM_BANDS, PHYSICS_QUIZ,
+    GRAVITY_EARTH, SPEED_OF_LIGHT, EM_BANDS, PHYSICS_QUIZ, G_CONST,
     calculateProjectile, getProjectileMaxHeight, getProjectileRange, getProjectileFlightTime, getProjectileKE,
     calculatePendulumPeriod, calculateSeriesResistance, calculateParallelResistance, calculateCircuit,
     getSnellAngle, getWaveSpeed, getEMBandForWavelength, wavelengthToColor,
     getPhysQuizQuestion, checkPhysQuizAnswer,
-    drawProjectile, drawPendulums, drawWaves, drawOptics,
+    drawProjectile, drawPendulums, drawWaves, drawOptics, drawGravityWells,
     fireProjectile, resetProjectile, toggleProjTrail, updateProjParams, updateProjResults,
     togglePendulum, resetPendulum, updatePendParams, updateOpticsMode, updateCircuit,
     updateSpectrum, renderSpectrumBar, renderPhysQuiz, answerPhysQuiz,
+    initGravityWells, addGravityWell, removeGravityWell, addGravityBody, gravityStep, gravTick, resetGravityWells,
     switchPhysTab, init,
-    getState: () => ({ activePhysTab, projAngle, projVelocity, projGravity, projMass, projTrail, projActive, projShowTrail, pendLength, pendGravity, pendDamping, pendCount, pendPlaying, opticsMode, physQuizScore, physQuizStreak, currentPhysQuiz }),
+    getState: () => ({ activePhysTab, projAngle, projVelocity, projGravity, projMass, projTrail, projActive, projShowTrail, pendLength, pendGravity, pendDamping, pendCount, pendPlaying, opticsMode, physQuizScore, physQuizStreak, currentPhysQuiz, gravBodies: gravBodies.length, gravWells: gravWells.length, gravTime }),
     setState: (s) => {
       if (s.projAngle !== undefined) projAngle = s.projAngle;
       if (s.projVelocity !== undefined) projVelocity = s.projVelocity;
@@ -838,7 +1014,7 @@ if (typeof module !== 'undefined' && module.exports) {
       if (s.projShowTrail !== undefined) projShowTrail = s.projShowTrail;
     },
     _resetQuiz: () => { physQuizScore = 0; physQuizStreak = 0; currentPhysQuiz = null; },
-    _resetAll: () => { projTrail = []; projActive = false; projTime = 0; pendAngles = [Math.PI / 4]; pendVelocities = [0]; physQuizScore = 0; physQuizStreak = 0; currentPhysQuiz = null; },
-    _stopAnim: () => { if (projAnimId) cancelAnimationFrame(projAnimId); if (pendAnimId) cancelAnimationFrame(pendAnimId); if (waveAnimId) cancelAnimationFrame(waveAnimId); projAnimId = null; pendAnimId = null; waveAnimId = null; }
+    _resetAll: () => { projTrail = []; projActive = false; projTime = 0; pendAngles = [Math.PI / 4]; pendVelocities = [0]; physQuizScore = 0; physQuizStreak = 0; currentPhysQuiz = null; gravBodies = []; gravWells = []; gravTime = 0; },
+    _stopAnim: () => { if (projAnimId) cancelAnimationFrame(projAnimId); if (pendAnimId) cancelAnimationFrame(pendAnimId); if (waveAnimId) cancelAnimationFrame(waveAnimId); if (gravAnimId) cancelAnimationFrame(gravAnimId); projAnimId = null; pendAnimId = null; waveAnimId = null; gravAnimId = null; }
   };
 }

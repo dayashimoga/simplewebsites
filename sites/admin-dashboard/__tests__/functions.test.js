@@ -87,7 +87,12 @@ describe('Admin Dashboard API Functions', () => {
 });
 
 describe('Admin Dashboard App.js', () => {
+  let originalLocation;
   beforeEach(() => {
+    originalLocation = window.location;
+    delete window.location;
+    window.location = { ...originalLocation, hostname: 'admin.app.com' };
+
     document.body.innerHTML = `
       <div id="auth-screen"></div>
       <div id="main-content"></div>
@@ -100,6 +105,7 @@ describe('Admin Dashboard App.js', () => {
   });
 
   afterEach(() => {
+    window.location = originalLocation;
     jest.resetAllMocks();
     app.setSites([]);
     app.setAuthKey(null);

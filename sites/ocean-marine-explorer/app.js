@@ -391,6 +391,13 @@ let swimCreatures = [];
 let diveDepth = 0;
 let diveTarget = 0;
 let diveActive = false;
+
+// --- Ecosystem Impact Controls ---
+let overfishing = false;
+let pollution = 0; // 0-100
+let isNightMode = false;
+let oceanCurrentStrength = 0.3; // 0-1
+let oceanCurrentAngle = 0;
 let bubbles = [];
 
 const SWIM_SPECIES = [
@@ -426,6 +433,17 @@ function initUnderwaterCanvas(canvasW, canvasH) {
 function updateSwimCreatures(w, h, mx, my) {
   // Advanced Boids Flocking Logic + Mouse Avoidance
   swimCreatures.forEach(c => {
+    let ax = 0, ay = 0;
+
+    // Ocean current effect on movement
+    const currentX = Math.cos(oceanCurrentAngle) * oceanCurrentStrength * 0.5;
+    const currentY = Math.sin(oceanCurrentAngle) * oceanCurrentStrength * 0.2;
+    ax += currentX;
+    ay += currentY;
+
+    // Overfishing: larger creatures slow down and flee more aggressively
+    const overFishPenalty = overfishing && c.size > 20 ? 0.7 : 1;
+
     let sepX = 0, sepY = 0, alignX = 0, alignY = 0, cohX = 0, cohY = 0;
     let count = 0;
 
@@ -446,8 +464,8 @@ function updateSwimCreatures(w, h, mx, my) {
     if (count > 0) {
       alignX /= count; alignY /= count;
       cohX /= count; cohY /= count;
-      c.dx += (alignX * 0.05) + ((cohX - c.x) * 0.01) + (sepX * 0.05);
-      c.dy += (alignY * 0.05) + ((cohY - c.y) * 0.01) + (sepY * 0.05);
+      c.dx += (alignX * 0.05) + ((cohX - c.x) * 0.01) + (sepX * 0.05) + ax;
+      c.dy += (alignY * 0.05) + ((cohY - c.y) * 0.01) + (sepY * 0.05) + ay;
     }
 
     // Mouse Avoidance
@@ -461,9 +479,10 @@ function updateSwimCreatures(w, h, mx, my) {
 
     // Speed normalization
     const speedHypot = Math.hypot(c.dx, c.dy);
-    if (speedHypot > c.speed * 1.5) {
-      c.dx = (c.dx / speedHypot) * c.speed;
-      c.dy = (c.dy / speedHypot) * c.speed;
+    const maxSpeed = c.speed * overFishPenalty;
+    if (speedHypot > maxSpeed) {
+      c.dx = (c.dx / speedHypot) * maxSpeed;
+      c.dy = (c.dy / speedHypot) * maxSpeed;
     }
 
     c.x += c.dx;
@@ -493,16 +512,38 @@ function drawUnderwaterCanvas(canvas) {
   if (!ctx) return;
   const w = canvas.width, h = canvas.height;
   const depthFactor = Math.min(1, diveDepth / 5000);
+  const lerp = (a, b, t) => a + (b - a) * t;
 
-  ctx.clearRect(0, 0, w, h);
+  // Night mode shifts the palette darker with moonlight tones
+  const nightMul = isNightMode ? 0.4 : 1;
+
   // Water gradient (darker with depth)
   const waterGrad = ctx.createLinearGradient(0, 0, 0, h);
-  const blue = Math.max(10, 100 - depthFactor * 90);
-  const green = Math.max(5, 60 - depthFactor * 55);
-  waterGrad.addColorStop(0, `rgb(0, ${Math.round(green + 20)}, ${Math.round(blue + 40)})`);
-  waterGrad.addColorStop(1, `rgb(0, ${Math.round(green)}, ${Math.round(blue)})`);
+  const surfaceR = Math.round(0 * nightMul);
+  const surfaceG = Math.round(lerp(119, 20, depthFactor) * nightMul);
+  const surfaceB = Math.round(lerp(190, 50, depthFactor) * (isNightMode ? 0.6 : 1));
+  const deepR = Math.round(0 * nightMul);
+  const deepG = Math.round(lerp(40, 0, depthFactor) * nightMul);
+  const deepB = Math.round(lerp(80, 10, depthFactor) * (isNightMode ? 0.5 : 1));
+  waterGrad.addColorStop(0, `rgb(${surfaceR},${surfaceG},${surfaceB})`);
+  waterGrad.addColorStop(1, `rgb(${deepR},${deepG},${deepB})`);
   ctx.fillStyle = waterGrad;
   ctx.fillRect(0, 0, w, h);
+
+  // Pollution overlay
+  if (pollution > 0) {
+    const pollAlpha = (pollution / 100 * 0.3).toFixed(2);
+    ctx.fillStyle = `rgba(100,80,40,${pollAlpha})`;
+    ctx.fillRect(0, 0, w, h * 0.4);
+    // Trash particles
+    if (pollution > 30) {
+      for (let ti = 0; ti < Math.floor(pollution / 20); ti++) {
+        const tx = (Math.sin(underwaterTime * 0.003 + ti * 2.7) * 0.5 + 0.5) * w;
+        const ty = (Math.cos(underwaterTime * 0.002 + ti * 3.1) * 0.3 + 0.15) * h;
+        ctx.fillStyle = 'rgba(120,100,60,0.4)'; ctx.fillRect(tx, ty, 6, 4);
+      }
+    }
+  }
 
   // Light rays (surface) — enhanced with shimmer
   if (depthFactor < 0.3) {
@@ -724,8 +765,8 @@ function drawUnderwaterCanvas(canvas) {
     }
   }
 
-  // Coral reef foreground (shallow)
-  if (depthFactor < 0.1) {
+  // Light rays from surface (only if shallow and not night)
+  if (depthFactor < 0.12 && !isNightMode) {
     for (let ci = 0; ci < 8; ci++) {
       const cx = ci * (w / 8) + 30;
       const crHeight = 20 + (ci * 17) % 30;
@@ -801,6 +842,8 @@ function underwaterTick() {
   const canvas = typeof document !== 'undefined' ? document.getElementById('underwater-canvas') : null;
   const w = canvas ? canvas.width : 800;
   const h = canvas ? canvas.height : 400;
+  // Animate currents
+  oceanCurrentAngle += 0.001;
   updateSwimCreatures(w, h, simMouseX, simMouseY);
   // Smooth dive
   if (diveActive) {
@@ -826,6 +869,38 @@ function setDiveDepth(depth) {
   diveActive = true;
 }
 
+function toggleOverfishing() {
+  overfishing = !overfishing;
+  // Reduce creature count when overfishing is active
+  if (overfishing && swimCreatures.length > 8) {
+    swimCreatures.splice(Math.floor(swimCreatures.length * 0.6));
+  }
+  if (typeof document !== 'undefined') {
+    const btn = document.getElementById('overfishing-btn');
+    if (btn) btn.classList.toggle('active', overfishing);
+  }
+}
+
+function setPollution(level) {
+  pollution = Math.max(0, Math.min(100, parseFloat(level) || 0));
+  if (typeof document !== 'undefined') {
+    const el = document.getElementById('pollution-val');
+    if (el) el.textContent = pollution + '%';
+  }
+}
+
+function toggleNightMode() {
+  isNightMode = !isNightMode;
+  if (typeof document !== 'undefined') {
+    const btn = document.getElementById('night-toggle-btn');
+    if (btn) btn.textContent = isNightMode ? '🌙 Night' : '☀️ Day';
+  }
+}
+
+function setCurrentStrength(val) {
+  oceanCurrentStrength = Math.max(0, Math.min(1, parseFloat(val) || 0));
+}
+
 // --- Exports ---
  if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
@@ -836,11 +911,12 @@ function setDiveDepth(depth) {
     getOceanQuizQuestion, checkOceanQuizAnswer,
     initUnderwaterCanvas, updateSwimCreatures, getVisibleCreatures,
     drawUnderwaterCanvas, underwaterTick, startUnderwaterSim, stopUnderwaterSim, setDiveDepth,
+    toggleOverfishing, setPollution, toggleNightMode, setCurrentStrength,
     renderDepthChart, renderZoneDetail, renderCreatures, renderCreatureDetail,
     renderReefSimulator, renderFoodChain, renderOceanQuiz,
     selectZone, selectCreatureById, filterCreatures, updateReefParam,
     answerOceanQuiz, switchOceanTab, init,
-    getState: () => ({ activeZone, selectedCreature, activeOceanTab, reefHealth, reefTemp, reefPh, reefSalinity, reefLight, oceanQuizScore, oceanQuizStreak, oceanQuizTotal, currentOceanQuiz, creatureFilter, diveDepth, diveTarget, diveActive, underwaterTime }),
+    getState: () => ({ activeZone, selectedCreature, activeOceanTab, reefHealth, reefTemp, reefPh, reefSalinity, reefLight, oceanQuizScore, oceanQuizStreak, oceanQuizTotal, currentOceanQuiz, creatureFilter, diveDepth, diveTarget, diveActive, underwaterTime, overfishing, pollution, isNightMode, oceanCurrentStrength }),
     setState: (s) => {
       if (s.activeZone !== undefined) activeZone = s.activeZone;
       if (s.selectedCreature !== undefined) selectedCreature = s.selectedCreature;
@@ -850,9 +926,13 @@ function setDiveDepth(depth) {
       if (s.reefLight !== undefined) reefLight = s.reefLight;
       if (s.creatureFilter !== undefined) creatureFilter = s.creatureFilter;
       if (s.diveDepth !== undefined) { diveDepth = s.diveDepth; diveTarget = s.diveDepth; }
+      if (s.overfishing !== undefined) overfishing = s.overfishing;
+      if (s.pollution !== undefined) pollution = s.pollution;
+      if (s.isNightMode !== undefined) isNightMode = s.isNightMode;
+      if (s.oceanCurrentStrength !== undefined) oceanCurrentStrength = s.oceanCurrentStrength;
     },
     _resetQuiz: () => { oceanQuizScore = 0; oceanQuizStreak = 0; oceanQuizTotal = 0; currentOceanQuiz = null; },
-    _resetUnderwater: () => { swimCreatures = []; bubbles = []; underwaterTime = 0; diveDepth = 0; diveTarget = 0; diveActive = false; },
+    _resetUnderwater: () => { swimCreatures = []; bubbles = []; underwaterTime = 0; diveDepth = 0; diveTarget = 0; diveActive = false; overfishing = false; pollution = 0; isNightMode = false; },
     _getSwimCreatures: () => swimCreatures,
     _getBubbles: () => bubbles
   };

@@ -51,6 +51,22 @@
  let missionElapsed = 0;
  let activeView = 'planner';
 
+// --- Failure Simulation ---
+ let failureEnabled = false;
+ let failureTriggered = false;
+ let failureType = null; // 'stage_sep', 'engine_out', 'comms_lost'
+ const FAILURE_TYPES = [
+   { id: 'stage_sep', name: 'Stage Separation Failure', emoji: '🔩', chance: 0.15, description: 'Explosive bolts failed — stages did not separate' },
+   { id: 'engine_out', name: 'Engine Flameout', emoji: '🔥', chance: 0.10, description: 'Main engine shutdown — loss of thrust' },
+   { id: 'comms_lost', name: 'Communications Lost', emoji: '📡', chance: 0.08, description: 'Signal lost — telemetry unavailable' }
+ ];
+
+// --- Replay System ---
+ let replaySnapshots = [];
+ let replayPlaying = false;
+ let replayIndex = 0;
+ let replayAnimId = null;
+
 // --- Pure Logic ---
 
  function getDestinationById(id) {
@@ -415,7 +431,7 @@
 
 // ===== VISUAL ROCKET LAUNCH CANVAS =====
 let rocketLaunchAnimId = null;
-let rocketLaunchState = { phase: 'idle', y: 0, vy: 0, altitude: 0, stagesDropped: 0, particles: [], stars: [], planetSize: 0, time: 0 };
+let rocketLaunchState = { phase: 'idle', y: 0, vy: 0, altitude: 0, stagesDropped: 0, particles: [], stars: [], planetSize: 0, time: 0, parachuteDeployed: false, dustParticles: [], failureActive: false, tumbleAngle: 0 };
 const LAUNCH_PHASES = ['countdown', 'liftoff', 'stage1_sep', 'space_transit', 'approach', 'orbit', 'landing', 'complete'];
 
 function getLaunchPhaseIndex(phase) {
@@ -428,7 +444,10 @@ function getLaunchPhaseName(phase) {
 }
 
 function initLaunchCanvas() {
-  rocketLaunchState = { phase: 'idle', y: 0, vy: 0, altitude: 0, stagesDropped: 0, particles: [], stars: [], planetSize: 2, time: 0 };
+  rocketLaunchState = { phase: 'idle', y: 0, vy: 0, altitude: 0, stagesDropped: 0, particles: [], stars: [], planetSize: 2, time: 0, parachuteDeployed: false, dustParticles: [], failureActive: false, tumbleAngle: 0 };
+  failureTriggered = false;
+  failureType = null;
+  replaySnapshots = [];
   // Generate stars
   for (let i = 0; i < 100; i++) {
     rocketLaunchState.stars.push({ x: Math.random() * 600, y: Math.random() * 500, r: Math.random() * 1.5 + 0.3 });
@@ -448,13 +467,45 @@ function rocketLaunchTick() {
   const s = rocketLaunchState;
   s.time++;
 
+  // Record replay snapshot every 5 frames
+  if (s.time % 5 === 0 && !replayPlaying) {
+    replaySnapshots.push(JSON.parse(JSON.stringify({ phase: s.phase, y: s.y, altitude: s.altitude, planetSize: s.planetSize, time: s.time, stagesDropped: s.stagesDropped, failureActive: s.failureActive, tumbleAngle: s.tumbleAngle, parachuteDeployed: s.parachuteDeployed })));
+    if (replaySnapshots.length > 600) replaySnapshots.shift();
+  }
+
+  // Failure check during critical phases
+  if (failureEnabled && !failureTriggered && !s.failureActive) {
+    if (s.phase === 'stage1_sep' && s.time === 1 && Math.random() < 0.3) {
+      s.failureActive = true;
+      failureTriggered = true;
+      failureType = FAILURE_TYPES[Math.floor(Math.random() * FAILURE_TYPES.length)];
+    }
+  }
+
+  // If failure is active, show failure sequence
+  if (s.failureActive) {
+    s.tumbleAngle += 0.05;
+    s.vy = Math.max(s.vy - 0.02, -1);
+    s.y += 0.5;
+    s.altitude = Math.max(0, s.altitude - 0.5);
+    // Explosion particles
+    for (let i = 0; i < 8; i++) {
+      s.particles.push({ x: 300 + (Math.random() - 0.5) * 40, y: s.y + (Math.random() - 0.5) * 30, vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5, life: 25, color: Math.random() > 0.3 ? '#ef4444' : '#f59e0b' });
+    }
+    if (s.time > 180) { s.phase = 'complete'; }
+    s.particles = s.particles.filter(p => { p.x += p.vx; p.y += p.vy; p.life--; return p.life > 0; });
+    if (typeof document !== 'undefined') drawRocketLaunch(document.getElementById('rocket-launch-canvas'));
+    if (s.phase !== 'complete') rocketLaunchAnimId = requestAnimationFrame(rocketLaunchTick);
+    return;
+  }
+
   // Phase transitions
   if (s.phase === 'countdown' && s.time > 180) { s.phase = 'liftoff'; s.time = 0; }
   else if (s.phase === 'liftoff' && s.altitude > 100) { s.phase = 'stage1_sep'; s.time = 0; s.stagesDropped = 1; }
   else if (s.phase === 'stage1_sep' && s.time > 90) { s.phase = 'space_transit'; s.time = 0; }
   else if (s.phase === 'space_transit' && s.time > 200) { s.phase = 'approach'; s.time = 0; }
   else if (s.phase === 'approach' && s.planetSize > 80) { s.phase = 'orbit'; s.time = 0; }
-  else if (s.phase === 'orbit' && s.time > 150) { s.phase = 'landing'; s.time = 0; }
+  else if (s.phase === 'orbit' && s.time > 150) { s.phase = 'landing'; s.time = 0; s.parachuteDeployed = false; }
   else if (s.phase === 'landing' && s.time > 120) { s.phase = 'complete'; s.time = 0; }
 
   // Physics
@@ -466,25 +517,41 @@ function rocketLaunchTick() {
   if (s.phase === 'space_transit') { s.altitude += 2; }
   if (s.phase === 'approach') { s.planetSize += 0.5; }
   if (s.phase === 'orbit') { /* orbiting */ }
-  if (s.phase === 'landing') { s.y += 1; s.altitude = Math.max(0, s.altitude - 2); }
+  if (s.phase === 'landing') {
+    // Deploy parachute at start of landing
+    if (s.time === 20) s.parachuteDeployed = true;
+    s.y += s.parachuteDeployed ? 0.6 : 1.2;
+    s.altitude = Math.max(0, s.altitude - 2);
+  }
 
-  // Fire and smoke particles
+  // Fire and smoke particles (enhanced with more variation)
   if (s.phase === 'liftoff' || s.phase === 'stage1_sep') {
-    for (let i = 0; i < 5; i++) {
-      s.particles.push({ x: 300 + (Math.random() - 0.5) * 12, y: s.y + 30, vx: (Math.random() - 0.5) * 2.5, vy: Math.random() * 3 + 1.5, life: 30, color: Math.random() > 0.5 ? '#f59e0b' : '#ef4444' });
+    for (let i = 0; i < 7; i++) {
+      const intensity = s.phase === 'liftoff' ? 1 : 0.7;
+      s.particles.push({ x: 300 + (Math.random() - 0.5) * 14, y: s.y + 30, vx: (Math.random() - 0.5) * 3, vy: Math.random() * 4 + 1.5, life: 35, color: Math.random() > 0.4 ? '#f59e0b' : Math.random() > 0.5 ? '#ef4444' : '#fef3c7' });
     }
-    // Smoke
-    if (s.time % 3 === 0) {
-      s.particles.push({ x: 300 + (Math.random() - 0.5) * 20, y: s.y + 35, vx: (Math.random() - 0.5) * 3, vy: Math.random() * 2 + 0.5, life: 40, color: '#888' });
+    // Dense smoke trail
+    if (s.time % 2 === 0) {
+      s.particles.push({ x: 300 + (Math.random() - 0.5) * 25, y: s.y + 38, vx: (Math.random() - 0.5) * 4, vy: Math.random() * 2 + 0.3, life: 50, color: '#888' });
+      s.particles.push({ x: 300 + (Math.random() - 0.5) * 15, y: s.y + 35, vx: (Math.random() - 0.5) * 2, vy: Math.random() * 1.5 + 0.5, life: 45, color: '#aaa' });
     }
   }
-  // Landing retro-rocket particles
+  // Landing retro-rocket particles + dust
   if (s.phase === 'landing') {
-    for (let i = 0; i < 2; i++) {
-      const ry = Math.min(420, 200 + s.time * 1.5);
+    const ry = Math.min(420, 200 + s.time * 1.5);
+    // Retro-burn
+    for (let i = 0; i < 3; i++) {
       s.particles.push({ x: 300 + (Math.random() - 0.5) * 8, y: ry - 30, vx: (Math.random() - 0.5) * 1.5, vy: -(Math.random() * 2 + 0.5), life: 20, color: '#f59e0b' });
     }
+    // Dust particles kicked up from surface on approach
+    if (s.time > 60) {
+      for (let i = 0; i < 4; i++) {
+        s.dustParticles.push({ x: 300 + (Math.random() - 0.5) * 80, y: 420 + Math.random() * 5, vx: (Math.random() - 0.5) * 4, vy: -(Math.random() * 2 + 0.3), life: 40, size: 2 + Math.random() * 4 });
+      }
+    }
   }
+  // Update dust particles
+  s.dustParticles = (s.dustParticles || []).filter(p => { p.x += p.vx; p.y += p.vy; p.vy += 0.03; p.life--; return p.life > 0; });
   s.particles = s.particles.filter(p => { p.x += p.vx; p.y += p.vy; p.life--; return p.life > 0; });
 
   if (typeof document !== 'undefined') drawRocketLaunch(document.getElementById('rocket-launch-canvas'));
@@ -569,9 +636,9 @@ function drawRocketLaunch(canvas) {
 
   // Fire, smoke & exhaust particles
   s.particles.forEach(p => {
-    const alpha = p.life / 30;
-    const radius = 3 + (30 - p.life) * 0.3;
-    if (p.color === '#888') {
+    const alpha = Math.max(0, p.life / 50); // Ensure alpha doesn't go above 1 due to p.life > 30 originally expected
+    const radius = Math.max(0.5, 3 + (40 - p.life) * 0.4);
+    if (p.color === '#888' || p.color === '#aaa') {
       // Smoke
       ctx.fillStyle = `rgba(150,150,150,${(alpha * 0.4).toFixed(2)})`;
     } else {
@@ -609,6 +676,15 @@ function drawRocketLaunch(canvas) {
     }
   }
 
+  // Dust particles on landing surface
+  if (s.phase === 'landing' || s.phase === 'complete') {
+    (s.dustParticles || []).forEach(dp => {
+      const alpha = dp.life / 40;
+      ctx.fillStyle = `rgba(180,160,120,${(alpha * 0.5).toFixed(2)})`;
+      ctx.beginPath(); ctx.arc(dp.x, dp.y, dp.size, 0, Math.PI * 2); ctx.fill();
+    });
+  }
+
   // ROCKET — detailed multi-stage
   if (s.phase !== 'idle' && s.phase !== 'complete') {
     const rx = s.phase === 'orbit' ? w / 2 + Math.cos(s.time * 0.03) * 80 : 300;
@@ -617,11 +693,34 @@ function drawRocketLaunch(canvas) {
                s.phase === 'landing' ? Math.min(h - 80, 200 + s.time * 1.5) : Math.max(50, s.y);
     const rScale = s.phase === 'orbit' ? 0.7 : 1;
 
-    ctx.save(); ctx.translate(rx, ry); ctx.scale(rScale, rScale);
+    ctx.save(); ctx.translate(rx, ry);
+    // Apply tumble rotation during failure
+    if (s.failureActive) ctx.rotate(s.tumbleAngle);
+    ctx.scale(rScale, rScale);
+
+    // Parachute (during landing phase)
+    if (s.parachuteDeployed && s.phase === 'landing') {
+      ctx.save();
+      const chuteSway = Math.sin(s.time * 0.08) * 5;
+      // Chute canopy
+      ctx.fillStyle = 'rgba(239,68,68,0.7)';
+      ctx.beginPath();
+      ctx.moveTo(-30 + chuteSway, -60); ctx.quadraticCurveTo(0 + chuteSway, -85, 30 + chuteSway, -60);
+      ctx.lineTo(0, -30); ctx.closePath(); ctx.fill();
+      // White stripes on chute
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.beginPath(); ctx.moveTo(-10 + chuteSway, -60); ctx.quadraticCurveTo(0 + chuteSway, -78, 10 + chuteSway, -60); ctx.lineTo(0, -30); ctx.closePath(); ctx.fill();
+      // Chute lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 0.5;
+      for (let cl = -2; cl <= 2; cl++) {
+        ctx.beginPath(); ctx.moveTo(cl * 12 + chuteSway, -60); ctx.lineTo(0, -25); ctx.stroke();
+      }
+      ctx.restore();
+    }
 
     // Engine glow (during thrust phases)
-    if (s.phase === 'liftoff' || s.phase === 'stage1_sep' || s.phase === 'landing') {
-      const flameLen = s.phase === 'landing' ? 15 : 25 + Math.random() * 10;
+    if ((s.phase === 'liftoff' || s.phase === 'stage1_sep' || s.phase === 'landing') && !s.failureActive) {
+      const flameLen = s.phase === 'landing' ? (s.parachuteDeployed ? 8 : 15) : 25 + Math.random() * 10;
       const flameGrad = ctx.createLinearGradient(0, 20, 0, 20 + flameLen);
       flameGrad.addColorStop(0, '#fef3c7'); flameGrad.addColorStop(0.3, '#f59e0b'); flameGrad.addColorStop(0.7, '#ef4444'); flameGrad.addColorStop(1, 'transparent');
       ctx.fillStyle = flameGrad;
@@ -738,13 +837,30 @@ function drawRocketLaunch(canvas) {
     ctx.fillText(count > 0 ? count.toString() : 'GO!', w / 2, h / 2);
   }
 
+  // Failure indicator
+  if (s.failureActive) {
+    ctx.fillStyle = simTime % 10 < 5 ? '#ef4444' : 'transparent';
+    ctx.font = 'bold 20px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(`⚠️ ${failureType ? failureType.name : 'ANOMALY DETECTED'}`, w / 2, h / 2 - 10);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '12px system-ui';
+    ctx.fillText(failureType ? failureType.description : 'Mission compromised', w / 2, h / 2 + 15);
+  }
+
   // Complete
   if (s.phase === 'complete') {
-    ctx.fillStyle = '#22c55e';
-    ctx.font = 'bold 24px system-ui';
-    ctx.fillText('🎉 Mission Successful!', w / 2, h / 2 - 20);
-    ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '14px system-ui';
-    ctx.fillText('All systems nominal. Crew safe.', w / 2, h / 2 + 15);
+    if (s.failureActive) {
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 24px system-ui';
+      ctx.fillText('💥 Mission Failed', w / 2, h / 2 - 20);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '14px system-ui';
+      ctx.fillText(failureType ? failureType.description : 'Anomaly during flight.', w / 2, h / 2 + 15);
+    } else {
+      ctx.fillStyle = '#22c55e';
+      ctx.font = 'bold 24px system-ui';
+      ctx.fillText('🎉 Mission Successful!', w / 2, h / 2 - 20);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.font = '14px system-ui';
+      ctx.fillText('All systems nominal. Crew safe.', w / 2, h / 2 + 15);
+    }
   }
 }
 
@@ -754,10 +870,52 @@ function stopVisualLaunch() {
   rocketLaunchState.phase = 'idle';
 }
 
+// --- Failure Simulation API ---
+function toggleFailureMode() {
+  failureEnabled = !failureEnabled;
+  if (typeof document !== 'undefined') {
+    const btn = document.getElementById('failure-toggle-btn');
+    if (btn) { btn.textContent = failureEnabled ? '⚠️ Failures ON' : '✅ Failures OFF'; btn.classList.toggle('active', failureEnabled); }
+  }
+}
+
+function getFailureState() {
+  return { enabled: failureEnabled, triggered: failureTriggered, type: failureType, types: FAILURE_TYPES };
+}
+
+// --- Replay System API ---
+function getReplaySnapshots() { return [...replaySnapshots]; }
+
+function startReplay() {
+  if (replaySnapshots.length === 0) return;
+  replayPlaying = true;
+  replayIndex = 0;
+  if (replayAnimId) cancelAnimationFrame(replayAnimId);
+  replayTick();
+}
+
+function stopReplay() {
+  replayPlaying = false;
+  if (replayAnimId) cancelAnimationFrame(replayAnimId);
+  replayAnimId = null;
+}
+
+function replayTick() {
+  if (!replayPlaying || replayIndex >= replaySnapshots.length) {
+    replayPlaying = false;
+    return;
+  }
+  const snap = replaySnapshots[replayIndex];
+  Object.assign(rocketLaunchState, snap);
+  if (typeof document !== 'undefined') drawRocketLaunch(document.getElementById('rocket-launch-canvas'));
+  replayIndex++;
+  replayAnimId = requestAnimationFrame(replayTick);
+}
+
 // --- Exports ---
  if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    DESTINATIONS, ROCKETS, HISTORICAL_MISSIONS, LAUNCH_PHASES,
+    DESTINATIONS, ROCKETS, HISTORICAL_MISSIONS, LAUNCH_PHASES, FAILURE_TYPES,
     getDestinationById, getRocketById, calculateTravelTime, calculateFuelNeeded,
     calculateDeltaV, formatDistance, formatMass, formatDuration, getLightTravelTime,
     getMissionReadiness, getMissionSummary,
@@ -766,7 +924,9 @@ function stopVisualLaunch() {
     renderDestinations, renderRockets, renderMissionPanel, renderLaunchView, renderHistory, renderLog,
     selectDestination, selectRocket, updatePayload, updateCrew, updateMissionName,
     startLaunch, resetLaunch, addMissionLog, switchView, init,
-    getState: () => ({ selectedDestination, selectedRocket, payloadKg, crewSize, missionName, missionLog, launchPhase, countdownValue, missionElapsed, activeView, rocketLaunchState }),
+    toggleFailureMode, getFailureState,
+    startReplay, stopReplay, getReplaySnapshots,
+    getState: () => ({ selectedDestination, selectedRocket, payloadKg, crewSize, missionName, missionLog, launchPhase, countdownValue, missionElapsed, activeView, rocketLaunchState, failureEnabled, failureTriggered, failureType, replaySnapshots: replaySnapshots.length }),
     setState: (s) => {
       if (s.selectedDestination !== undefined) selectedDestination = s.selectedDestination;
       if (s.selectedRocket !== undefined) selectedRocket = s.selectedRocket;
@@ -775,10 +935,12 @@ function stopVisualLaunch() {
       if (s.missionName !== undefined) missionName = s.missionName;
       if (s.launchPhase !== undefined) launchPhase = s.launchPhase;
       if (s.activeView !== undefined) activeView = s.activeView;
+      if (s.failureEnabled !== undefined) failureEnabled = s.failureEnabled;
     },
-    _resetMission: () => { selectedDestination = null; selectedRocket = null; payloadKg = 5000; crewSize = 0; launchPhase = null; missionElapsed = 0; missionLog = []; },
+    _resetMission: () => { selectedDestination = null; selectedRocket = null; payloadKg = 5000; crewSize = 0; launchPhase = null; missionElapsed = 0; missionLog = []; failureTriggered = false; failureType = null; replaySnapshots = []; },
     _clearTimer: () => { if (launchTimer) clearInterval(launchTimer); launchTimer = null; },
     _stopVisualLaunch: stopVisualLaunch,
+    _stopReplay: stopReplay,
     _getRocketLaunchState: () => rocketLaunchState,
     _setRocketLaunchState: (s) => { Object.assign(rocketLaunchState, s); }
   };

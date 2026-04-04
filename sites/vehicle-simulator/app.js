@@ -12,6 +12,24 @@ let simAnimId = null;
 let simTime = 0;
 let keyState = {};
 
+// --- Achievement System ---
+const ACHIEVEMENTS = [
+  { id: 'altitude_king', name: 'Altitude King', emoji: '👑', desc: 'Reach 10,000ft altitude in Flight', check: (s) => s.fl.alt >= 10000 },
+  { id: 'mach_speed', name: 'Mach Speed', emoji: '💨', desc: 'Exceed 700 knots in Flight', check: (s) => s.fl.speed >= 700 },
+  { id: 'perfect_landing', name: 'Perfect Landing', emoji: '🎯', desc: 'Score a precision heli landing', check: (s) => s.he.score >= 1 },
+  { id: 'storm_sailor', name: 'Storm Sailor', emoji: '⛈️', desc: 'Navigate in storm weather', check: (s) => s.ws.weather === 'storm' && s.ws.speed > 5 },
+  { id: 'sharpshooter', name: 'Sharpshooter', emoji: '🎖️', desc: 'Hit 3 targets in Tank', check: (s) => s.tk.score >= 3 },
+  { id: 'deep_diver', name: 'Deep Diver', emoji: '🤿', desc: 'Reach 500m depth in Sub', check: (s) => s.sb.depth >= 500 },
+  { id: 'silent_ops', name: 'Silent Ops', emoji: '🤫', desc: 'Use silent running in Sub', check: (s) => s.sb.silent },
+  { id: 'fuel_saver', name: 'Fuel Saver', emoji: '⛽', desc: 'Fly below 20% fuel in Flight', check: (s) => s.fl.fuel < 20 && s.fl.speed > 100 },
+  { id: 'night_flyer', name: 'Night Flyer', emoji: '🌙', desc: 'Fly at night in Flight', check: (s) => s.fl.night && s.fl.speed > 50 },
+  { id: 'multi_sim', name: 'Explorer', emoji: '🌟', desc: 'Try all 5 simulators', check: () => achievedSims.size >= 5 }
+];
+let unlockedAchievements = new Set();
+let achievedSims = new Set();
+let achievementToast = null;
+let achievementToastTimer = 0;
+
 // --- Flight State ---
 let fl = { throttle:50, pitch:0, roll:0, alt:3000, speed:250, heading:90, vspeed:0, fuel:100, gear:false, night:false, gForce:1, stallWarn:false, x:400, y:250 };
 // --- Helicopter State ---
@@ -556,6 +574,56 @@ function updateSubHUD(){const el=document.getElementById('s-hud');if(el)el.textC
 // CONTROLS
 // ============================================================
 function updateFlightCtrl(p,v){v=parseFloat(v);if(p==='throttle'){fl.throttle=v;const el=document.getElementById('f-throttle-v');if(el)el.textContent=v+'%';}if(p==='pitch'){fl.pitch=v;const el=document.getElementById('f-pitch-v');if(el)el.textContent=v+'°';}if(p==='roll'){fl.roll=v;const el=document.getElementById('f-roll-v');if(el)el.textContent=v+'°';}}
+// Check achievements during sim tick
+function checkAchievements() {
+  const state = { fl: { ...fl }, he: { ...he }, ws: { ...ws }, tk: { ...tk }, sb: { ...sb } };
+  achievedSims.add(activeSim);
+  ACHIEVEMENTS.forEach(a => {
+    if (!unlockedAchievements.has(a.id) && a.check(state)) {
+      unlockedAchievements.add(a.id);
+      achievementToast = a;
+      achievementToastTimer = 180; // 3 seconds at 60fps
+      if (typeof document !== 'undefined') renderAchievements();
+    }
+  });
+}
+
+function getAchievements() {
+  return ACHIEVEMENTS.map(a => ({ ...a, unlocked: unlockedAchievements.has(a.id) }));
+}
+
+function renderAchievements() {
+  if (typeof document === 'undefined') return;
+  const el = document.getElementById('achievements-panel');
+  if (!el) return;
+  el.innerHTML = ACHIEVEMENTS.map(a => {
+    const unlocked = unlockedAchievements.has(a.id);
+    return `<div class="achievement-card ${unlocked ? 'unlocked' : 'locked'}">
+      <span class="ach-emoji">${unlocked ? a.emoji : '🔒'}</span>
+      <span class="ach-name">${a.name}</span>
+      <span class="ach-desc">${a.desc}</span>
+    </div>`;
+  }).join('');
+}
+
+// Draw achievement toast on canvas
+function drawAchievementToast(ctx, w, h) {
+  if (!achievementToast || achievementToastTimer <= 0) return;
+  achievementToastTimer--;
+  const alpha = Math.min(1, achievementToastTimer / 30);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = 'rgba(16,24,40,0.9)';
+  ctx.beginPath(); ctx.roundRect(w / 2 - 120, 10, 240, 50, 10); ctx.fill();
+  ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.roundRect(w / 2 - 120, 10, 240, 50, 10); ctx.stroke();
+  ctx.fillStyle = '#f59e0b'; ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText(`${achievementToast.emoji} Achievement Unlocked!`, w / 2, 32);
+  ctx.fillStyle = '#ffffff'; ctx.font = '11px system-ui';
+  ctx.fillText(achievementToast.name, w / 2, 50);
+  ctx.restore();
+}
+
 function toggleFlightTime(){fl.night=!fl.night;}
 function toggleGear(){fl.gear=!fl.gear;}
 
@@ -613,13 +681,15 @@ if(typeof document!=='undefined'){document.addEventListener('DOMContentLoaded',i
 if(typeof module!=='undefined'&&module.exports){
   module.exports={
     clamp,lerp,degToRad,radToDeg,dist,
+    ACHIEVEMENTS,
     getFlightPhysics,getHeliPhysics,getSubPhysics,getTankBallistic,
     drawFlight,drawHeli,drawWarship,drawTank,drawSub,
     updateFlightCtrl,toggleFlightTime,toggleGear,
     updateHeliCtrl,updateWarshipCtrl,toggleRadar,toggleWeather,
     updateTankCtrl,fireTank,updateSubCtrl,toggleSonar,toggleSilent,
+    checkAchievements,getAchievements,renderAchievements,drawAchievementToast,
     switchSim,init,
-    getState:()=>({activeSim,simTime,fl:{...fl},he:{...he},ws:{...ws},tk:{...tk},sb:{...sb}}),
+    getState:()=>({activeSim,simTime,fl:{...fl},he:{...he},ws:{...ws},tk:{...tk},sb:{...sb},achievements:[...unlockedAchievements],achievedSims:[...achievedSims]}),
     setState:(s)=>{
       if(s.fl)Object.assign(fl,s.fl);if(s.he)Object.assign(he,s.he);
       if(s.ws)Object.assign(ws,s.ws);if(s.tk)Object.assign(tk,s.tk);
@@ -633,6 +703,10 @@ if(typeof module!=='undefined'&&module.exports){
       tk={drive:0,turret:0,gun:5,speed:0,x:150,y:350,turretAngle:0,ammo:20,score:0,shells:[],targets:[],recoilTimer:0};
       sb={ballast:50,engine:0,planes:0,depth:50,speed:0,x:200,y:250,heading:90,hull:100,sonarPings:[],silent:false,contacts:[]};
       simTime=0;
+      unlockedAchievements=new Set();
+      achievedSims=new Set();
+      achievementToast=null;
+      achievementToastTimer=0;
     }
   };
 }

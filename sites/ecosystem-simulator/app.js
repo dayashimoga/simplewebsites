@@ -800,6 +800,49 @@ if (typeof document !== 'undefined') {
   document.addEventListener('DOMContentLoaded', init);
 }
 
+// --- Scenario Export/Import ---
+function exportScenario() {
+  const scenario = {
+    version: 1,
+    timestamp: new Date().toISOString(),
+    creatures: creatures.map(c => ({ species: c.species, x: c.x, y: c.y, energy: c.energy })),
+    climate: { temp: climateTemp, rainfall: climateRainfall, co2: climateCO2, seaLevel: climateSeaLevel },
+    populationHistory,
+    ecoTime,
+    ecoSpeed
+  };
+  const json = JSON.stringify(scenario, null, 2);
+  if (typeof document !== 'undefined') {
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `ecosystem-${Date.now()}.json`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+  return json;
+}
+
+function importScenario(jsonStr) {
+  try {
+    const data = JSON.parse(jsonStr);
+    if (!data.version || !data.creatures) return false;
+    creatures = [];
+    (data.creatures || []).forEach(c => {
+      const sp = getSpeciesById(c.species);
+      if (sp) creatures.push(createCreature(c.species, c.x, c.y));
+    });
+    if (data.climate) {
+      climateTemp = data.climate.temp || 15;
+      climateRainfall = data.climate.rainfall || 800;
+      climateCO2 = data.climate.co2 || 400;
+      climateSeaLevel = data.climate.seaLevel || 0;
+    }
+    if (data.ecoTime) ecoTime = data.ecoTime;
+    if (data.ecoSpeed) ecoSpeed = data.ecoSpeed;
+    return true;
+  } catch (e) { return false; }
+}
+
 // --- Exports ---
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
@@ -812,7 +855,8 @@ if (typeof module !== 'undefined' && module.exports) {
     toggleEcoSim, setEcoSpeed, addCreatures, resetEcosystem,
     crossOrganisms, renderGeneticsResults, renderPunnettSquare,
     updateClimate, renderClimateDisplay, renderFoodWeb, highlightFoodWeb,
-    renderEcoQuiz, answerEcoQuiz, updateLV, switchEcoTab, renderPopStats, renderEventsLog, addEcoEvent, init,
+    renderEcoQuiz, answerEcoQuiz, updateLV, switchEcoTab, renderPopStats, renderEventsLog, addEcoEvent,
+    exportScenario, importScenario, init,
     getState: () => ({ creatures, ecoPlaying, ecoSpeed, ecoTime, populationHistory, ecoEvents, activeEcoTab, climateTemp, climateRainfall, climateCO2, climateSeaLevel, lastCrossResult, ecoQuizScore, ecoQuizStreak, currentEcoQuiz, lvPreyGrowth, lvPredation, lvPredDeath, lvEfficiency }),
     setState: (s) => {
       if (s.ecoPlaying !== undefined) ecoPlaying = s.ecoPlaying;
